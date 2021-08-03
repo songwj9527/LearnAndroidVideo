@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/btn_media_codec"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Media_Codec_Player"
+                android:layout_marginTop="20dp"/>
+
+            <Button
+                android:id="@+id/btn_simple_opengl_render"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Simple_OpenGL_Render"
+                android:layout_marginTop="10dp"/>
+
+            <Button
+                android:id="@+id/btn_opengl_player"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="OpenGL_Player"
+                android:layout_marginTop="10dp"/>
+
+            <Button
+                android:id="@+id/btn_mult_opengl_player"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Mult_OpenGL_Player"
+                android:layout_marginTop="10dp"/>
+
+            <Button
+                android:id="@+id/btn_egl_player"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="EGL_SurfaceView_Player"
+                android:layout_marginTop="10dp"/>
+
+            <Button
+                android:id="@+id/btn_egl_player_texture"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="EGL_TextureView_Player"
+                android:layout_marginTop="10dp"/>
+
+            <Button
+                android:id="@+id/btn_fbo_player"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="FBO_Player"
+                android:layout_marginTop="10dp"/>
+
+            <Button
+                android:id="@+id/btn_media_codec_repack"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Media_CodecRepack"
+                android:layout_marginTop="10dp"/>
+
+            <Button
+                android:id="@+id/btn_native_ffmpeg_player"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="FFmpeg_Player"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"/>
+
+            <Button
+                android:id="@+id/btn_native_ffmpeg_egl_player"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="FFmpeg_EGL_Player"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"/>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</FrameLayout>
