@@ -16,13 +16,6 @@ public class NativePlayer {
         OPENGL_PLAYER
     }
 
-    /*******************************************************
-     * native部分
-     *******************************************************/
-    static{
-        System.loadLibrary("native-lib");
-    }
-
     public native String ffmpegInfo();
     public native void videoTypeTransform(String srcFilePath, String destFilePath);
 

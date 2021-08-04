@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.songwj.openvideo">
 
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -17,7 +18,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:requestLegacyExternalStorage="true"> // android 10需要添加该参数，否则访问外部存储权限可能无效
 
         <activity
             android:name=".MainActivity"
@@ -71,6 +73,10 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".FFmpegEGLPlayerActivity"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".FFmpegRepackActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait" />
     </application>

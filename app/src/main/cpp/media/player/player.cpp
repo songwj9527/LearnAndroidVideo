@@ -17,7 +17,7 @@ Player::Player(JNIEnv *jniEnv, jobject object) {
 Player::~Player() {
     // 此处不需要 delete 成员指针
     // 在BaseDecoder中的线程已经使用智能指针，会自动释放
-    LOGE(TAG, "%s", "~MediaPlayer");
+    LOGE(TAG, "%s", "~Player");
     release();
 }
 

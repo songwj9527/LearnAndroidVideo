@@ -101,8 +101,6 @@ add_library(
         # 渲染器
         ${CMAKE_SOURCE_DIR}/media/render/cache_frame.h
         ${CMAKE_SOURCE_DIR}/media/render/cache_frame.cpp
-        ${CMAKE_SOURCE_DIR}/media/render/cache_av_frame.h
-        ${CMAKE_SOURCE_DIR}/media/render/cache_av_frame.cpp
         ${CMAKE_SOURCE_DIR}/media/render/base_render.h
         ${CMAKE_SOURCE_DIR}/media/render/base_render.cpp
         ${CMAKE_SOURCE_DIR}/media/render/video/base_video_render.h
@@ -137,6 +135,10 @@ add_library(
         ${CMAKE_SOURCE_DIR}/media/opengl/drawer/proxy/drawer_proxy.cpp
         ${CMAKE_SOURCE_DIR}/media/opengl/drawer/proxy/def_drawer_proxy_impl.h
         ${CMAKE_SOURCE_DIR}/media/opengl/drawer/proxy/def_drawer_proxy_impl.cpp
+
+        # 重新打包器
+        ${CMAKE_SOURCE_DIR}/media/muxer/ff_repack.h
+        ${CMAKE_SOURCE_DIR}/media/muxer/ff_repack.cpp
 )
 
 # 查找代码中使用到的系统库

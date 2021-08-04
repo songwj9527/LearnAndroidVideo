@@ -4,6 +4,7 @@
 #include "./utils/logger.h"
 #include "media/player/default_player/media_player.h"
 #include "media/player/opengl_player/opengl_player.h"
+#include "media/muxer/ff_repack.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -347,6 +348,8 @@ JNIEXPORT void JNICALL nativeRelease(JNIEnv *env, jobject obj, jint player) {
         return;
     }
     mediaPlayer->release();
+    av_usleep(50000);
+    delete mediaPlayer;
 }
 
 JNIEXPORT jlong JNICALL nativeGetDuration(JNIEnv *env, jobject obj, jint player) {
@@ -402,7 +405,29 @@ JNIEXPORT jint JNICALL nativeCreateGLPlayer(JNIEnv *env, jobject obj) {
     return (jint) mediaPlayer;
 }
 
-static const JNINativeMethod gMethods[] = {
+JNIEXPORT jint JNICALL nativeCreateRepack(JNIEnv *env, jobject obj, jstring srcPath, jstring destPath) {
+    FFRepack *ffRepack = new FFRepack(env, srcPath, destPath);
+    return (jint) ffRepack;
+}
+
+JNIEXPORT void JNICALL nativeStartRepack(JNIEnv *env, jobject obj, jint repack) {
+    FFRepack *ffRepack = (FFRepack *) repack;
+    if (ffRepack == NULL) {
+        return;
+    }
+    ffRepack->Start();
+}
+
+JNIEXPORT void JNICALL nativeReleaseRepack(JNIEnv *env, jobject obj, jint repack) {
+    FFRepack *ffRepack = (FFRepack *) repack;
+    if (ffRepack == NULL) {
+        return;
+    }
+    ffRepack->Release();
+    delete ffRepack;
+}
+
+static const JNINativeMethod gMethods_NativePlayer[] = {
         {"ffmpegInfo", "()Ljava/lang/String;", (void *)ffmpegInfo},
         {"videoTypeTransform", "(Ljava/lang/String;Ljava/lang/String;)V", (void *)videoTypeTransform},
 //        {"nativeCreatePlayer", "(Ljava.lang.ref.WeakReference;)I", (void *)nativeCreatePlayer},
@@ -424,8 +449,39 @@ static const JNINativeMethod gMethods[] = {
         {"nativeSetVolumeLevel", "(II)V", (void *)nativeSetVolumeLevel},
         {"nativeCreateGLPlayer", "()I", (void *)nativeCreateGLPlayer},
 };
+#define JNI_CLASS_NATIVE_PLAYER "com/songwj/openvideo/ffmpeg/NativePlayer"
+static int registerNatives_NativePlayer(JNIEnv *env) {
+    //获取对应声明native方法的Java类
+    jclass clazz = env->FindClass(JNI_CLASS_NATIVE_PLAYER);
+    if (clazz == NULL) {
+        return JNI_FALSE;
+    }
+    //注册方法，成功返回正确的JNIVERSION。
+    if (env->RegisterNatives(clazz, gMethods_NativePlayer, sizeof(gMethods_NativePlayer)/ sizeof(gMethods_NativePlayer[0])) != JNI_OK) {
+        return JNI_FALSE;
+    }
+    return JNI_TRUE;
+}
 
-#define JNI_CLASS "com/songwj/openvideo/ffmpeg/NativePlayer"
+static const JNINativeMethod gMethods_NativeRepack[] = {
+        {"nativeCreateRepack", "(Ljava/lang/String;Ljava/lang/String;)I", (void *)nativeCreateRepack},
+        {"nativeStartRepack", "(I)V", (void *)nativeStartRepack},
+        {"nativeReleaseRepack", "(I)V", (void *)nativeReleaseRepack},
+};
+#define JNI_CLASS_NATIVE_REPACK "com/songwj/openvideo/ffmpeg/NativeRepack"
+static int registerNatives_NativeRepack(JNIEnv *env) {
+    //获取对应声明native方法的Java类
+    jclass clazz = env->FindClass(JNI_CLASS_NATIVE_REPACK);
+    if (clazz == NULL) {
+        return JNI_FALSE;
+    }
+    //注册方法，成功返回正确的JNIVERSION。
+    if (env->RegisterNatives(clazz, gMethods_NativeRepack, sizeof(gMethods_NativeRepack)/ sizeof(gMethods_NativeRepack[0])) != JNI_OK) {
+        return JNI_FALSE;
+    }
+    return JNI_TRUE;
+}
+
 JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     //OnLoad方法是没有JNIEnv参数的，需要通过vm获取。
     JNIEnv *env = NULL;
@@ -447,14 +503,13 @@ JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     }
     assert(env != NULL);
 
-    //获取对应声明native方法的Java类
-    jclass  clazz = env->FindClass(JNI_CLASS);
-    if (clazz == NULL) {
+    if (registerNatives_NativePlayer(env) != JNI_TRUE) {
+        LOGE("native-lib", "ERROR: registerNatives NativePlayer failed\n");
         return JNI_FALSE;
     }
-    //注册方法，成功返回正确的JNIVERSION。
-    if (env->RegisterNatives(clazz, gMethods, sizeof(gMethods)/ sizeof(gMethods[0]))==JNI_OK) {
-        return JNI_VERSION_1_4;
+    if (registerNatives_NativeRepack(env) != JNI_TRUE) {
+        LOGE("native-lib", "ERROR: registerNatives NativeRepack failed\n");
+        return JNI_FALSE;
     }
-    return JNI_FALSE;
+    return JNI_VERSION_1_4;
 }

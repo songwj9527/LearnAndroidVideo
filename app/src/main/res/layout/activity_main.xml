@@ -17,8 +17,8 @@
                 android:id="@+id/btn_media_codec"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Media_Codec_Player"
-                android:layout_marginTop="20dp"/>
+                android:layout_marginTop="10dp"
+                android:text="Media_Codec_Player" />
 
             <Button
                 android:id="@+id/btn_simple_opengl_render"
@@ -74,16 +74,21 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="FFmpeg_Player"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp"/>
+                android:layout_marginTop="10dp"/>
 
             <Button
                 android:id="@+id/btn_native_ffmpeg_egl_player"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="FFmpeg_EGL_Player"
                 android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp"/>
+                android:text="FFmpeg_EGL_Player" />
+
+            <Button
+                android:id="@+id/btn_native_ffmpeg_repack"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="FFmpeg_Repack" />
 
         </LinearLayout>
 
