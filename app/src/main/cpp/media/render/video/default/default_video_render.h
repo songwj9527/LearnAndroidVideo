@@ -60,7 +60,7 @@ protected:
     void onStopRun() override;
 
 public:
-    DefaultVideoRender();
+    DefaultVideoRender(bool for_synthesizer);
     ~DefaultVideoRender();
 
     /**

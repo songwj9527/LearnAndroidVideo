@@ -1,0 +1,8 @@
+//
+// Created by fgrid on 2021/8/6.
+//
+
+#ifndef OPENVIDEO_SYNTHESIZER_H
+#define OPENVIDEO_SYNTHESIZER_H
+
+#endif //OPENVIDEO_SYNTHESIZER_H

@@ -6,7 +6,7 @@
 #include "../../player/default_player/media_player.h"
 #include "../../decoder/audio/audio_decoder.h"
 
-AudioRender::AudioRender() : BaseRender() {
+AudioRender::AudioRender(bool for_synthesizer) : BaseRender(for_synthesizer) {
     TAG = "AudioRender";
 }
 
@@ -37,20 +37,18 @@ bool AudioRender::initSwr(JNIEnv *env) {
     // mp3里面所包含的编码格式转换成pcm
     // 声道
     av_opt_set_int(m_swr, "in_channel_layout", codeCtx->channel_layout, 0);
-    av_opt_set_int(m_swr, "out_channel_layout", AUDIO_DEST_CHANNEL_LAYOUT, 0);
+    av_opt_set_int(m_swr, "out_channel_layout", ENCODE_AUDIO_DEST_CHANNEL_LAYOUT, 0);
 
     // 采样率
     av_opt_set_int(m_swr, "in_sample_rate", codeCtx->sample_rate, 0);
 //    av_opt_set_int(m_swr, "out_sample_rate", codeCtx->sample_rate, 0);
-    av_opt_set_int(m_swr, "out_sample_rate", AUDIO_DEST_SAMPLE_RATE, 0);
+//    av_opt_set_int(m_swr, "out_sample_rate", ENCODE_AUDIO_DEST_SAMPLE_RATE, 0);
+    av_opt_set_int(m_swr, "out_sample_rate", getSampleRate(codeCtx->sample_rate), 0);
 
     // 采样位数
     av_opt_set_sample_fmt(m_swr, "in_sample_fmt", codeCtx->sample_fmt, 0);
-    av_opt_set_sample_fmt(m_swr, "out_sample_fmt", AV_SAMPLE_FMT_S16,  0);
-
-//    swr_alloc_set_opts(m_swr, AUDIO_DEST_CHANNEL_LAYOUT, AV_SAMPLE_FMT_S16, codeCtx->sample_rate,
-//                       codeCtx->channel_layout, codeCtx->sample_fmt,  codeCtx->sample_rate, 0,
-//                        NULL);
+//    av_opt_set_sample_fmt(m_swr, "out_sample_fmt", AV_SAMPLE_FMT_S16,  0);
+    av_opt_set_sample_fmt(m_swr, "out_sample_fmt", getSampleFormat(),  0);
 
     swr_init(m_swr);
 
@@ -59,18 +57,27 @@ bool AudioRender::initSwr(JNIEnv *env) {
 
     // 重采样后一个通道采样数
 //    m_dest_nb_sample = (int)av_rescale_rnd(ACC_NB_SAMPLES, codeCtx->sample_rate, codeCtx->sample_rate, AV_ROUND_UP);
-    m_dest_nb_sample = (int)av_rescale_rnd(ACC_NB_SAMPLES, AUDIO_DEST_SAMPLE_RATE, codeCtx->sample_rate, AV_ROUND_UP);
+//    m_dest_nb_sample = (int)av_rescale_rnd(ACC_NB_SAMPLES, ENCODE_AUDIO_DEST_SAMPLE_RATE, codeCtx->sample_rate, AV_ROUND_UP);
+    m_dest_nb_sample = (int)av_rescale_rnd(ACC_NB_SAMPLES, getSampleRate(codeCtx->sample_rate), codeCtx->sample_rate, AV_ROUND_UP);
     // 重采样后一帧数据的大小
     m_dest_data_size = (size_t)av_samples_get_buffer_size(
-            NULL, AUDIO_DEST_CHANNEL_COUNTS,
-            m_dest_nb_sample, AV_SAMPLE_FMT_S16, 1);
-
-    m_out_buffer[0] = (uint8_t *) malloc(m_dest_data_size);
-    if (m_out_buffer[0] == NULL) {
-        onError(env, CREATE_AUDIO_BUFFER_FAILED, "初始化音频转换缓存数组失败");
-        return false;
+            NULL, ENCODE_AUDIO_DEST_CHANNEL_COUNTS,
+            m_dest_nb_sample, getSampleFormat(), 1);
+    m_out_channer_nb = av_get_channel_layout_nb_channels(ENCODE_AUDIO_DEST_CHANNEL_LAYOUT);
+    if (ForSynthesizer()) {
+        m_out_buffer[0] = (uint8_t *) malloc(m_dest_data_size / 2);
+        m_out_buffer[1] = (uint8_t *) malloc(m_dest_data_size / 2);
+        if (m_out_buffer[0] == NULL || m_out_buffer[1] == NULL) {
+            onError(env, CREATE_AUDIO_BUFFER_FAILED, "初始化音频转换缓存数组失败");
+            return false;
+        }
+    } else {
+        m_out_buffer[0] = (uint8_t *) malloc(m_dest_data_size);
+        if (m_out_buffer[0] == NULL) {
+            onError(env, CREATE_AUDIO_BUFFER_FAILED, "初始化音频转换缓存数组失败");
+            return false;
+        }
     }
-    m_out_channer_nb = av_get_channel_layout_nb_channels(AUDIO_DEST_CHANNEL_LAYOUT);
     LOGI(TAG, "out_channer_nb: %d, dest_data_size: %d",
          m_out_channer_nb, m_dest_data_size)
     return true;
@@ -87,5 +94,9 @@ void AudioRender::releaseSwr() {
     if (m_out_buffer[0] != NULL) {
         free(m_out_buffer[0]);
         m_out_buffer[0] = NULL;
+    }
+    if (m_out_buffer[1] != NULL) {
+        free(m_out_buffer[1]);
+        m_out_buffer[1] = NULL;
     }
 }

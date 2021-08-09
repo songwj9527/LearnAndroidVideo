@@ -64,6 +64,14 @@ set_target_properties( avdevice
         PROPERTIES IMPORTED_LOCATION
         ${ffmpeg_lib_dir}/libavdevice.so )
 
+# 4. 添加h264相关的so库
+add_library( h264
+        SHARED
+        IMPORTED)
+set_target_properties( h264
+        PROPERTIES IMPORTED_LOCATION
+        ${ffmpeg_lib_dir}/libh264.so )
+
 # 配置目标so库编译信息
 add_library(
         # 输出so库的名称
@@ -78,6 +86,9 @@ add_library(
         # 工具
         ${CMAKE_SOURCE_DIR}/utils/logger.h
         ${CMAKE_SOURCE_DIR}/utils/timer.c
+        ${CMAKE_SOURCE_DIR}/media/const.h
+        ${CMAKE_SOURCE_DIR}/media/cache_frame.h
+        ${CMAKE_SOURCE_DIR}/media/cache_frame.cpp
 
         # 播放器
         ${CMAKE_SOURCE_DIR}/media/media_codes.h
@@ -90,7 +101,6 @@ add_library(
         ${CMAKE_SOURCE_DIR}/media/player/opengl_player/opengl_player.cpp
 
         # 解码器
-        ${CMAKE_SOURCE_DIR}/media/decoder/const.h
         ${CMAKE_SOURCE_DIR}/media/decoder/base_decoder.h
         ${CMAKE_SOURCE_DIR}/media/decoder/base_decoder.cpp
         ${CMAKE_SOURCE_DIR}/media/decoder/video/video_decoder.h
@@ -99,8 +109,8 @@ add_library(
         ${CMAKE_SOURCE_DIR}/media/decoder/audio/audio_decoder.cpp
 
         # 渲染器
-        ${CMAKE_SOURCE_DIR}/media/render/cache_frame.h
-        ${CMAKE_SOURCE_DIR}/media/render/cache_frame.cpp
+        ${CMAKE_SOURCE_DIR}/media/render/render_frame.h
+        ${CMAKE_SOURCE_DIR}/media/render/render_frame.cpp
         ${CMAKE_SOURCE_DIR}/media/render/base_render.h
         ${CMAKE_SOURCE_DIR}/media/render/base_render.cpp
         ${CMAKE_SOURCE_DIR}/media/render/video/base_video_render.h
@@ -109,6 +119,7 @@ add_library(
         ${CMAKE_SOURCE_DIR}/media/render/video/default/default_video_render.cpp
         ${CMAKE_SOURCE_DIR}/media/render/video/opengl/opengl_render.h
         ${CMAKE_SOURCE_DIR}/media/render/video/opengl/opengl_render.cpp
+        ${CMAKE_SOURCE_DIR}/media/render/video/opengl/opengl_pixel_receiver.h
         ${CMAKE_SOURCE_DIR}/media/render/audio/audio_render.h
         ${CMAKE_SOURCE_DIR}/media/render/audio/audio_render.cpp
         ${CMAKE_SOURCE_DIR}/media/render/audio/opensl_render.h
@@ -139,6 +150,26 @@ add_library(
         # 重新打包器
         ${CMAKE_SOURCE_DIR}/media/muxer/ff_repack.h
         ${CMAKE_SOURCE_DIR}/media/muxer/ff_repack.cpp
+
+        # mp4打包器
+        ${CMAKE_SOURCE_DIR}/media/muxer/i_muxer_cb.h
+        ${CMAKE_SOURCE_DIR}/media/muxer/mp4_muxer.h
+        ${CMAKE_SOURCE_DIR}/media/muxer/mp4_muxer.cpp
+
+        # 编码器
+        ${CMAKE_SOURCE_DIR}/media/encoder/encode_frame.h
+        ${CMAKE_SOURCE_DIR}/media/encoder/i_encode_state_cb.h
+        ${CMAKE_SOURCE_DIR}/media/encoder/i_encoder.h
+        ${CMAKE_SOURCE_DIR}/media/encoder/base_encoder.h
+        ${CMAKE_SOURCE_DIR}/media/encoder/base_encoder.cpp
+        ${CMAKE_SOURCE_DIR}/media/encoder/video/video_encoder.h
+        ${CMAKE_SOURCE_DIR}/media/encoder/video/video_encoder.cpp
+        ${CMAKE_SOURCE_DIR}/media/encoder/audio/audio_encoder.h
+        ${CMAKE_SOURCE_DIR}/media/encoder/audio/audio_encoder.cpp
+
+        # 合成器
+        ${CMAKE_SOURCE_DIR}/media/synthesizer/synthesizer.h
+        ${CMAKE_SOURCE_DIR}/media/synthesizer/synthesizer.cpp
 )
 
 # 查找代码中使用到的系统库
@@ -162,6 +193,9 @@ target_link_libraries(
         swscale
         avformat
         avdevice
+
+        # h264 相关的库
+        h264
 
         # android系统库
         -landroid

@@ -4,7 +4,7 @@
 #include "default_video_render.h"
 #include "../../../decoder/video/video_decoder.h"
 
-DefaultVideoRender::DefaultVideoRender() : BaseVideoRender() {
+DefaultVideoRender::DefaultVideoRender(bool for_synthesizer) : BaseVideoRender(for_synthesizer) {
     TAG = "DefaultVideoRender";
 }
 

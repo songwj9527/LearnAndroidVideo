@@ -371,7 +371,7 @@ void BaseDecoder::decodeFrame(JNIEnv *env, bool isSeeking) {
                         if (!(abs > 80 || abs < -80)) {
                             m_cur_t_s = timestamp;
                             if (render != NULL) {
-                                render->renderFramePush(new CacheFrame(avFrame, timestamp));
+                                render->renderFramePush(new RenderFrame(avFrame, timestamp));
                             } else {
                                 av_frame_free(&avFrame);
                             }
@@ -391,7 +391,7 @@ void BaseDecoder::decodeFrame(JNIEnv *env, bool isSeeking) {
                     } else {
                         m_cur_t_s = timestamp;
                         if (render != NULL) {
-                            render->renderFramePush(new CacheFrame(avFrame, timestamp));
+                            render->renderFramePush(new RenderFrame(avFrame, timestamp));
                         } else {
                             av_frame_free(&avFrame);
                         }

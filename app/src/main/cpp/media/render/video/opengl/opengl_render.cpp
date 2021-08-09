@@ -8,7 +8,7 @@
 #include "../../../decoder/video/video_decoder.h"
 #include "../../../opengl/drawer/proxy/def_drawer_proxy_impl.h"
 
-OpenGLRender::OpenGLRender() : BaseVideoRender() {
+OpenGLRender::OpenGLRender(bool for_synthesizer) : BaseVideoRender(for_synthesizer) {
     TAG = "OpenGLRender";
     // 初始化播放状态线程锁变量
     pthread_mutex_init(&m_egl_mutex, NULL);

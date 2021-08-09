@@ -7,7 +7,8 @@
 #include "../player/player.h"
 #include "../../utils/logger.h"
 
-BaseRender::BaseRender() {
+BaseRender::BaseRender(bool for_synthesizer) {
+    m_for_synthesizer = for_synthesizer;
     // 初始化解码后的帧缓存数据队列
     this->m_decode_frame_queue = std::queue<AVFrame *>();
     // 初始化解码后的帧缓存数据队列锁变量
@@ -22,7 +23,7 @@ BaseRender::BaseRender() {
     }
 
     // 初始化待渲染的帧缓存数据队列
-    this->m_render_frame_queue = std::queue<CacheFrame *>();
+    this->m_render_frame_queue = std::queue<RenderFrame *>();
     // 初始化待渲染的帧缓存数据队列锁变量
     pthread_mutex_init(&m_render_frame_mutex, NULL);
     pthread_cond_init(&m_render_frame_cond, NULL);
@@ -152,7 +153,7 @@ bool BaseRender::isDecodeFrameQueueMax() {
  * 将一个待渲染的AVFrame入列，等待渲染器渲染
  * @param cacheFrame
  */
-void BaseRender::renderFramePush(CacheFrame * cacheFrame) {
+void BaseRender::renderFramePush(RenderFrame * cacheFrame) {
     LOGE(TAG, "%s", "renderFramePush");
     if (cacheFrame == NULL) {
         return;
@@ -167,8 +168,8 @@ void BaseRender::renderFramePush(CacheFrame * cacheFrame) {
  * 获取一个待渲染的AVFrame，给渲染器渲染
  * @param cacheFrame
  */
-CacheFrame * BaseRender::renderFramePop() {
-    CacheFrame *frame = NULL;
+RenderFrame * BaseRender::renderFramePop() {
+    RenderFrame *frame = NULL;
     while (m_state == RUNNING) {
         pthread_mutex_lock(&m_render_frame_mutex);
         if (!m_render_frame_queue.empty()) {
@@ -193,8 +194,8 @@ CacheFrame * BaseRender::renderFramePop() {
 /**
  * 获取待渲染队列头元素
  */
-CacheFrame * BaseRender::renderFrameFont() {
-    CacheFrame *frame = NULL;
+RenderFrame * BaseRender::renderFrameFont() {
+    RenderFrame *frame = NULL;
     if (m_state == RUNNING) {
         pthread_mutex_lock(&m_render_frame_mutex);
         if (!m_render_frame_queue.empty()) {
@@ -241,7 +242,7 @@ void BaseRender::renderFrameClear() {
     pthread_mutex_lock(&m_render_frame_mutex);
     pthread_cond_signal(&m_render_frame_cond);
     pthread_mutex_unlock(&m_render_frame_mutex);
-    CacheFrame *frame = NULL;
+    RenderFrame *frame = NULL;
     pthread_mutex_lock(&m_render_frame_mutex);
     while (!m_render_frame_queue.empty()) {
         LOGE(TAG, "render frame queue %d.", m_render_frame_queue.size());

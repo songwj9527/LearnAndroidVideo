@@ -173,7 +173,7 @@ protected:
 
 
 public:
-    BaseVideoRender();
+    BaseVideoRender(bool for_synthesizer);
     ~BaseVideoRender();
 
     /**

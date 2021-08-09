@@ -7,7 +7,7 @@
 #include "../../player/player.h"
 #include "../../decoder/video/video_decoder.h"
 
-BaseVideoRender::BaseVideoRender() : BaseRender() {
+BaseVideoRender::BaseVideoRender(bool for_synthesizer) : BaseRender(for_synthesizer) {
     m_rgb_frame = av_frame_alloc();
 }
 
@@ -84,6 +84,7 @@ void BaseVideoRender::initANativeWindow(JNIEnv *env) {
  * 初始化视频数据转换缓存
  */
 void BaseVideoRender::initReaderBuffer() {
+    LOGE(TAG, "%s", "initReaderBuffer() 0");
     if (m_buf_for_rgb_frame != NULL) {
         free(m_buf_for_rgb_frame);
         m_buf_for_rgb_frame = NULL;
@@ -102,12 +103,14 @@ void BaseVideoRender::initReaderBuffer() {
         // 将内存分配给RgbFrame，并将内存格式化为三个通道后，分别保存其地址
         av_image_fill_arrays(m_rgb_frame->data, m_rgb_frame->linesize, m_buf_for_rgb_frame, DST_FORMAT, m_dst_w, m_dst_h, 1);
     }
+    LOGE(TAG, "%s", "initReaderBuffer() 1");
 }
 
 /**
  * 初始化格式转换工具
  */
 void BaseVideoRender::initSws() {
+    LOGE(TAG, "%s", "initSws() 0");
     if (m_sws_ctx != NULL) {
         sws_freeContext(m_sws_ctx);
         m_sws_ctx = NULL;
@@ -117,6 +120,7 @@ void BaseVideoRender::initSws() {
                                    m_dst_w, m_dst_h, DST_FORMAT,
                                    SWS_FAST_BILINEAR, NULL, NULL, NULL);
     }
+    LOGE(TAG, "%s", "initSws() 1");
 }
 
 /**
@@ -227,7 +231,7 @@ void BaseVideoRender::loopRender(JNIEnv *env) {
 
         LOGE(TAG, "loopRender(): %s", "queue pop 0.");
         //从缓存中获取数据
-        CacheFrame *frame = renderFramePop();
+        RenderFrame *frame = renderFramePop();
         LOGE(TAG, "loopRender(): %s", "queue pop 1.");
         if (frame == NULL) {
             continue;
@@ -341,6 +345,7 @@ void BaseVideoRender::scaleFrame(AVFrame *frame) {
  */
 void BaseVideoRender::releaseReader() {
     if (m_rgb_frame != NULL) {
+        av_frame_unref(m_rgb_frame);
         av_frame_free(&m_rgb_frame);
         m_rgb_frame = NULL;
     }

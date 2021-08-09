@@ -6,7 +6,7 @@
 #include "../../player/default_player/media_player.h"
 #include "../../decoder/audio/audio_decoder.h"
 
-OpenSLRender::OpenSLRender(): AudioRender() {
+OpenSLRender::OpenSLRender(bool for_synthesizer): AudioRender(for_synthesizer) {
     TAG = "OpenSLRender";
 }
 
@@ -366,7 +366,7 @@ void OpenSLRender::render() {
     }
 
     LOGE(TAG, "loopRender(): %s", "queue pop 0.");
-    CacheFrame *frame = renderFramePop();
+    RenderFrame *frame = renderFramePop();
     LOGE(TAG, "loopRender(): %s", "queue pop 1.");
     if (frame == NULL) {
         return;
@@ -403,15 +403,18 @@ void OpenSLRender::render() {
     if (ret > 0) {
         LOGE(TAG, "loopRender(): %s", "buffer");
         // 缓冲区的大小
-        int size = av_samples_get_buffer_size(NULL, m_out_channer_nb, frame->m_frame->nb_samples,AV_SAMPLE_FMT_S16, 1);
+        int size = av_samples_get_buffer_size(NULL, m_out_channer_nb, frame->m_frame->nb_samples,getSampleFormat(), 1);
         LOGE(TAG, "loopRender(): %s%d", "buffer ", size);
         if (size > 0) {
             // 将音频时间赋值给同步时间
-            double time = size / ((double) AUDIO_DEST_SAMPLE_RATE *m_out_channer_nb * AUDIO_DEST_CHANNEL_COUNTS);
-            current_render_clock += time;
-            if (mediaPlayer != NULL) {
-                mediaPlayer->setSyncClock(current_render_clock);
+            if (decoder != NULL) {
+                double time = size / ((double) getSampleRate(decoder->getCodecContext()->sample_rate) * m_out_channer_nb * ENCODE_AUDIO_DEST_CHANNEL_COUNTS);
+                current_render_clock += time;
+                if (mediaPlayer != NULL) {
+                    mediaPlayer->setSyncClock(current_render_clock);
+                }
             }
+
             SLresult result = (*m_pcm_buffer)->Enqueue(m_pcm_buffer, m_out_buffer[0], (SLuint32) size);
             if (result == SL_RESULT_SUCCESS) {
                 // 只做已经使用标记，在下一帧数据压入前移除

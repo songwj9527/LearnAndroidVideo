@@ -26,9 +26,9 @@ void MediaPlayer::prepareSync() {
         return;
     }
     reset();
-    videoRender = new DefaultVideoRender();
+    videoRender = new DefaultVideoRender(false);
     videoDecoder = new VideoDecoder(jniEnv, this, sourceURL, videoRender, false);
-    openSlRender = new OpenSLRender();
+    openSlRender = new OpenSLRender(false);
     audioDecoder = new AudioDecoder(jniEnv, this, sourceURL, openSlRender, false);
     LOGE(TAG, "%s", "prepareSync()");
 }

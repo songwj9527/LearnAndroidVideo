@@ -6,6 +6,7 @@
 #define OPENVIDEO_OPENGL_RENDER_H
 
 #include "../base_video_render.h"
+#include "opengl_pixel_receiver.h"
 #include "../../../opengl/drawer/proxy/drawer_proxy.h"
 #include "../../../opengl/egl/egl_surface.h"
 
@@ -167,7 +168,7 @@ protected:
 
 
 public:
-    OpenGLRender();
+    OpenGLRender(bool for_synthesizer);
     ~OpenGLRender();
 
     /**

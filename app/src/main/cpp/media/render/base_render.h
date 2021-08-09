@@ -9,7 +9,7 @@
 #include <thread>
 #include <queue>
 
-#include "./cache_frame.h"
+#include "./render_frame.h"
 #include "../player/player_state.h"
 
 class Player;
@@ -31,7 +31,7 @@ protected:
     pthread_cond_t m_decode_frame_cond;
 
     // 待渲染的帧缓存数据队列
-    std::queue<CacheFrame *> m_render_frame_queue;
+    std::queue<RenderFrame *> m_render_frame_queue;
     // 待渲染的帧缓存数据队列锁变量
     pthread_mutex_t m_render_frame_mutex;
     pthread_cond_t m_render_frame_cond;
@@ -62,6 +62,9 @@ protected:
     // 是否从播放完成到可以播放状态（用于声音播放，如果播放完成后需要重新执行播放方法）
     bool isCompletedToReset = false;
 
+    // 为合成器提供解码
+    bool m_for_synthesizer = false;
+
 
     /**
      * 渲染准备工作已完成时调用（子类实现此方法：最终会调用MediaPlayer的onRenderPrepared方法）
@@ -78,8 +81,16 @@ protected:
      */
     virtual void onComplete(JNIEnv *env) = 0;
 
+    /**
+     * 是否为合成器提供解码
+     * @return true 为合成器提供解码 false 解码播放
+     */
+    bool ForSynthesizer() {
+        return m_for_synthesizer;
+    }
+
 public:
-    BaseRender();
+    BaseRender(bool for_synthesizer);
     virtual ~BaseRender();
 
     /**
@@ -127,18 +138,18 @@ public:
      * 将一个待渲染的AVFrame入列，等待渲染器渲染
      * @param cacheFrame
      */
-    void renderFramePush(CacheFrame * cacheFrame);
+    void renderFramePush(RenderFrame * cacheFrame);
 
     /**
      * 获取一个待渲染的AVFrame，给渲染器渲染
      * @param cacheFrame
      */
-    CacheFrame * renderFramePop();
+    RenderFrame * renderFramePop();
 
     /**
      * 获取待渲染队列头元素
      */
-    CacheFrame * renderFrameFont();
+    RenderFrame * renderFrameFont();
 
     /**
      * 进入等待解码

@@ -6,7 +6,7 @@
 #define OPENVIDEO_AUDIO_RENDER_H
 
 #include "../base_render.h"
-#include "../../decoder/const.h"
+#include "../../const.h"
 
 extern "C" {
 #include <libswresample/swresample.h>
@@ -27,7 +27,7 @@ protected:
     int m_out_channer_nb;
 
     // 输出缓冲
-    uint8_t *m_out_buffer[1] = {NULL};
+    uint8_t *m_out_buffer[2] = {NULL, NULL};
 
     // 重采样后，每个通道包含的采样数
     // acc默认为1024，重采样后可能会变化
@@ -46,8 +46,30 @@ protected:
      */
     void releaseSwr();
 
+    /**
+     * 采样格式：16位
+     */
+    AVSampleFormat getSampleFormat() {
+        if (ForSynthesizer()) {
+            return ENCODE_AUDIO_DEST_FORMAT;
+        } else {
+            return AV_SAMPLE_FMT_S16;
+        }
+    }
+
+    /**
+     * 采样率
+     */
+    int getSampleRate(int spr) {
+        if (ForSynthesizer()) {
+            return ENCODE_AUDIO_DEST_SAMPLE_RATE;
+        } else {
+            return spr;
+        }
+    }
+
 public:
-    AudioRender();
+    AudioRender(bool for_synthesizer);
     virtual ~AudioRender();
 };
 #endif //OPENVIDEO_AUDIO_RENDER_H

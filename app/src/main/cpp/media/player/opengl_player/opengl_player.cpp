@@ -29,11 +29,11 @@ void OpenGLPlayer::prepareSync() {
         return;
     }
     reset();
-    videoRender = new OpenGLRender();
+    videoRender = new OpenGLRender(false);
 //    ((OpenGLRender *) videoRender)->addDrawer(new VideoDrawer());
     ((OpenGLRender *) videoRender)->addDrawer(new FBOSoulVideoDrawer());
     videoDecoder = new VideoDecoder(jniEnv, this, sourceURL, videoRender, false);
-    openSlRender = new OpenSLRender();
+    openSlRender = new OpenSLRender(false);
     audioDecoder = new AudioDecoder(jniEnv, this, sourceURL, openSlRender, false);
     LOGE(TAG, "%s", "prepareSync()");
 }

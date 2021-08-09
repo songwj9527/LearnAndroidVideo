@@ -135,7 +135,7 @@ protected:
     void onComplete(JNIEnv *env) override;
 
 public:
-    OpenSLRender();
+    OpenSLRender(bool for_synthesizer);
     ~OpenSLRender();
 
     /**

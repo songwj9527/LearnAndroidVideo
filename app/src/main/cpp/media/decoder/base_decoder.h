@@ -11,7 +11,8 @@
 #include <queue>
 
 #include "../player/player_state.h"
-#include "../render/cache_frame.h"
+#include "../render/render_frame.h"
+#include "../cache_frame.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -107,7 +108,7 @@ private:
      */
     void doneDecode();
 
-    // 当前解码时间（单位：毫秒）
+    // seek时间（单位：毫秒）
     jlong m_seek_timestamp = 0;
 
 protected:

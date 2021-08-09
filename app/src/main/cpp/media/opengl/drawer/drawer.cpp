@@ -50,7 +50,6 @@ void Drawer::CreateTextureId() {
         LOGI(TAG, "Create texture id : %u, %x", texture_id[0], error_code)
         if (texture_id[0]) {
             m_texture_id = texture_id[0];
-            return;
         }
 //        glGenTextures(1, &m_texture_id);
 //        LOGI(TAG, "Create texture id : %u, %x", m_texture_id, glGetError())
