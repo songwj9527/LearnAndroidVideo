@@ -4,6 +4,7 @@
 
 #include <unistd.h>
 #include "base_encoder.h"
+#include "encode_cache_frame.h"
 
 BaseEncoder::BaseEncoder(JNIEnv *env, Mp4Muxer *muxer, AVCodecID codec_id)
         : m_muxer(muxer),
@@ -77,7 +78,7 @@ void BaseEncoder::OpenEncoder() {
 
 void BaseEncoder::LoopEncode() {
     if (m_state_cb != NULL) {
-        m_state_cb->EncodeStart();
+        m_state_cb->EncodeStart(this);
     }
     encode_count = 0;
     encode_in_count = 0;
@@ -88,7 +89,7 @@ void BaseEncoder::LoopEncode() {
         while (m_src_frames.size() > 0) {
             // 1. 获取待解码数据
             m_frames_lock.lock();
-            EncodeFrame *one_frame = m_src_frames.front();
+            EncodeCacheFrame *one_frame = m_src_frames.front();
             m_src_frames.pop();
             m_frames_lock.unlock();
             encode_count++;
@@ -101,7 +102,7 @@ void BaseEncoder::LoopEncode() {
                 frame = DealFrame(one_frame);
                 delete one_frame;
                 if (m_state_cb != NULL) {
-                    m_state_cb->EncodeSend();
+                    m_state_cb->EncodeSend(this);
                 }
                 if (frame == NULL) {
                     continue;
@@ -174,9 +175,9 @@ int BaseEncoder::EncodeOneFrame() {
             av_packet_rescale_ts(m_encoded_pkt, m_src_time_base,
                                  m_muxer->GetTimeBase(m_encode_stream_index));
             if (m_state_cb != NULL) {
-                m_state_cb->EncodeFrame(m_encoded_pkt->data);
+                m_state_cb->EncodeFrame(this, m_encoded_pkt->data);
                 long cur_time = (long)(m_encoded_pkt->pts*av_q2d(m_muxer->GetTimeBase(m_encode_stream_index))*1000);
-                m_state_cb->EncodeProgress(cur_time);
+                m_state_cb->EncodeProgress(this, cur_time);
             }
             m_encoded_pkt->stream_index = m_encode_stream_index;
             m_muxer->Write(m_encoded_pkt);
@@ -186,7 +187,7 @@ int BaseEncoder::EncodeOneFrame() {
     return state;
 }
 
-void BaseEncoder::PushFrame(EncodeFrame *encode_frame) {
+void BaseEncoder::PushFrame(EncodeCacheFrame *encode_frame) {
     m_frames_lock.lock();
 
     encode_in_count++;
@@ -210,7 +211,7 @@ void BaseEncoder::DoRelease() {
     Release();
 
     if (m_state_cb != NULL) {
-        m_state_cb->EncodeFinish();
+        m_state_cb->EncodeFinish(this);
     }
     LOGE("cccccc", "all encode count : %d,  %d", encode_in_count, encode_count)
 }

@@ -58,6 +58,10 @@ private:
     // 渲染帧数据
     uint8_t *frame_date = NULL;
 
+    // 输出屏幕数据
+    volatile bool m_need_output_pixels = false;
+    OpenGLPixelReceiver * m_pixel_receiver = NULL;
+
     /**
      * 初始化EGL渲染
      */
@@ -87,6 +91,11 @@ private:
      * 开始OpenGL渲染业务
      */
     void loopOpenGL(JNIEnv *env);
+
+    /**
+     * 渲染OpenGL画面
+     */
+    void renderOnFrame();
 
     /**
      * 渲染OpenGL画面
@@ -183,6 +192,17 @@ public:
      * @param surface
      */
     void setSurface(JNIEnv *jniEnv, jobject surface) override;
+
+    /**
+     * 设置屏幕rgba数据接收者
+     * @param receiver
+     */
+    void SetPixelReceiver(OpenGLPixelReceiver *receiver);
+
+    /**
+     * 请求获取屏幕rgba数据
+     */
+    void RequestRgbaData();
 };
 
 #endif //OPENVIDEO_OPENGL_RENDER_H

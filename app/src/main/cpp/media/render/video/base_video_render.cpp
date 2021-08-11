@@ -6,6 +6,7 @@
 
 #include "../../player/player.h"
 #include "../../decoder/video/video_decoder.h"
+#include "../../encoder/encode_cache_frame.h"
 
 BaseVideoRender::BaseVideoRender(bool for_synthesizer) : BaseRender(for_synthesizer) {
     m_rgb_frame = av_frame_alloc();
@@ -183,6 +184,9 @@ void BaseVideoRender::loopRender(JNIEnv *env) {
     }
     pthread_mutex_unlock(&m_state_mutex);
     onPrepared(env);
+    if (m_for_synthesizer && m_i_render_state_cb != NULL) {
+        m_i_render_state_cb->RenderPrepare(this);
+    }
 
     double  last_play = 0,  //上一帧的播放时间
     play = 0,              //当前帧的播放时间
@@ -207,6 +211,9 @@ void BaseVideoRender::loopRender(JNIEnv *env) {
             pthread_mutex_unlock(&m_state_mutex);
             if (isComplete) {
                 onComplete(env);
+                if (m_for_synthesizer && m_i_render_state_cb != NULL) {
+                    m_i_render_state_cb->RenderFinish(this);
+                }
             }
         }
         if (m_state == PREPARED // 设置解码器准备
@@ -245,6 +252,27 @@ void BaseVideoRender::loopRender(JNIEnv *env) {
 
         // 将视频帧数据转换成渲染数据
         scaleFrame(frame->m_frame);
+        if (m_for_synthesizer && m_i_render_state_cb != NULL) {
+            if (m_dst_h > 0) {
+                uint8_t *data = static_cast<uint8_t *>(malloc(
+                        sizeof(uint8_t) * m_rgb_frame->linesize[0] * m_dst_h));
+                memcpy(data, m_rgb_frame->data[0], m_rgb_frame->linesize[0] * m_dst_h);
+                EncodeCacheFrame *encodeFrame = new EncodeCacheFrame(
+                        data,
+                        m_rgb_frame->linesize[0],
+                        frame->m_frame->pts,
+                        decoder->getStreamTimeBase(),
+                        NULL);
+                m_i_render_state_cb->RenderOneFrame(this, encodeFrame);
+            }
+//            EncodeFrame *encodeFrame = new EncodeFrame(
+//                    frame->m_frame->data[0],
+//                    frame->m_frame->linesize[0],
+//                    frame->m_frame->pts,
+//                    decoder->getStreamTimeBase(),
+//                    NULL);
+//            m_i_render_state_cb->RenderOneFrame(this, encodeFrame);
+        }
 
         if (mediaPlayer != NULL) {
             // 获取基准时间
@@ -420,6 +448,9 @@ void BaseVideoRender::start() {
         LOGE(TAG, "%s", "start()");
         sendRenderFrameSignal();
         onStartRun();
+        if (m_for_synthesizer && m_i_render_state_cb != NULL) {
+            m_i_render_state_cb->RenderRunning(this);
+        }
     }
 }
 
@@ -432,6 +463,9 @@ void BaseVideoRender::pause() {
         LOGE(TAG, "%s", "pause()");
         sendRenderFrameSignal();
         onPauseRun();
+        if (m_for_synthesizer && m_i_render_state_cb != NULL) {
+            m_i_render_state_cb->RenderPause(this);
+        }
     }
 }
 
@@ -444,6 +478,9 @@ void BaseVideoRender::resume() {
         sendRenderFrameSignal();
         onResumeRun();
         LOGE(TAG, "%s", "resume()");
+        if (m_for_synthesizer && m_i_render_state_cb != NULL) {
+            m_i_render_state_cb->RenderRunning(this);
+        }
     }
 }
 
@@ -457,6 +494,9 @@ void BaseVideoRender::stop() {
     }
     onStopRun();
     sendRenderFrameSignal();
+    if (m_for_synthesizer && m_i_render_state_cb != NULL) {
+        m_i_render_state_cb->RenderStop(this);
+    }
 }
 
 /**
@@ -465,4 +505,7 @@ void BaseVideoRender::stop() {
 void BaseVideoRender::release() {
     LOGE(TAG, "%s", "release()");
     stop();
+    if (m_for_synthesizer && m_i_render_state_cb != NULL) {
+        m_i_render_state_cb->RenderFinish(this);
+    }
 }

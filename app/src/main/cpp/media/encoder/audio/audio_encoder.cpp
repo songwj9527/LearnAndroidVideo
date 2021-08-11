@@ -4,6 +4,7 @@
 
 #include "audio_encoder.h"
 #include "../../const.h"
+#include "../encode_cache_frame.h"
 
 AudioEncoder::AudioEncoder(JNIEnv *env, Mp4Muxer *muxer)
         : BaseEncoder(env, muxer, AV_CODEC_ID_AAC) {
@@ -38,7 +39,7 @@ int AudioEncoder::ConfigureMuxerStream(Mp4Muxer *muxer, AVCodecContext *ctx) {
     return muxer->AddAudioStream(ctx);
 }
 
-AVFrame* AudioEncoder::DealFrame(EncodeFrame *encode_frame) {
+AVFrame* AudioEncoder::DealFrame(EncodeCacheFrame *encode_frame) {
     m_frame->pts = encode_frame->pts;
     // ACC_NB_SAMPLES * 编码格式对应的字节数(AV_SAMPLE_FMT_FLTP为32位4个字节，如果AV_SAMPLE_FMT_S16为2个字节)
     // = 1024 * 4 = 4096

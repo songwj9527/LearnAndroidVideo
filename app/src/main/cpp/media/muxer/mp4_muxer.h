@@ -48,7 +48,7 @@ public:
         return m_fmt_ctx->streams[stream_index]->time_base;
     }
 
-    void Init(JNIEnv *env, jstring path);
+    void Init(JNIEnv *env, const char *u_path);
 
     int AddVideoStream(AVCodecContext *ctx);
     int AddAudioStream(AVCodecContext *ctx);

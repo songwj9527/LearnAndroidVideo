@@ -181,12 +181,32 @@ void OpenGLRender::loopOpenGL(JNIEnv *env) {
     }
 }
 
-void OpenGLRender::renderOpenGL() {
+void OpenGLRender::renderOnFrame() {
     if (isRunning() && RENDERING == glRenderState) {
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
         m_drawer_proxy->Draw(frame_date);
         m_egl_surface->SwapBuffers();
+
+        if (m_need_output_pixels && m_pixel_receiver != NULL) {//输出画面rgba
+            m_need_output_pixels = false;
+            renderOnFrame(); //再次渲染最新的画面
+
+            size_t size = m_dst_w * m_dst_h * 4 * sizeof(uint8_t);
+
+            uint8_t *rgb = (uint8_t *) malloc(size);
+            if (rgb == NULL) {
+                realloc(rgb, size);
+                LOGE(TAG, "内存分配失败： %d", rgb)
+            }
+            glReadPixels(0, 0, m_dst_w, m_dst_h, GL_RGBA, GL_UNSIGNED_BYTE, rgb);
+            m_pixel_receiver->ReceivePixel(rgb);
+        }
     }
+}
+
+void OpenGLRender::renderOpenGL() {
+    LOGE(TAG, "renderOpenGL")
+    renderOnFrame();
     waitGL(0);
 }
 
@@ -205,6 +225,7 @@ void OpenGLRender::doneRender() {
  * @param state
  */
 void OpenGLRender::setOpenGLState(OpenGLRenderState state) {
+    LOGE(TAG, "setOpenGLState(): %d", state)
     pthread_mutex_lock(&m_egl_mutex);
     if (glRenderState != state) {
         glRenderState = state;
@@ -360,4 +381,12 @@ void OpenGLRender::onStopRun() {
     if (isInitEGL) {
         setOpenGLState(STOP);
     }
+}
+
+void OpenGLRender::SetPixelReceiver(OpenGLPixelReceiver *receiver) {
+    m_pixel_receiver = receiver;
+}
+
+void OpenGLRender::RequestRgbaData() {
+    m_need_output_pixels = true;
 }

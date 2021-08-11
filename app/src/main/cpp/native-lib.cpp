@@ -5,6 +5,7 @@
 #include "media/player/default_player/media_player.h"
 #include "media/player/opengl_player/opengl_player.h"
 #include "media/muxer/ff_repack.h"
+#include "media/synthesizer/synthesizer.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -427,6 +428,30 @@ JNIEXPORT void JNICALL nativeReleaseRepack(JNIEnv *env, jobject obj, jint repack
     delete ffRepack;
 }
 
+JNIEXPORT jint JNICALL nativeCreateSynthesizer(JNIEnv *env, jobject obj, jstring srcPath, jstring destPath) {
+    Synthesizer *synthesizer = new Synthesizer(env, obj);
+    synthesizer->setSourceUrls(srcPath, destPath);
+    return (jint) synthesizer;
+}
+
+JNIEXPORT void JNICALL nativeStartSynthesizer(JNIEnv *env, jobject obj, jint synthesizer) {
+    Synthesizer *m_synthesizer = (Synthesizer *) synthesizer;
+    if (m_synthesizer == NULL) {
+        return;
+    }
+    m_synthesizer->Start();
+}
+
+JNIEXPORT void JNICALL nativeReleaseSynthesizer(JNIEnv *env, jobject obj, jint synthesizer) {
+    Synthesizer *m_synthesizer = (Synthesizer *) synthesizer;
+    if (m_synthesizer == NULL) {
+        return;
+    }
+    m_synthesizer->release();
+    delete m_synthesizer;
+}
+
+
 static const JNINativeMethod gMethods_NativePlayer[] = {
         {"ffmpegInfo", "()Ljava/lang/String;", (void *)ffmpegInfo},
         {"videoTypeTransform", "(Ljava/lang/String;Ljava/lang/String;)V", (void *)videoTypeTransform},
@@ -448,6 +473,9 @@ static const JNINativeMethod gMethods_NativePlayer[] = {
         {"nativeGetVolumeLevel", "(I)I", (void *)nativeGetVolumeLevel},
         {"nativeSetVolumeLevel", "(II)V", (void *)nativeSetVolumeLevel},
         {"nativeCreateGLPlayer", "()I", (void *)nativeCreateGLPlayer},
+        {"nativeCreateSynthesizer", "(Ljava/lang/String;Ljava/lang/String;)I", (void *)nativeCreateSynthesizer},
+        {"nativeStartSynthesizer", "(I)V", (void *)nativeStartSynthesizer},
+        {"nativeReleaseSynthesizer", "(I)V", (void *)nativeReleaseSynthesizer},
 };
 #define JNI_CLASS_NATIVE_PLAYER "com/songwj/openvideo/ffmpeg/NativePlayer"
 static int registerNatives_NativePlayer(JNIEnv *env) {

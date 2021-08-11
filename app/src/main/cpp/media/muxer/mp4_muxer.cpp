@@ -12,8 +12,7 @@ Mp4Muxer::Mp4Muxer() {
 Mp4Muxer::~Mp4Muxer() {
 }
 
-void Mp4Muxer::Init(JNIEnv *env, jstring path) {
-    const char *u_path = env->GetStringUTFChars(path, NULL);
+void Mp4Muxer::Init(JNIEnv *env, const char *u_path) {
 
     int len = strlen(u_path);
     m_path = new char[len];
@@ -21,9 +20,6 @@ void Mp4Muxer::Init(JNIEnv *env, jstring path) {
 
     //新建输出上下文
     avformat_alloc_output_context2(&m_fmt_ctx, NULL, NULL, m_path);
-
-    // 释放引用
-    env->ReleaseStringUTFChars(path, u_path);
 }
 
 int Mp4Muxer::AddVideoStream(AVCodecContext *ctx) {

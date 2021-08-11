@@ -113,6 +113,7 @@ add_library(
         ${CMAKE_SOURCE_DIR}/media/render/render_frame.cpp
         ${CMAKE_SOURCE_DIR}/media/render/base_render.h
         ${CMAKE_SOURCE_DIR}/media/render/base_render.cpp
+        ${CMAKE_SOURCE_DIR}/media/render/i_render_state_cb.h
         ${CMAKE_SOURCE_DIR}/media/render/video/base_video_render.h
         ${CMAKE_SOURCE_DIR}/media/render/video/base_video_render.cpp
         ${CMAKE_SOURCE_DIR}/media/render/video/default/default_video_render.h
@@ -157,7 +158,7 @@ add_library(
         ${CMAKE_SOURCE_DIR}/media/muxer/mp4_muxer.cpp
 
         # 编码器
-        ${CMAKE_SOURCE_DIR}/media/encoder/encode_frame.h
+        ${CMAKE_SOURCE_DIR}/media/encoder/encode_cache_frame.h
         ${CMAKE_SOURCE_DIR}/media/encoder/i_encode_state_cb.h
         ${CMAKE_SOURCE_DIR}/media/encoder/i_encoder.h
         ${CMAKE_SOURCE_DIR}/media/encoder/base_encoder.h

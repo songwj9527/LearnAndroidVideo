@@ -26,7 +26,7 @@ protected:
 
     int ConfigureMuxerStream(Mp4Muxer *muxer, AVCodecContext *ctx) override;
 
-    AVFrame* DealFrame(EncodeFrame *encode_frame) override;
+    AVFrame* DealFrame(EncodeCacheFrame *encode_frame) override;
 
     void Release() override;
 

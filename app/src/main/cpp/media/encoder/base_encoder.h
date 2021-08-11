@@ -48,7 +48,7 @@ private:
     AVRational m_src_time_base;
 
     // 缓冲队列
-    std::queue<EncodeFrame *> m_src_frames;
+    std::queue<EncodeCacheFrame *> m_src_frames;
 
     // 操作数据锁
     std::mutex m_frames_lock;
@@ -116,7 +116,7 @@ protected:
     virtual int ConfigureMuxerStream(Mp4Muxer *muxer, AVCodecContext *ctx) = 0;
 
     // 处理一帧数据
-    virtual AVFrame* DealFrame(EncodeFrame *encode_frame) = 0;
+    virtual AVFrame* DealFrame(EncodeCacheFrame *encode_frame) = 0;
 
     // 释放资源
     virtual void Release() = 0;
@@ -125,7 +125,7 @@ public:
     BaseEncoder(JNIEnv *env, Mp4Muxer *muxer, AVCodecID codec_id);
 
     // 压入一帧待编码数据（由外部调用）
-    void PushFrame(EncodeFrame *encode_frame) override ;
+    void PushFrame(EncodeCacheFrame *encode_frame) override ;
 
     // 判断是否缓冲数据过多，用于控制缓冲队列大小
     bool TooMuchData() override {

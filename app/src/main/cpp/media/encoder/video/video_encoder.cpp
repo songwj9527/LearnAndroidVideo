@@ -4,6 +4,7 @@
 
 #include "video_encoder.h"
 #include "../../const.h"
+#include "../encode_cache_frame.h"
 
 VideoEncoder::VideoEncoder(JNIEnv *env, Mp4Muxer *muxer, int width, int height)
         : BaseEncoder(env, muxer, AV_CODEC_ID_H264),
@@ -68,7 +69,7 @@ int VideoEncoder::ConfigureMuxerStream(Mp4Muxer *muxer, AVCodecContext *ctx) {
     return muxer->AddVideoStream(ctx);
 }
 
-AVFrame* VideoEncoder::DealFrame(EncodeFrame *encode_frame) {
+AVFrame* VideoEncoder::DealFrame(EncodeCacheFrame *encode_frame) {
     uint8_t *in_data[AV_NUM_DATA_POINTERS] = { 0 };
     in_data[0] = encode_frame->data;
     int src_line_size[AV_NUM_DATA_POINTERS] = { 0 };

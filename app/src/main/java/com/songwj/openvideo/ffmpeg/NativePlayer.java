@@ -13,7 +13,8 @@ import java.math.BigInteger;
 public class NativePlayer {
     public enum PlayerType {
         DEFAULT_PLAYER,
-        OPENGL_PLAYER
+        OPENGL_PLAYER,
+        SYNTHESIZER
     }
 
     public native String ffmpegInfo();
@@ -37,11 +38,18 @@ public class NativePlayer {
     private native int nativeGetVolumeLevel(int nativePlayer);
     private native void nativeSetVolumeLevel(int nativePlayer, int volume);
 
+    private native int nativeCreateSynthesizer(String srcPath, String desPath);
+    private native void nativeStartSynthesizer(int synthesizer);
+    private native void nativeReleaseSynthesizer(int synthesizer);
+
     /*******************************************************
      * java部分
      *******************************************************/
     public NativePlayer(PlayerType type) {
-        nativePlayer = type == PlayerType.DEFAULT_PLAYER ? nativeCreatePlayer() : nativeCreateGLPlayer();
+        playerType = type;
+        if (type != PlayerType.SYNTHESIZER) {
+            nativePlayer = type == PlayerType.DEFAULT_PLAYER ? nativeCreatePlayer() : nativeCreateGLPlayer();
+        }
         Looper looper;
         if ((looper = Looper.myLooper()) != null) {
             eventHandler = new EventHandler(this, looper);
@@ -52,6 +60,7 @@ public class NativePlayer {
         }
     }
 
+    private PlayerType playerType;
     private Integer nativePlayer;
     private EventHandler eventHandler;
     private State state = State.IDLE;
@@ -273,6 +282,31 @@ public class NativePlayer {
             return;
         }
         nativeSetVolumeLevel(nativePlayer, volume);
+    }
+
+
+    /***********************************Synthesizer*************************************/
+    public void CreateSynthesizer(String srcPath, String desPath) {
+        if (playerType == PlayerType.SYNTHESIZER) {
+            nativePlayer = nativeCreateSynthesizer(srcPath, desPath);
+        }
+    }
+
+    public void startSynthesizer() {
+        if (playerType == PlayerType.SYNTHESIZER) {
+            if (nativePlayer != null) {
+                nativeStartSynthesizer(nativePlayer);
+            }
+        }
+    }
+
+    public void releaseSynthesizer() {
+        if (playerType == PlayerType.SYNTHESIZER) {
+            if (nativePlayer != null) {
+                nativeReleaseSynthesizer(nativePlayer);
+            }
+            nativePlayer = null;
+        }
     }
 
     /**

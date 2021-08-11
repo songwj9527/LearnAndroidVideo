@@ -11,6 +11,7 @@
 
 #include "./render_frame.h"
 #include "../player/player_state.h"
+#include "i_render_state_cb.h"
 
 class Player;
 class BaseDecoder;
@@ -64,6 +65,9 @@ protected:
 
     // 为合成器提供解码
     bool m_for_synthesizer = false;
+
+    // 渲染状态外部回调
+    IRenderStateCb *m_i_render_state_cb = NULL;
 
 
     /**
@@ -221,5 +225,13 @@ public:
      * @return
      */
     jlong getCurrentPosition();
+
+    /**
+     * 设置渲染状态外部回调
+     * @param renderStateCb
+     */
+    void setIRenderStateCb(IRenderStateCb *renderStateCb) {
+        m_i_render_state_cb = renderStateCb;
+    }
 };
 #endif //OPENVIDEO_BASE_RENDER_H
