@@ -99,6 +99,8 @@ add_library(
         ${CMAKE_SOURCE_DIR}/media/player/default_player/media_player.cpp
         ${CMAKE_SOURCE_DIR}/media/player/opengl_player/opengl_player.h
         ${CMAKE_SOURCE_DIR}/media/player/opengl_player/opengl_player.cpp
+        ${CMAKE_SOURCE_DIR}/media/codec/test_mediacodec.h
+        ${CMAKE_SOURCE_DIR}/media/codec/test_mediacodec.cpp
 
         # 解码器
         ${CMAKE_SOURCE_DIR}/media/decoder/base_decoder.h
@@ -173,18 +175,18 @@ add_library(
         ${CMAKE_SOURCE_DIR}/media/synthesizer/synthesizer.cpp
 )
 
-# 查找代码中使用到的系统库
-find_library( # Sets the name of the path variable.
-        log-lib
-
-        # Specifies the name of the NDK library that
-        # you want CMake to locate.
-        log )
+# 查找代码中使用到的系统log库
+find_library(log-lib log)
+# 查找代码中使用到的系统media库
+find_library(media-ndk mediandk)
 
 # 指定编译目标库时，cmake要链接的库
 target_link_libraries(
         # 指定目标库，native-lib 是在上面 add_library 中配置的目标库
         native-lib
+
+        # 系统log库
+        ${log-lib}
 
         # FFmpeg 相关的库
         avutil
@@ -194,9 +196,6 @@ target_link_libraries(
         swscale
         avformat
         avdevice
-
-        # h264 相关的库
-        h264
 
         # android系统库
         -landroid
@@ -208,6 +207,8 @@ target_link_libraries(
         -lEGL
         -lGLESv2
 
-        # Links the target library to the log library
-        # included in the NDK.
-        ${log-lib} )
+        # 系统media库
+        ${media-ndk}
+
+        # h264 相关的库
+        h264 )
