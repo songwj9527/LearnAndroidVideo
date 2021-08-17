@@ -308,6 +308,7 @@ class FFmpegPlayerActivity : AppCompatActivity() , TextureView.SurfaceTextureLis
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                Log.e("FFmpegPlayerActivity", "onStartTrackingTouch()")
                 if (isPrepared) {
                     nativePlayer?.pause()
                 }
@@ -424,8 +425,9 @@ class FFmpegPlayerActivity : AppCompatActivity() , TextureView.SurfaceTextureLis
     }
 
     override fun onPause() {
-        super.onPause()
+        Log.e("FFmpegPlayerActivity", "onPause()")
         nativePlayer?.pause()
+        super.onPause()
     }
 
 //    override fun onStop() {

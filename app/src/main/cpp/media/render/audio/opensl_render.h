@@ -40,12 +40,12 @@ private:
 
     //缓冲器队列接口
     SLAndroidSimpleBufferQueueItf m_pcm_buffer;
-
-//    /**
-//     * 初始化线程调用方法
-//     * @param that
-//     */
-//    void static runPrepare(std::shared_ptr<OpenSLRender> that);
+    
+    /**
+     * 初始化线程调用方法
+     * @param that
+     */
+    void static RunPrepare(std::shared_ptr<OpenSLRender> that);
 
     /**
      * 初始化线程调用方法

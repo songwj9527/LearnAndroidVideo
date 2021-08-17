@@ -208,6 +208,15 @@ RenderFrame * BaseRender::renderFrameFont() {
 }
 
 /**
+ * 发送唤醒待解包赋值的帧缓存的休眠状态
+ */
+void BaseRender::sendRenderFrameQueueSignal() {
+    pthread_mutex_lock(&m_render_frame_mutex);
+    pthread_cond_signal(&m_render_frame_cond);
+    pthread_mutex_unlock(&m_render_frame_mutex);
+}
+
+/**
  * 进入等待
  * @param second
  */

@@ -348,6 +348,9 @@ void BaseDecoder::decodeFrame(JNIEnv *env, bool isSeeking) {
             if (render != NULL) {
                 avFrame = render->decodeFramePop();
                 if (!isRunning()) {
+                    if (avFrame != NULL) {
+                        av_frame_free(&avFrame);
+                    }
                     av_packet_unref(m_packet);
                     return;
                 }
@@ -358,6 +361,7 @@ void BaseDecoder::decodeFrame(JNIEnv *env, bool isSeeking) {
                 int result = avcodec_receive_frame(m_codec_ctx, avFrame);
                 LOGI(TAG, "decodeFrame(): %s%d", "avcodec_receive_frame ", result)
                 if (!isRunning()) {
+                    av_frame_free(&avFrame);
                     av_packet_unref(m_packet);
                     return;
                 }

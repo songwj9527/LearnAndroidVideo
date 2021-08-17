@@ -144,7 +144,7 @@ protected:
     jlong m_duration = 0;
 
     // 解码状态
-    State m_state = IDLE;
+    volatile State m_state = IDLE;
 
     // 数据流索引
     int m_stream_index = -1;

@@ -55,7 +55,7 @@ protected:
     // java层surface对象的弱引用
     jobject     jsurface = NULL;
     // 播放状态
-    State state = IDLE;
+    volatile State state = IDLE;
 
     // 视频解码器
     VideoDecoder *videoDecoder = NULL;
@@ -68,18 +68,18 @@ protected:
     OpenSLRender *openSlRender = NULL;
 
     // 音视频同步基准时钟
-    double sync_clock;
+    volatile double sync_clock;
 
-    bool videoDecoderPrepared = false;
-    bool videoRenderPrepared = false;
-    bool audioDecoderPrepared = false;
-    bool audioRenderPrepared = false;
-    bool videoDecoderCompleted = false;
-    bool videoRenderCompleted = false;
-    bool audioDecoderCompleted = false;
-    bool audioRenderCompleted = false;
-    bool videoDecoderSeekCompleted = false;
-    bool audioDecoderSeekCompleted = false;
+    volatile bool videoDecoderPrepared = false;
+    volatile bool videoRenderPrepared = false;
+    volatile bool audioDecoderPrepared = false;
+    volatile bool audioRenderPrepared = false;
+    volatile bool videoDecoderCompleted = false;
+    volatile bool videoRenderCompleted = false;
+    volatile bool audioDecoderCompleted = false;
+    volatile bool audioRenderCompleted = false;
+    volatile bool videoDecoderSeekCompleted = false;
+    volatile bool audioDecoderSeekCompleted = false;
 
     /**
      * 异常或错误调用方法

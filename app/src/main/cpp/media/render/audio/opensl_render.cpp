@@ -63,28 +63,28 @@ void OpenSLRender::prepareSync(JNIEnv *env, Player *mediaPlayer, BaseDecoder *de
     LOGE(TAG, "%s", "prepareSync()");
 }
 
-///**
-// * 初始化线程调用方法
-// * @param that
-// */
-//void OpenSLRender::runPrepare(std::shared_ptr<OpenSLRender> that) {
-//    JNIEnv *env;
-//    //将线程附加到虚拟机，并获取env
-//    if (that->m_jvm_for_thread->AttachCurrentThread(&env, NULL) != JNI_OK) {
-//        that->onError(NULL, VIDEO_RENDER_UNPREPARED, "Fail to init default video render thread");
-//        return;
-//    }
-//    that->jniEnv = env;
-//    LOGE(that->TAG, "%s", "runPrepare()");
-//    that->prepare(env);
-//
-//    while(that->isRunning()) {
-//        av_usleep(20000);
-//    }
-//    LOGE(that->TAG, "%s", "thread done.");
-//    //解除线程和jvm关联
-//    that->m_jvm_for_thread->DetachCurrentThread();
-//}
+/**
+ * 初始化线程调用方法
+ * @param that
+ */
+void OpenSLRender::RunPrepare(std::shared_ptr<OpenSLRender> that) {
+    JNIEnv *env;
+    //将线程附加到虚拟机，并获取env
+    if (that->m_jvm_for_thread->AttachCurrentThread(&env, NULL) != JNI_OK) {
+        that->onError(NULL, VIDEO_RENDER_UNPREPARED, "Fail to init default video render thread");
+        return;
+    }
+    that->jniEnv = env;
+    LOGE(that->TAG, "%s", "runPrepare()");
+    that->prepare(env);
+
+    while(that->isRunning()) {
+        av_usleep(20000);
+    }
+    LOGE(that->TAG, "%s", "thread done.");
+    //解除线程和jvm关联
+    that->m_jvm_for_thread->DetachCurrentThread();
+}
 
 /**
  * 初始化线程调用方法
@@ -329,12 +329,12 @@ void OpenSLRender::render() {
 
     if (decoder != NULL) {
         bool isComplete = false;
-        pthread_mutex_lock(&m_state_mutex);
+//        pthread_mutex_lock(&m_state_mutex);
         if (decoder->isCompleted() && m_render_frame_queue.empty() && m_state != COMPLETED) {
             m_state = COMPLETED;
             isComplete = true;
         }
-        pthread_mutex_unlock(&m_state_mutex);
+//        pthread_mutex_unlock(&m_state_mutex);
         if (isComplete) {
             LOGE(TAG, "loopRender(): %s", "completed.");
 //            if (m_pcm_player != NULL) {
@@ -563,7 +563,7 @@ void OpenSLRender::resume() {
  * 停止播放
  */
 void OpenSLRender::stop() {
-    LOGE(TAG, "%s", "stop()");
+    LOGE(TAG, "%s", "stop() 0");
     if (m_pcm_player != NULL) {
         (*m_pcm_player)->SetPlayState(m_pcm_player, SL_PLAYSTATE_STOPPED);
     }
@@ -571,14 +571,16 @@ void OpenSLRender::stop() {
         m_state = STOPPED;
     }
     sendRenderFrameSignal();
-    av_usleep(50000);
+    sendRenderFrameQueueSignal();
+    av_usleep(100 * 1000);
+    LOGE(TAG, "%s", "stop() 1");
 }
 
 /**
  * 释放相关资源
  */
 void OpenSLRender::release() {
-    LOGE("OpenSLRender", "%s", "release()0")
+    LOGE("OpenSLRender", "%s", "release() 0")
     if (m_pcm_player != NULL) {
         (*m_pcm_player)->SetPlayState(m_pcm_player, SL_PLAYSTATE_STOPPED);
     }
@@ -586,8 +588,9 @@ void OpenSLRender::release() {
         m_state = STOPPED;
     }
     sendRenderFrameSignal();
-    av_usleep(50000);
-    LOGE("OpenSLRender", "%s", "release()1");
+    sendRenderFrameQueueSignal();
+    av_usleep(100 * 1000);
+    LOGE("OpenSLRender", "%s", "release() 1");
 }
 
 /**

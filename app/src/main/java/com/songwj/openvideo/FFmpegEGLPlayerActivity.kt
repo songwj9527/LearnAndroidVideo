@@ -102,7 +102,7 @@ class FFmpegEGLPlayerActivity : AppCompatActivity(), TextureView.SurfaceTextureL
         )
 //        texture_view.surfaceTextureListener = this
         nativePlayer?.setDataSource( if(TextUtils.isEmpty(filePath)) {
-            Environment.getExternalStorageDirectory().absolutePath + "/video2.mp4"
+            Environment.getExternalStorageDirectory().absolutePath + "/video.mp4"
         } else {
             filePath
         })

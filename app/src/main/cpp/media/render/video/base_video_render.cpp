@@ -203,12 +203,12 @@ void BaseVideoRender::loopRender(JNIEnv *env) {
     while (isRunning()) {
         if (decoder != NULL) {
             bool isComplete = false;
-            pthread_mutex_lock(&m_state_mutex);
+//            pthread_mutex_lock(&m_state_mutex);
             if (decoder->isCompleted() && m_render_frame_queue.empty() && m_state != COMPLETED) {
                 m_state = COMPLETED;
                 isComplete = true;
             }
-            pthread_mutex_unlock(&m_state_mutex);
+//            pthread_mutex_unlock(&m_state_mutex);
             if (isComplete) {
                 onComplete(env);
                 if (m_for_synthesizer && m_i_render_state_cb != NULL) {
@@ -293,6 +293,8 @@ void BaseVideoRender::loopRender(JNIEnv *env) {
         LOGE(TAG, "loopRender(): synchronize");
         // 纠正时间
         play = synchronize(frame->m_frame, play);
+        decodeFramePush(frame->m_frame);
+        delete frame;
         if (decoder != NULL) {
             decoder->wake();
         }
@@ -305,9 +307,13 @@ void BaseVideoRender::loopRender(JNIEnv *env) {
         last_play = play;
 
         // 7.083492, 7.083333 seek_target0 = 33723 seek_target1 = 1012
-        LOGE(TAG, "loopRender(): %lf, %lf, %lf", sync_clock, current_render_clock, delay);
         // 同步时钟与视频的时间差
         diff = current_render_clock - sync_clock;
+        LOGE(TAG, "loopRender(): %lf, %lf, %lf, %lf, %lf", sync_clock, play, current_render_clock, delay, diff);
+        // 可能造成丢帧
+        if (diff < -10) {
+            continue;
+        }
 
         // 在合理范围外  才会延迟  加快
         sync_threshold = (delay > 0.01 ? 0.01 : delay);
@@ -317,11 +323,6 @@ void BaseVideoRender::loopRender(JNIEnv *env) {
             } else if (diff >= sync_threshold) {
                 delay = 2 * delay;
             }
-        }
-        // 可能造成丢帧
-        else if (diff < -10) {
-            decodeFramePush(frame->m_frame);
-            continue;
         }
         if (delay > 0) {
             actual_delay = delay;
@@ -336,16 +337,14 @@ void BaseVideoRender::loopRender(JNIEnv *env) {
         if (actual_delay > 0) {
             // 延时相应时间再渲染到窗口上
             av_usleep(actual_delay * 1000000.0 + 6000);
-
             LOGE(TAG, "isRunning(): %d", m_state);
             if (!isRunning()) {
                 break;
             }
         }
         LOGE(TAG, "loopRender(): render 0");
+        // 默认播放器播放过程中可能会崩溃：仅个人猜测是因为渲染太过频；，OpenGL则不会，原因可能是GL渲染是独立与CPU之外
         render();
-        decodeFramePush(frame->m_frame);
-        delete frame;
         LOGE(TAG, "loopRender(): render 1");
     }
 }

@@ -54,10 +54,10 @@ protected:
     // 解码器
     BaseDecoder *decoder = NULL;
     // 当前渲染时间
-    double  current_render_clock = 0;
+    volatile double  current_render_clock = 0;
 
     // 渲染状态
-    State m_state = IDLE;
+    volatile State m_state = IDLE;
     // 前一个状态
     State m_state_prev = IDLE;
     // 是否从播放完成到可以播放状态（用于声音播放，如果播放完成后需要重新执行播放方法）
@@ -154,6 +154,11 @@ public:
      * 获取待渲染队列头元素
      */
     RenderFrame * renderFrameFont();
+
+    /**
+     * 唤醒获取待渲染队列
+     */
+    void sendRenderFrameQueueSignal();
 
     /**
      * 进入等待解码

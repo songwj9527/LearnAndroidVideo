@@ -622,7 +622,7 @@ void Player::onPostEventToJava(JNIEnv *env, int event, int what, int args1, jobj
         return;
     }
     LOGE(TAG, "onPostEventToJava %d:", 1);
-    env->ExceptionOccurred();
+    ex = env->ExceptionOccurred();
     if (ex != NULL && clazz == NULL) {
         //让java 继续运行, 输出关于这个异常的描述
         env->ExceptionDescribe();
@@ -644,9 +644,10 @@ void Player::onPostEventToJava(JNIEnv *env, int event, int what, int args1, jobj
         env->ExceptionClear();
     }
     LOGE(TAG, "onPostEventToJava %d:", 2);
+    ex = NULL;
     // 获取jmethodID
     jmethodID methodId = env->GetStaticMethodID(clazz, "postEventFromNative", "(Ljava/lang/Object;IIILjava/lang/Object;)V");
-    env->ExceptionOccurred();
+    ex = env->ExceptionOccurred();
     // 判断异常是否发送
     if (ex != NULL && methodId == NULL) {
         // 让java 继续运行, 输出关于这个异常的描述
