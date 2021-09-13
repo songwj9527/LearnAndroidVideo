@@ -4,10 +4,10 @@
 第一部分：
 在“ChenLittlePing”的【Android 音视频开发打怪升级】系列文章（链接：“https://github.com/ChenLittlePing/LearningVideo” ）的基础上，并添加了自己的理解和功能（如seekTo功能）。
 
-第二部分：
+第二部分：（未完待续）
 native层的硬解mediacodec的使用。
 
-第三部分：
+第三部分：（未完待续）
 1）普通视频录制；
 2）OpenGL ES录制；
 3）native层视频录制；
