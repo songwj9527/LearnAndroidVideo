@@ -14,7 +14,6 @@ public class NativePlayer {
     public enum PlayerType {
         DEFAULT_PLAYER,
         OPENGL_PLAYER,
-        SYNTHESIZER
     }
 
     public native String ffmpegInfo();
@@ -37,10 +36,6 @@ public class NativePlayer {
     private native int nativeGetMaxVolumeLevel(int nativePlayer);
     private native int nativeGetVolumeLevel(int nativePlayer);
     private native void nativeSetVolumeLevel(int nativePlayer, int volume);
-
-    private native int nativeCreateSynthesizer(String srcPath, String desPath);
-    private native void nativeStartSynthesizer(int synthesizer);
-    private native void nativeReleaseSynthesizer(int synthesizer);
 
     /*******************************************************
      * java部分
@@ -282,31 +277,6 @@ public class NativePlayer {
             return;
         }
         nativeSetVolumeLevel(nativePlayer, volume);
-    }
-
-
-    /***********************************Synthesizer*************************************/
-    public void CreateSynthesizer(String srcPath, String desPath) {
-        if (playerType == PlayerType.SYNTHESIZER) {
-            nativePlayer = nativeCreateSynthesizer(srcPath, desPath);
-        }
-    }
-
-    public void startSynthesizer() {
-        if (playerType == PlayerType.SYNTHESIZER) {
-            if (nativePlayer != null) {
-                nativeStartSynthesizer(nativePlayer);
-            }
-        }
-    }
-
-    public void releaseSynthesizer() {
-        if (playerType == PlayerType.SYNTHESIZER) {
-            if (nativePlayer != null) {
-                nativeReleaseSynthesizer(nativePlayer);
-            }
-            nativePlayer = null;
-        }
     }
 
     /**

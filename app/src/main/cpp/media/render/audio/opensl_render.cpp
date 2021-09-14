@@ -341,9 +341,6 @@ void OpenSLRender::render() {
 //                (*m_pcm_player)->SetPlayState(m_pcm_player, SL_PLAYSTATE_PAUSED);
 //            }
             onComplete(jniEnv);
-            if (m_for_synthesizer && m_i_render_state_cb != NULL) {
-                m_i_render_state_cb->RenderFinish(this);
-            }
         }
     }
     if (m_state == PREPARED // 设置解码器准备
@@ -405,21 +402,6 @@ void OpenSLRender::render() {
     int ret = swr_convert(m_swr, m_out_buffer, m_dest_data_size / 2, (const uint8_t **) frame->m_frame->data, frame->m_frame->nb_samples);
     LOGE(TAG, "loopRender(): %s%d", "convert ", ret);
     if (ret > 0) {
-        if (m_for_synthesizer && m_i_render_state_cb != NULL) {
-            uint8_t *data = static_cast<uint8_t *>(malloc(m_dest_data_size));
-            uint8_t *extra_data = static_cast<uint8_t *>(malloc(m_dest_data_size));
-            memset(data, 0, m_dest_data_size);
-            memcpy(data, m_out_buffer[0], 4096);
-            memset(extra_data, 0, m_dest_data_size);
-            memcpy(extra_data, m_out_buffer[1], 4096);
-            EncodeCacheFrame *encodeFrame = new EncodeCacheFrame(
-                    data,
-                    m_dest_data_size,
-                    frame->m_frame->pts,
-                    decoder->getStreamTimeBase(),
-                    extra_data);
-            m_i_render_state_cb->RenderOneFrame(this, encodeFrame);
-        }
         LOGE(TAG, "loopRender(): %s", "buffer");
         // 缓冲区的大小
         int size = av_samples_get_buffer_size(NULL, m_out_channer_nb, frame->m_frame->nb_samples,getSampleFormat(), 1);

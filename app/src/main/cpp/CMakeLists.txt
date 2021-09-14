@@ -99,8 +99,6 @@ add_library(
         ${CMAKE_SOURCE_DIR}/media/player/default_player/media_player.cpp
         ${CMAKE_SOURCE_DIR}/media/player/opengl_player/opengl_player.h
         ${CMAKE_SOURCE_DIR}/media/player/opengl_player/opengl_player.cpp
-        ${CMAKE_SOURCE_DIR}/media/codec/test_mediacodec.h
-        ${CMAKE_SOURCE_DIR}/media/codec/test_mediacodec.cpp
 
         # 解码器
         ${CMAKE_SOURCE_DIR}/media/decoder/base_decoder.h

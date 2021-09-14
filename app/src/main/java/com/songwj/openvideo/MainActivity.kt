@@ -30,7 +30,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
         btn_native_ffmpeg_player.setOnClickListener(this)
         btn_native_ffmpeg_egl_player.setOnClickListener(this)
         btn_native_ffmpeg_repack.setOnClickListener(this)
-        btn_native_ffmpeg_synthesizer.setOnClickListener(this)
 
         var test : ArrayBlockingQueue<String>? = null
         var lock: ReentrantLock? = null
@@ -97,9 +96,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
             }
             else if (id == R.id.btn_native_ffmpeg_repack) {
                 startActivity(Intent(this, FFmpegRepackActivity::class.java))
-            }
-            else if (id == R.id.btn_native_ffmpeg_synthesizer) {
-                startActivity(Intent(this, SynthesizerActivity::class.java))
             }
         }
     }

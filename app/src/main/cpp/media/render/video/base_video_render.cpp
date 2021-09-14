@@ -332,20 +332,33 @@ void BaseVideoRender::loopRender(JNIEnv *env) {
         } else {
             actual_delay = 0;
         }
-
         LOGE(TAG, "loopRender(): av_usleep %lf", actual_delay);
-        if (actual_delay > 0) {
-            // 延时相应时间再渲染到窗口上
-            av_usleep(actual_delay * 1000000.0 + 6000);
-            LOGE(TAG, "isRunning(): %d", m_state);
-            if (!isRunning()) {
-                break;
+
+        if (diff < 0) {
+            LOGE(TAG, "loopRender(): render 0");
+            // 默认播放器播放过程中可能会崩溃：仅个人猜测是因为渲染太过频；，OpenGL则不会，原因可能是GL渲染是独立与CPU之外
+            render();
+            LOGE(TAG, "loopRender(): render 1");
+
+            if (actual_delay > 0) {
+                // 延时相应时间再渲染到窗口上
+                av_usleep(actual_delay * 1000000.0 + 6000);
             }
+        } else {
+            if (actual_delay > 0) {
+                // 延时相应时间再渲染到窗口上
+                av_usleep(actual_delay * 1000000.0 + 6000);
+                LOGE(TAG, "isRunning(): %d", m_state);
+                if (!isRunning()) {
+                    break;
+                }
+            }
+
+            LOGE(TAG, "loopRender(): render 0");
+            // 默认播放器播放过程中可能会崩溃：仅个人猜测是因为渲染太过频；，OpenGL则不会，原因可能是GL渲染是独立与CPU之外
+            render();
+            LOGE(TAG, "loopRender(): render 1");
         }
-        LOGE(TAG, "loopRender(): render 0");
-        // 默认播放器播放过程中可能会崩溃：仅个人猜测是因为渲染太过频；，OpenGL则不会，原因可能是GL渲染是独立与CPU之外
-        render();
-        LOGE(TAG, "loopRender(): render 1");
     }
 }
 
@@ -447,9 +460,6 @@ void BaseVideoRender::start() {
         LOGE(TAG, "%s", "start()");
         sendRenderFrameSignal();
         onStartRun();
-        if (m_for_synthesizer && m_i_render_state_cb != NULL) {
-            m_i_render_state_cb->RenderRunning(this);
-        }
     }
 }
 
@@ -462,9 +472,6 @@ void BaseVideoRender::pause() {
         LOGE(TAG, "%s", "pause()");
         sendRenderFrameSignal();
         onPauseRun();
-        if (m_for_synthesizer && m_i_render_state_cb != NULL) {
-            m_i_render_state_cb->RenderPause(this);
-        }
     }
 }
 
@@ -477,9 +484,6 @@ void BaseVideoRender::resume() {
         sendRenderFrameSignal();
         onResumeRun();
         LOGE(TAG, "%s", "resume()");
-        if (m_for_synthesizer && m_i_render_state_cb != NULL) {
-            m_i_render_state_cb->RenderRunning(this);
-        }
     }
 }
 
@@ -493,9 +497,6 @@ void BaseVideoRender::stop() {
     }
     onStopRun();
     sendRenderFrameSignal();
-    if (m_for_synthesizer && m_i_render_state_cb != NULL) {
-        m_i_render_state_cb->RenderStop(this);
-    }
 }
 
 /**
@@ -504,7 +505,4 @@ void BaseVideoRender::stop() {
 void BaseVideoRender::release() {
     LOGE(TAG, "%s", "release()");
     stop();
-    if (m_for_synthesizer && m_i_render_state_cb != NULL) {
-        m_i_render_state_cb->RenderFinish(this);
-    }
 }
