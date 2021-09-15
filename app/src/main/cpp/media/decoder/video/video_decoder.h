@@ -52,7 +52,7 @@ protected:
     void onSeekComplete(JNIEnv *env) override;
 
 public:
-    VideoDecoder(JNIEnv *env, Player *mediaPlayer, const char *url, BaseVideoRender *render, bool for_synthesizer);
+    VideoDecoder(JNIEnv *env, FFmpegPlayer *mediaPlayer, const char *url, BaseVideoRender *render, bool for_synthesizer);
     ~VideoDecoder();
 
     /**

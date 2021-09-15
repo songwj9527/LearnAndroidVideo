@@ -39,7 +39,7 @@ protected:
     void onSeekComplete(JNIEnv *env) override;
 
 public:
-    AudioDecoder(JNIEnv *env, Player *mediaPlayer, const char *url, OpenSLRender *render, bool for_synthesizer);
+    AudioDecoder(JNIEnv *env, FFmpegPlayer *mediaPlayer, const char *url, OpenSLRender *render, bool for_synthesizer);
     ~AudioDecoder();
 };
 #endif //OPENVIDEO_AUDIO_DECODER_H

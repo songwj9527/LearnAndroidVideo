@@ -2,10 +2,10 @@
 #include <string>
 #include <pthread.h>
 #include "./utils/logger.h"
-#include "media/player/default_player/media_player.h"
-#include "media/player/opengl_player/opengl_player.h"
+#include "media/player/ffmpeg_player/default_player/media_player.h"
+#include "media/player/ffmpeg_player/opengl_player/opengl_player.h"
 #include "media/muxer/ff_repack.h"
-#include "media/synthesizer/synthesizer.h"
+#include "media/player/player.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>

@@ -40,6 +40,27 @@ private:
 
     //缓冲器队列接口
     SLAndroidSimpleBufferQueueItf m_pcm_buffer;
+
+    // 状态线程锁变量
+    pthread_mutex_t m_command_mutex;
+    pthread_cond_t m_command_cond;
+    volatile int m_command = 0; // 0, 默认状态；1，重置播放；2，停止播放
+
+    void waitCommand() {
+        pthread_mutex_lock(&m_command_mutex);
+        pthread_cond_wait(&m_command_cond, &m_command_mutex);
+        pthread_mutex_unlock(&m_decode_frame_mutex);
+    }
+
+    void sendCommand(int command) {
+        pthread_mutex_lock(&m_command_mutex);
+        if (command < 0 || command > 2) {
+            command = 0;
+        }
+        m_command = command;
+        pthread_cond_signal(&m_command_cond);
+        pthread_mutex_unlock(&m_decode_frame_mutex);
+    }
     
     /**
      * 初始化线程调用方法
@@ -94,6 +115,7 @@ private:
      * 设置OpenSL ES开始播放
      */
     void startOpenSL(JNIEnv *env);
+    void restartOpenSL(JNIEnv *env);
 
     /**
      * OpenSL ES加载缓存回调方法
@@ -143,7 +165,7 @@ public:
      * @param env
      * @param decoder
      */
-    void prepareSync(JNIEnv *env, Player *mediaPlayer, BaseDecoder *decoder) override;
+    void prepareSync(JNIEnv *env, FFmpegPlayer *mediaPlayer, BaseDecoder *decoder) override;
 
     /**
      * 开始渲染

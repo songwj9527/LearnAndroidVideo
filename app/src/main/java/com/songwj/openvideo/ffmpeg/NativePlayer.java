@@ -42,9 +42,7 @@ public class NativePlayer {
      *******************************************************/
     public NativePlayer(PlayerType type) {
         playerType = type;
-        if (type != PlayerType.SYNTHESIZER) {
-            nativePlayer = type == PlayerType.DEFAULT_PLAYER ? nativeCreatePlayer() : nativeCreateGLPlayer();
-        }
+        nativePlayer = type == PlayerType.DEFAULT_PLAYER ? nativeCreatePlayer() : nativeCreateGLPlayer();
         Looper looper;
         if ((looper = Looper.myLooper()) != null) {
             eventHandler = new EventHandler(this, looper);

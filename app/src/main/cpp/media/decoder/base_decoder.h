@@ -36,7 +36,7 @@ public:
     virtual bool seekTo(int64_t timestamp) = 0;
 };
 
-class Player;
+class FFmpegPlayer;
 class BaseRender;
 /*****************************************************************
  * 自定义解码器基类：BaseDecoder
@@ -114,7 +114,7 @@ private:
 protected:
     const char *TAG = "BaseDecoder";
     // 播放器
-    Player *mediaPlayer = NULL;
+    FFmpegPlayer *mediaPlayer = NULL;
     // 渲染器
     BaseRender *render = NULL;
 
@@ -187,7 +187,7 @@ protected:
     virtual void onSeekComplete(JNIEnv *env) = 0;
 
 public:
-    BaseDecoder(JNIEnv *env, Player *mediaPlayer, const char *url, BaseRender *render, bool for_synthesizer);
+    BaseDecoder(JNIEnv *env, FFmpegPlayer *mediaPlayer, const char *url, BaseRender *render, bool for_synthesizer);
     virtual ~BaseDecoder();
 
     /**

@@ -5,10 +5,10 @@
 #ifndef OPENVIDEO_MEDIA_PLAYER_H
 #define OPENVIDEO_MEDIA_PLAYER_H
 
-#include "../player.h"
+#include "../ffmpeg_player.h"
 
 
-class MediaPlayer : public Player {
+class MediaPlayer : public FFmpegPlayer {
 private:
     const char *TAG = "MediaPlayer";
 

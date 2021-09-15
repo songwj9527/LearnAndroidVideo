@@ -95,10 +95,12 @@ add_library(
         ${CMAKE_SOURCE_DIR}/media/player/player_state.h
         ${CMAKE_SOURCE_DIR}/media/player/player.h
         ${CMAKE_SOURCE_DIR}/media/player/player.cpp
-        ${CMAKE_SOURCE_DIR}/media/player/default_player/media_player.h
-        ${CMAKE_SOURCE_DIR}/media/player/default_player/media_player.cpp
-        ${CMAKE_SOURCE_DIR}/media/player/opengl_player/opengl_player.h
-        ${CMAKE_SOURCE_DIR}/media/player/opengl_player/opengl_player.cpp
+        ${CMAKE_SOURCE_DIR}/media/player/ffmpeg_player/ffmpeg_player.h
+        ${CMAKE_SOURCE_DIR}/media/player/ffmpeg_player/ffmpeg_player.cpp
+        ${CMAKE_SOURCE_DIR}/media/player/ffmpeg_player/default_player/media_player.h
+        ${CMAKE_SOURCE_DIR}/media/player/ffmpeg_player/default_player/media_player.cpp
+        ${CMAKE_SOURCE_DIR}/media/player/ffmpeg_player/opengl_player/opengl_player.h
+        ${CMAKE_SOURCE_DIR}/media/player/ffmpeg_player/opengl_player/opengl_player.cpp
 
         # 解码器
         ${CMAKE_SOURCE_DIR}/media/decoder/base_decoder.h
@@ -167,10 +169,6 @@ add_library(
         ${CMAKE_SOURCE_DIR}/media/encoder/video/video_encoder.cpp
         ${CMAKE_SOURCE_DIR}/media/encoder/audio/audio_encoder.h
         ${CMAKE_SOURCE_DIR}/media/encoder/audio/audio_encoder.cpp
-
-        # 合成器
-        ${CMAKE_SOURCE_DIR}/media/synthesizer/synthesizer.h
-        ${CMAKE_SOURCE_DIR}/media/synthesizer/synthesizer.cpp
 )
 
 # 查找代码中使用到的系统log库

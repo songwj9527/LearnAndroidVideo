@@ -3,8 +3,8 @@
 //
 
 #include "./audio_render.h"
-#include "../../player/default_player/media_player.h"
 #include "../../decoder/audio/audio_decoder.h"
+#include "../../player/ffmpeg_player/ffmpeg_player.h"
 
 AudioRender::AudioRender(bool for_synthesizer) : BaseRender(for_synthesizer) {
     TAG = "AudioRender";

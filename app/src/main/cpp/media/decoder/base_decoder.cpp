@@ -2,13 +2,13 @@
 // Created by fgrid on 2/1/21.
 //
 #include "base_decoder.h"
-#include "../player/player.h"
+#include "../player/ffmpeg_player/ffmpeg_player.h"
 #include "../render/base_render.h"
 
 /*****************************************************************
  * 自定义解码器基类：BaseDecoder
  ****************************************************************/
-BaseDecoder::BaseDecoder(JNIEnv *env, Player *mediaPlayer, const char *url, BaseRender *render, bool for_synthesizer) {
+BaseDecoder::BaseDecoder(JNIEnv *env, FFmpegPlayer *mediaPlayer, const char *url, BaseRender *render, bool for_synthesizer) {
     this->mediaPlayer = mediaPlayer;
     this->render = render;
     this->m_for_synthesizer = for_synthesizer;

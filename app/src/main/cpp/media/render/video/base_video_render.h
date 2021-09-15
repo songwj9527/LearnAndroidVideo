@@ -181,7 +181,7 @@ public:
      * @param env
      * @param decoder
      */
-    void prepareSync(JNIEnv *env, Player *mediaPlayer, BaseDecoder *decoder) override;
+    void prepareSync(JNIEnv *env, FFmpegPlayer *mediaPlayer, BaseDecoder *decoder) override;
 
     /**
      * 设置Surface视图窗口

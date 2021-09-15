@@ -4,7 +4,7 @@
 
 #include "./base_render.h"
 #include "../decoder/base_decoder.h"
-#include "../player/player.h"
+#include "../player/ffmpeg_player/ffmpeg_player.h"
 #include "../../utils/logger.h"
 
 BaseRender::BaseRender(bool for_synthesizer) {

@@ -3,10 +3,10 @@
 //
 
 #include "audio_decoder.h"
-#include "../../player/player.h"
+#include "../../player/ffmpeg_player/ffmpeg_player.h"
 #include "../../render/audio/opensl_render.h"
 
-AudioDecoder::AudioDecoder(JNIEnv *env, Player *mediaPlayer, const char *url, OpenSLRender *render, bool forSynthesizer) : BaseDecoder(env, mediaPlayer, url, render, forSynthesizer) {
+AudioDecoder::AudioDecoder(JNIEnv *env, FFmpegPlayer *mediaPlayer, const char *url, OpenSLRender *render, bool forSynthesizer) : BaseDecoder(env, mediaPlayer, url, render, forSynthesizer) {
     TAG = "AudioDecoder";
 }
 

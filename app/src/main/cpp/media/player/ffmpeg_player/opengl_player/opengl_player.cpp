@@ -3,14 +3,14 @@
 //
 
 #include "opengl_player.h"
-#include "../../decoder/video/video_decoder.h"
-#include "../../render/video/opengl/opengl_render.h"
-#include "../../decoder/audio/audio_decoder.h"
-#include "../../render/audio/opensl_render.h"
-#include "../../opengl/drawer/video_drawer.h"
-#include "../../opengl/drawer/fbo_soul_video_drawer.h"
+#include "../../../decoder/video/video_decoder.h"
+#include "../../../render/video/opengl/opengl_render.h"
+#include "../../../decoder/audio/audio_decoder.h"
+#include "../../../render/audio/opensl_render.h"
+#include "../../../opengl/drawer/video_drawer.h"
+#include "../../../opengl/drawer/fbo_soul_video_drawer.h"
 
-OpenGLPlayer::OpenGLPlayer(JNIEnv *jniEnv, jobject object) : Player(jniEnv, object) {}
+OpenGLPlayer::OpenGLPlayer(JNIEnv *jniEnv, jobject object) : FFmpegPlayer(jniEnv, object) {}
 
 OpenGLPlayer::~OpenGLPlayer() {
     LOGE(TAG, "%s", "~OpenGLPlayer");

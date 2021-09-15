@@ -13,7 +13,7 @@
 #include "../player/player_state.h"
 #include "i_render_state_cb.h"
 
-class Player;
+class FFmpegPlayer;
 class BaseDecoder;
 /*****************************************************************
  * 自定义渲染器：BaseRender
@@ -50,7 +50,7 @@ protected:
 
     // -------------------视频数据转换相关-----------------------------
     // 播放器
-    Player *mediaPlayer = NULL;
+    FFmpegPlayer *mediaPlayer = NULL;
     // 解码器
     BaseDecoder *decoder = NULL;
     // 当前渲染时间
@@ -187,7 +187,7 @@ public:
      * @param env
      * @param decoder
      */
-    virtual void prepareSync(JNIEnv *env, Player *mediaPlayer, BaseDecoder *decoder) = 0;
+    virtual void prepareSync(JNIEnv *env, FFmpegPlayer *mediaPlayer, BaseDecoder *decoder) = 0;
 
     /**
      * 开始渲染

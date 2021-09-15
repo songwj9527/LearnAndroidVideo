@@ -5,9 +5,9 @@
 #ifndef OPENVIDEO_OPENGL_PLAYER_H
 #define OPENVIDEO_OPENGL_PLAYER_H
 
-#include "../player.h"
+#include "../ffmpeg_player.h"
 
-class OpenGLPlayer : public Player {
+class OpenGLPlayer : public FFmpegPlayer {
 private:
     const char *TAG = "OpenGLPlayer";
 

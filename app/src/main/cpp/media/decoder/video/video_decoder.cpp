@@ -3,10 +3,10 @@
 //
 
 #include "video_decoder.h"
-#include "../../player/player.h"
+#include "../../player/ffmpeg_player/ffmpeg_player.h"
 #include "../../render/video/base_video_render.h"
 
-VideoDecoder::VideoDecoder(JNIEnv *env, Player *mediaPlayer, const char *url, BaseVideoRender *render, bool for_synthesizer): BaseDecoder(env, mediaPlayer, url, render, for_synthesizer) {
+VideoDecoder::VideoDecoder(JNIEnv *env, FFmpegPlayer *mediaPlayer, const char *url, BaseVideoRender *render, bool for_synthesizer): BaseDecoder(env, mediaPlayer, url, render, for_synthesizer) {
     TAG = "VideoDecoder";
 }
 

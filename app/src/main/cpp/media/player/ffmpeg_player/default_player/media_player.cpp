@@ -2,12 +2,12 @@
 // Created by fgrid on 1/25/21.
 //
 #include "./media_player.h"
-#include "../../decoder/video/video_decoder.h"
-#include "../../render/video/default/default_video_render.h"
-#include "../../decoder/audio/audio_decoder.h"
-#include "../../render/audio/opensl_render.h"
+#include "../../../decoder/video/video_decoder.h"
+#include "../../../render/video/default/default_video_render.h"
+#include "../../../decoder/audio/audio_decoder.h"
+#include "../../../render/audio/opensl_render.h"
 
-MediaPlayer::MediaPlayer(JNIEnv *jniEnv, jobject object) : Player(jniEnv, object) {}
+MediaPlayer::MediaPlayer(JNIEnv *jniEnv, jobject object) : FFmpegPlayer(jniEnv, object) {}
 
 MediaPlayer::~MediaPlayer() {
     LOGE(TAG, "%s", "~MediaPlayer");

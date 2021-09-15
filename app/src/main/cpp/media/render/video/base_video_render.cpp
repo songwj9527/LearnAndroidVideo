@@ -4,7 +4,7 @@
 
 #include "base_video_render.h"
 
-#include "../../player/player.h"
+#include "../../player/ffmpeg_player/ffmpeg_player.h"
 #include "../../decoder/video/video_decoder.h"
 #include "../../encoder/encode_cache_frame.h"
 
@@ -355,7 +355,6 @@ void BaseVideoRender::loopRender(JNIEnv *env) {
             }
 
             LOGE(TAG, "loopRender(): render 0");
-            // 默认播放器播放过程中可能会崩溃：仅个人猜测是因为渲染太过频；，OpenGL则不会，原因可能是GL渲染是独立与CPU之外
             render();
             LOGE(TAG, "loopRender(): render 1");
         }
@@ -403,7 +402,7 @@ void BaseVideoRender::releaseReader() {
  * 初始化Render
  * @param env
  */
-void BaseVideoRender::prepareSync(JNIEnv *env, Player *mediaPlayer, BaseDecoder *decoder) {
+void BaseVideoRender::prepareSync(JNIEnv *env, FFmpegPlayer *mediaPlayer, BaseDecoder *decoder) {
     this->mediaPlayer = mediaPlayer;
     this->decoder = decoder;
     // 获取JVM虚拟机，为创建线程作准备

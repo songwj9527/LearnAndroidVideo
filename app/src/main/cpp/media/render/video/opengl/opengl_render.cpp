@@ -4,7 +4,7 @@
 
 #include <unistd.h>
 #include "opengl_render.h"
-#include "../../../player/player.h"
+#include "../../../player/ffmpeg_player/ffmpeg_player.h"
 #include "../../../decoder/video/video_decoder.h"
 #include "../../../opengl/drawer/proxy/def_drawer_proxy_impl.h"
 
