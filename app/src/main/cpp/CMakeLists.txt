@@ -150,6 +150,19 @@ add_library(
         ${CMAKE_SOURCE_DIR}/media/opengl/drawer/proxy/def_drawer_proxy_impl.h
         ${CMAKE_SOURCE_DIR}/media/opengl/drawer/proxy/def_drawer_proxy_impl.cpp
 
+        # MediaCodec音视频分离器
+        ${CMAKE_SOURCE_DIR}/media/codec/extractor/i_extractor.h
+        ${CMAKE_SOURCE_DIR}/media/codec/extractor/i_extractor.cpp
+        ${CMAKE_SOURCE_DIR}/media/codec/extractor/audio_extractor.h
+        ${CMAKE_SOURCE_DIR}/media/codec/extractor/audio_extractor.cpp
+        ${CMAKE_SOURCE_DIR}/media/codec/extractor/video_extractor.h
+        ${CMAKE_SOURCE_DIR}/media/codec/extractor/video_extractor.cpp
+
+        # MediaCodec音视频解码器
+        ${CMAKE_SOURCE_DIR}/media/codec/decoder/i_decoder.h
+        ${CMAKE_SOURCE_DIR}/media/codec/decoder/base_decoder.h
+        ${CMAKE_SOURCE_DIR}/media/codec/decoder/base_decoder.cpp
+
         # 重新打包器
         ${CMAKE_SOURCE_DIR}/media/muxer/ff_repack.h
         ${CMAKE_SOURCE_DIR}/media/muxer/ff_repack.cpp
