@@ -361,12 +361,12 @@ JNIEXPORT jlong JNICALL nativeGetDuration(JNIEnv *env, jobject obj, jint player)
     return mediaPlayer->getDuration();
 }
 
-JNIEXPORT jlong JNICALL nativeGetCurrentPosition(JNIEnv *env, jobject obj, jint player) {
+JNIEXPORT jlong JNICALL nativeGetCurrentTimestamp(JNIEnv *env, jobject obj, jint player) {
     Player *mediaPlayer = (Player *) player;
     if (mediaPlayer == NULL) {
         return 0;
     }
-    return mediaPlayer->getCurrentPosition();
+    return mediaPlayer->getCurrentTimestamp();
 }
 
 JNIEXPORT void JNICALL nativeSeekTo(JNIEnv *env, jobject obj, jint player, jlong position) {
@@ -444,7 +444,7 @@ static const JNINativeMethod gMethods_NativePlayer[] = {
         {"nativeReset", "(I)V", (void *)nativeReset},
         {"nativeRelease", "(I)V", (void *)nativeRelease},
         {"nativeGetDuration", "(I)J", (void *)nativeGetDuration},
-        {"nativeGetCurrentPosition", "(I)J", (void *)nativeGetCurrentPosition},
+        {"nativeGetCurrentTimestamp", "(I)J", (void *)nativeGetCurrentTimestamp},
         {"nativeSeekTo", "(IJ)V", (void *)nativeSeekTo},
         {"nativeGetMaxVolumeLevel", "(I)I", (void *)nativeGetMaxVolumeLevel},
         {"nativeGetVolumeLevel", "(I)I", (void *)nativeGetVolumeLevel},

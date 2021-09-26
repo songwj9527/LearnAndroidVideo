@@ -31,7 +31,7 @@ public class NativePlayer {
     private native void nativeReset(int nativePlayer);
     private native void nativeRelease(int nativePlayer);
     private native long nativeGetDuration(int nativePlayer);
-    private native long nativeGetCurrentPosition(int nativePlayer);
+    private native long nativeGetCurrentTimestamp(int nativePlayer);
     private native void nativeSeekTo(int nativePlayer, long position);
     private native int nativeGetMaxVolumeLevel(int nativePlayer);
     private native int nativeGetVolumeLevel(int nativePlayer);
@@ -220,11 +220,11 @@ public class NativePlayer {
     /**
      * 获取视频当前播放位置
      */
-    public long getCurrentDuration() {
+    public long getCurrentTimestamp() {
         if (nativePlayer == null) {
             return 0L;
         }
-        return nativeGetCurrentPosition(nativePlayer);
+        return nativeGetCurrentTimestamp(nativePlayer);
     }
 
     /**

@@ -49,7 +49,7 @@ private:
     void waitCommand() {
         pthread_mutex_lock(&m_command_mutex);
         pthread_cond_wait(&m_command_cond, &m_command_mutex);
-        pthread_mutex_unlock(&m_decode_frame_mutex);
+        pthread_mutex_unlock(&m_command_mutex);
     }
 
     void sendCommand(int command) {
@@ -59,7 +59,7 @@ private:
         }
         m_command = command;
         pthread_cond_signal(&m_command_cond);
-        pthread_mutex_unlock(&m_decode_frame_mutex);
+        pthread_mutex_unlock(&m_command_mutex);
     }
     
     /**

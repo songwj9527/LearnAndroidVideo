@@ -41,7 +41,7 @@ class FFmpegEGLPlayerActivity : AppCompatActivity(), TextureView.SurfaceTextureL
                             seconds = duration / 1000
                             progress = 100
                         } else {
-                            var currentDuration = nativePlayer?.currentDuration
+                            var currentDuration = nativePlayer?.currentTimestamp
                             currentDuration?.let {
                                 progress = (it * 100 / duration).toInt()
                                 seconds = it / 1000

@@ -102,4 +102,13 @@
 // 获取OpenSLES播放器音量接口失败
 #define GET_OPENSL_ES_PLAYER_VOLUME_INTERFACE_FAILED   -3014
 
+// 无法初始化NDK的多媒体分离器
+#define INIT_MEDIA_EXTRACTOR_FAILED         -4000
+// 无法初始化NDK的多媒体信息
+#define INIT_MEDIA_PARAMS_FAILED            -4001
+// 无法初始化NDK的多媒体渲染器
+#define INIT_MEDIA_RENDER_FAILED            -4002
+// 无法初始化NDK的多媒体解码器
+#define INIT_MEDIA_CODEC_FAILED             -4003
+
 #endif //OPENVIDEO_MEDIA_CODES_H

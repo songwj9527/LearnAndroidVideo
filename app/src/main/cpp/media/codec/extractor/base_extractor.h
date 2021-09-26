@@ -2,12 +2,12 @@
 // Created by fgrid on 2021/9/15.
 //
 
-#ifndef OPENVIDEO_I_EXTRACTOR_H
-#define OPENVIDEO_I_EXTRACTOR_H
+#ifndef OPENVIDEO_CODEC_BASE_EXTRACTOR_H
+#define OPENVIDEO_CODEC_BASE_EXTRACTOR_H
 
 #include <media/NdkMediaExtractor.h>
 
-class IExtractor {
+class BaseExtractor {
 private:
     const char *TAG = "IExtractor";
 
@@ -32,16 +32,16 @@ protected:
     int64_t m_duration = -1;
 
     /**当前帧时间戳*/
-    int64_t m_cur_sample_time = -1;
+    volatile int64_t m_cur_sample_time = -1;
 
     /**当前帧标志*/
-    int m_cur_sample_flag = 0;
+    volatile int m_cur_sample_flag = 0;
 
     /**
      * 获取编解码器类型校验标识：音频，"audio/"；视频，"video/"
      * @return
      */
-    virtual char *GetMineTypeFlag() = 0;
+    virtual const char *GetMineTypeFlag() = 0;
 
     /**
      * 是否为软编解码器
@@ -61,8 +61,8 @@ protected:
 
 
 public:
-    IExtractor();
-    ~IExtractor();
+    BaseExtractor();
+    ~BaseExtractor();
 
     /**
      * 加载视频源
@@ -99,10 +99,10 @@ public:
     AMediaFormat *GetMediaFormat();
 
     /**
-     * 获取当前帧时间
+     * 获取当前帧时间（单位：microseconds微妙）
      * @return
      */
-    int64_t GetCurrentTimestamp();
+    int64_t GetCurrentTimestampUs();
 
     /**
      * 获取当前帧标志
@@ -131,4 +131,4 @@ public:
     void Stop();
 };
 
-#endif //OPENVIDEO_I_EXTRACTOR_H
+#endif //OPENVIDEO_CODEC_BASE_EXTRACTOR_H

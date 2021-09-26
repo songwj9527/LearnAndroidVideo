@@ -2,12 +2,12 @@
 // Created by fgrid on 2021/9/15.
 //
 
-#ifndef OPENVIDEO_VIDEO_EXTRACTOR_H
-#define OPENVIDEO_VIDEO_EXTRACTOR_H
+#ifndef OPENVIDEO_CODEC_VIDEO_EXTRACTOR_H
+#define OPENVIDEO_CODEC_VIDEO_EXTRACTOR_H
 
-#include "i_extractor.h"
+#include "base_extractor.h"
 
-class VideoExtractor : public IExtractor {
+class VideoExtractor : public BaseExtractor {
 private:
     const char *TAG = "VideoExtractor";
 
@@ -32,7 +32,7 @@ private:
 
 
 protected:
-    char * GetMineTypeFlag() override {
+    const char * GetMineTypeFlag() override {
         return "video/";
     }
 
@@ -86,4 +86,4 @@ public:
     int64_t SeekTo(int64_t position) override;
 };
 
-#endif //OPENVIDEO_VIDEO_EXTRACTOR_H
+#endif //OPENVIDEO_CODEC_VIDEO_EXTRACTOR_H

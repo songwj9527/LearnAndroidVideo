@@ -4,19 +4,19 @@
 
 #include <string.h>
 
-#include "i_extractor.h"
+#include "base_extractor.h"
 #include "../../utils/logger.h"
 
-IExtractor::IExtractor() {
+BaseExtractor::BaseExtractor() {
     memset((void *) m_mine, 0, sizeof(char) * 200);
 }
 
-IExtractor::~IExtractor() {
-    LOGE(TAG, "~IExtractor()")
+BaseExtractor::~BaseExtractor() {
+    LOGE(TAG, "~BaseExtractor()")
     Stop();
 }
 
-void IExtractor::Init() {
+void BaseExtractor::Init() {
     if (m_extractor != NULL) {
         size_t track_count = AMediaExtractor_getTrackCount(m_extractor);
         for (int i = 0; i < track_count; i++) {
@@ -25,7 +25,7 @@ void IExtractor::Init() {
                 memset((void *) m_mine, 0, sizeof(char) * 200);
                 AMediaFormat_getString(format, "mine", reinterpret_cast<const char **>(&m_mine));
                 if (strlen(m_mine) > 0) {
-                    char *flag = GetMineTypeFlag();
+                    const char *flag = GetMineTypeFlag();
                     if (strncmp(m_mine, flag, strlen(flag)) == 0) {
                         LOGE(TAG, "IsSoftwareCodec(): %s, %s, %s", IsSoftwareCodec(m_mine) ? "true" : "false", m_mine, flag)
                         m_track = i;
@@ -40,7 +40,7 @@ void IExtractor::Init() {
     }
 }
 
-bool IExtractor::IsSoftwareCodec(const char *component_name) {
+bool BaseExtractor::IsSoftwareCodec(const char *component_name) {
     if (!strncasecmp("OMX.google", component_name, 11)) {
         return true;
     }
@@ -50,7 +50,7 @@ bool IExtractor::IsSoftwareCodec(const char *component_name) {
     return true;
 }
 
-media_status_t IExtractor::SetDataSource(const char *source) {
+media_status_t BaseExtractor::SetDataSource(const char *source) {
     media_status_t status = AMEDIA_ERROR_BASE;
     Stop();
     m_extractor = AMediaExtractor_new();
@@ -63,7 +63,7 @@ media_status_t IExtractor::SetDataSource(const char *source) {
     return status;
 }
 
-media_status_t IExtractor::SetDataSource(int fd, off64_t offset, off64_t length) {
+media_status_t BaseExtractor::SetDataSource(int fd, off64_t offset, off64_t length) {
     media_status_t status = AMEDIA_ERROR_BASE;
     Stop();
     m_extractor = AMediaExtractor_new();
@@ -76,21 +76,21 @@ media_status_t IExtractor::SetDataSource(int fd, off64_t offset, off64_t length)
     return status;
 }
 
-AMediaFormat * IExtractor::GetMediaFormat() {
+AMediaFormat * BaseExtractor::GetMediaFormat() {
     if (m_extractor != NULL && m_track != -1) {
         return AMediaExtractor_getTrackFormat(m_extractor, m_track);
     }
     return NULL;
 }
 
-const char * IExtractor::GetFormatMineType() {
+const char * BaseExtractor::GetFormatMineType() {
     if (m_extractor != NULL && m_track != -1 && strlen(m_mine) > 0) {
         return m_mine;
     }
     return NULL;
 }
 
-int64_t IExtractor::GetFormatDurationUs() {
+int64_t BaseExtractor::GetFormatDurationUs() {
     if (m_extractor != NULL && m_track != -1) {
         if (m_duration < 0) {
             m_duration = -1;
@@ -109,7 +109,7 @@ int64_t IExtractor::GetFormatDurationUs() {
     return (m_duration < 0) ? 0 : m_duration;
 }
 
-int64_t IExtractor::GetCurrentTimestamp() {
+int64_t BaseExtractor::GetCurrentTimestampUs() {
     if (m_extractor != NULL) {
         m_cur_sample_time = AMediaExtractor_getSampleTime(m_extractor);
     } else {
@@ -118,7 +118,7 @@ int64_t IExtractor::GetCurrentTimestamp() {
     return m_cur_sample_time;
 }
 
-int IExtractor::GetSampleFlag() {
+int BaseExtractor::GetSampleFlag() {
     if (m_extractor != NULL) {
         m_cur_sample_flag = AMediaExtractor_getSampleFlags(m_extractor);
     } else {
@@ -127,7 +127,7 @@ int IExtractor::GetSampleFlag() {
     return m_cur_sample_flag;
 }
 
-ssize_t IExtractor::ReadBuffer(uint8_t *buffer) {
+ssize_t BaseExtractor::ReadBuffer(uint8_t *buffer) {
     if (m_extractor != NULL && m_track != -1) {
         AMediaExtractor_selectTrack(m_extractor, m_track);
         ssize_t read_sample_count = AMediaExtractor_readSampleData(m_extractor, buffer, 0);
@@ -145,7 +145,7 @@ ssize_t IExtractor::ReadBuffer(uint8_t *buffer) {
     return 0;
 }
 
-void IExtractor::Stop() {
+void BaseExtractor::Stop() {
     if (m_extractor != NULL) {
         AMediaExtractor_delete(m_extractor);
         m_extractor = NULL;

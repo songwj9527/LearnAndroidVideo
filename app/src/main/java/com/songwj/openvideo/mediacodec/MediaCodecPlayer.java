@@ -72,6 +72,7 @@ public class MediaCodecPlayer {
             }
             return;
         }
+
         this.filePath = filePath;
 
         state = State.IDLE;

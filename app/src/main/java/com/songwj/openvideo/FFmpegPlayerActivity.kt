@@ -41,7 +41,7 @@ class FFmpegPlayerActivity : AppCompatActivity() , TextureView.SurfaceTextureLis
                             seconds = duration / 1000
                             progress = 100
                         } else {
-                            var currentDuration = nativePlayer?.currentDuration
+                            var currentDuration = nativePlayer?.currentTimestamp
                             currentDuration?.let {
                                 progress = (it * 100 / duration).toInt()
                                 seconds = it / 1000
@@ -101,6 +101,7 @@ class FFmpegPlayerActivity : AppCompatActivity() , TextureView.SurfaceTextureLis
             "onCreate()"
         )
 //        texture_view.surfaceTextureListener = this
+        // https://fg-im.oss-cn-hangzhou.aliyuncs.com/develop/2021/09/18/16319561101667686608883e84d8f24620c26c1c48d8ae600a243a8.mp4
         nativePlayer?.setDataSource( if(TextUtils.isEmpty(filePath)) {
             Environment.getExternalStorageDirectory().absolutePath + "/video2.mp4"
         } else {

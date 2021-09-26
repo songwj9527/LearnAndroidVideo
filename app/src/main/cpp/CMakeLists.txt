@@ -151,17 +151,28 @@ add_library(
         ${CMAKE_SOURCE_DIR}/media/opengl/drawer/proxy/def_drawer_proxy_impl.cpp
 
         # MediaCodec音视频分离器
-        ${CMAKE_SOURCE_DIR}/media/codec/extractor/i_extractor.h
-        ${CMAKE_SOURCE_DIR}/media/codec/extractor/i_extractor.cpp
+        ${CMAKE_SOURCE_DIR}/media/codec/extractor/base_extractor.h
+        ${CMAKE_SOURCE_DIR}/media/codec/extractor/base_extractor.cpp
         ${CMAKE_SOURCE_DIR}/media/codec/extractor/audio_extractor.h
         ${CMAKE_SOURCE_DIR}/media/codec/extractor/audio_extractor.cpp
         ${CMAKE_SOURCE_DIR}/media/codec/extractor/video_extractor.h
         ${CMAKE_SOURCE_DIR}/media/codec/extractor/video_extractor.cpp
 
+        # MediaCodec音视频轨道
+        ${CMAKE_SOURCE_DIR}/media/codec/track/i_track_callback.h
+        ${CMAKE_SOURCE_DIR}/media/codec/track/i_video_track_callback.h
+        ${CMAKE_SOURCE_DIR}/media/codec/track/i_track.h
+        ${CMAKE_SOURCE_DIR}/media/codec/track/base_track.h
+        ${CMAKE_SOURCE_DIR}/media/codec/track/base_track.cpp
+        ${CMAKE_SOURCE_DIR}/media/codec/track/base_video_track.h
+        ${CMAKE_SOURCE_DIR}/media/codec/track/base_video_track.cpp
+        ${CMAKE_SOURCE_DIR}/media/codec/track/default_video_track.h
+        ${CMAKE_SOURCE_DIR}/media/codec/track/default_video_track.cpp
+
         # MediaCodec音视频解码器
-        ${CMAKE_SOURCE_DIR}/media/codec/decoder/i_decoder.h
-        ${CMAKE_SOURCE_DIR}/media/codec/decoder/base_decoder.h
-        ${CMAKE_SOURCE_DIR}/media/codec/decoder/base_decoder.cpp
+        # MediaCodec音视频渲染器
+
+        # MediaCodec音视频播放器
 
         # 重新打包器
         ${CMAKE_SOURCE_DIR}/media/muxer/ff_repack.h

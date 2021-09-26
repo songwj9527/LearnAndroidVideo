@@ -275,7 +275,7 @@ jlong FFmpegPlayer::getDuration() {
  * 获取当前视频播放位置（单位：ms）
  * @return
  */
-jlong FFmpegPlayer::getCurrentPosition() {
+jlong FFmpegPlayer::getCurrentTimestamp() {
     if (videoDecoderPrepared && videoRenderPrepared && audioDecoderPrepared && audioRenderPrepared) {
 //    if (audioDecoderPrepared && audioRenderPrepared) {
 //    if (videoDecoderPrepared && videoRenderPrepared) {

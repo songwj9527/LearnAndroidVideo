@@ -27,7 +27,6 @@ class MediaCodecActivity : AppCompatActivity(),
     MediaCodecPlayer.OnSeekCompleteListener,
     MediaCodecPlayer.OnCompleteListener {
 
-    private var filePath: String = ""
     private val videoName = "h265.mp4"
     private var videoPath: String = ""
 
@@ -104,11 +103,11 @@ class MediaCodecActivity : AppCompatActivity(),
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_media_codec)
 
-        filePath = intent.getStringExtra("file_path")
-        videoPath = if(TextUtils.isEmpty(filePath)) {
+        var inPath = intent.getStringExtra("file_path")
+        videoPath = if(TextUtils.isEmpty(inPath)) {
             Environment.getExternalStorageDirectory().absolutePath + "/" + videoName
         } else {
-            filePath
+            inPath
         }
 
         progress_seekbar.setOnSeekBarChangeListener(this)

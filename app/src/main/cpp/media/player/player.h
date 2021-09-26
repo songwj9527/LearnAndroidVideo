@@ -121,7 +121,7 @@ public:
      * 获取当前视频播放位置（单位：ms）
      * @return
      */
-    virtual jlong getCurrentPosition() = 0;
+    virtual jlong getCurrentTimestamp() = 0;
 
     /**
      * 指定位置播放

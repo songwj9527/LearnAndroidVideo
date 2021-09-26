@@ -58,15 +58,9 @@ public:
     ~FFmpegPlayer();
 
     /**
-     * 设置视频源URL
-     * @param url
-     */
-    void setDataSource(jstring url);
-
-    /**
      * 设置视频渲染窗口
      */
-    void setSurface(jobject surface);
+    void setSurface(jobject surface) override;
 
     /**
      * 音视频同步基准时钟
@@ -118,7 +112,7 @@ public:
      * 获取当前视频播放位置（单位：ms）
      * @return
      */
-    jlong getCurrentPosition() override;
+    jlong getCurrentTimestamp() override;
 
     /**
      * 指定位置播放
