@@ -3,12 +3,16 @@
 //
 
 #include <string.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <malloc.h>
 
 #include "base_extractor.h"
 #include "../../utils/logger.h"
 
 BaseExtractor::BaseExtractor() {
-    memset((void *) m_mine, 0, sizeof(char) * 200);
+
 }
 
 BaseExtractor::~BaseExtractor() {
@@ -17,25 +21,41 @@ BaseExtractor::~BaseExtractor() {
 }
 
 void BaseExtractor::Init() {
+    LOGE(TAG, "Init()")
     if (m_extractor != NULL) {
         size_t track_count = AMediaExtractor_getTrackCount(m_extractor);
         for (int i = 0; i < track_count; i++) {
             AMediaFormat *format = AMediaExtractor_getTrackFormat(m_extractor, i);
             if (format != NULL) {
-                memset((void *) m_mine, 0, sizeof(char) * 200);
-                AMediaFormat_getString(format, "mine", reinterpret_cast<const char **>(&m_mine));
-                if (strlen(m_mine) > 0) {
-                    const char *flag = GetMineTypeFlag();
-                    if (strncmp(m_mine, flag, strlen(flag)) == 0) {
-                        LOGE(TAG, "IsSoftwareCodec(): %s, %s, %s", IsSoftwareCodec(m_mine) ? "true" : "false", m_mine, flag)
-                        m_track = i;
-                        GetFormatDurationUs();
-                        InitVirtual();
-                        return;
+                bool get_mine = AMediaFormat_getString(format, AMEDIAFORMAT_KEY_MIME, m_mine_out);
+                if (get_mine) {
+                    int length = strlen(m_mine_out[0]);
+                    if (length > 0) {
+                        const char *flag = GetMineTypeFlag();
+//                    char judge[20] = {0};
+//                    memset(judge, 0, sizeof(char) * 20);
+//                    memcpy(judge, m_mine, strlen(flag));
+                        int result = strncmp(m_mine_out[0], flag, strlen(flag));
+                        if (result == 0) {
+                            m_mine = static_cast<char *>(malloc(sizeof(char) * (length +1)));
+                            strcpy(m_mine, m_mine_out[0]);
+                            LOGE(TAG, "IsSoftwareCodec(): %s, %s, %s", IsSoftwareCodec(m_mine) ? "true" : "false", m_mine, flag)
+                            m_track = i;
+                            m_format = format;
+                            GetFormatDurationUs();
+                            GetMaxInputSize();
+                            InitVirtual();
+                            media_status_t select = AMediaExtractor_selectTrack(m_extractor, m_track);
+                            LOGE(TAG, "select: %d", select)
+//                            media_status_t seek = AMediaExtractor_seekTo(m_extractor, 0, AMEDIAEXTRACTOR_SEEK_PREVIOUS_SYNC);
+//                            LOGE(TAG, "seek to set(): %d", seek)
+//                            bool advance = AMediaExtractor_advance(m_extractor);
+//                            LOGE(TAG, "advance(): %d", advance)
+                            return;
+                        }
                     }
                 }
             }
-            memset((void *) m_mine, 0, sizeof(char) * 200);
         }
     }
 }
@@ -53,12 +73,58 @@ bool BaseExtractor::IsSoftwareCodec(const char *component_name) {
 media_status_t BaseExtractor::SetDataSource(const char *source) {
     media_status_t status = AMEDIA_ERROR_BASE;
     Stop();
-    m_extractor = AMediaExtractor_new();
-    if (m_extractor != NULL) {
-        status = AMediaExtractor_setDataSource(m_extractor, source);
-        if (status == AMEDIA_OK) {
-            Init();
+    char http[6] = {0};
+    char https[7] = {0};
+    memset(http, 0, 6);
+    memset(https, 0, 7);
+    int length = strlen(source);
+    if (length > 5) {
+        memcpy(http, source, 5);
+    } else {
+        strcpy(http, source);
+    }
+    if (length > 6) {
+        memcpy(https, source, 6);
+    } else {
+        strcpy(https, source);
+    }
+    if (strcasecmp("http:", http) == 0 || strcasecmp("https:", https) == 0) {
+        LOGE(TAG, "SetDataSourceHttp()")
+        m_extractor = AMediaExtractor_new();
+        if (m_extractor != NULL) {
+            status = AMediaExtractor_setDataSource(m_extractor, source);
+            LOGE(TAG, "SetDataSourceHttp() %d", status)
+            if (status == AMEDIA_OK) {
+                Init();
+            } else {
+                AMediaExtractor_delete(m_extractor);
+                m_extractor = NULL;
+            }
         }
+        return status;
+    }
+    LOGE(TAG, "SetDataSourceFd()")
+    m_media_fd = open(source, O_RDWR);
+    if (m_media_fd > 0) {
+        struct stat info;
+        fstat(m_media_fd, &info);
+        m_extractor = AMediaExtractor_new();
+        if (m_extractor != NULL) {
+            status = AMediaExtractor_setDataSourceFd(m_extractor, m_media_fd, 0, info.st_size);
+            LOGE(TAG, "SetDataSourceFd(): %d", status)
+            if (status == AMEDIA_OK) {
+                Init();
+            } else {
+                close(m_media_fd);
+                m_media_fd = -1;
+                AMediaExtractor_delete(m_extractor);
+                m_extractor = NULL;
+            }
+        } else {
+            close(m_media_fd);
+            m_media_fd = -1;
+        }
+        return status;
     }
     return status;
 }
@@ -78,9 +144,31 @@ media_status_t BaseExtractor::SetDataSource(int fd, off64_t offset, off64_t leng
 
 AMediaFormat * BaseExtractor::GetMediaFormat() {
     if (m_extractor != NULL && m_track != -1) {
-        return AMediaExtractor_getTrackFormat(m_extractor, m_track);
+        return m_format;
+//        return AMediaExtractor_getTrackFormat(m_extractor, m_track);
     }
     return NULL;
+}
+
+int32_t BaseExtractor::GetMaxInputSize() {
+    if (m_extractor != NULL && m_track != -1) {
+        if (m_max_input_size < 0) {
+            m_max_input_size = -1;
+            if (m_format != NULL) {
+                int64_t max_input_size;
+                if (AMediaFormat_getInt64(m_format, AMEDIAFORMAT_KEY_MAX_INPUT_SIZE, &max_input_size)) {
+                    m_max_input_size = max_input_size;
+                    if (m_max_input_size < 0) {
+                        m_max_input_size = -1;
+                        return 0;
+                    } else {
+                        return m_max_input_size;
+                    }
+                }
+            }
+        }
+    }
+    return 0;
 }
 
 const char * BaseExtractor::GetFormatMineType() {
@@ -94,10 +182,9 @@ int64_t BaseExtractor::GetFormatDurationUs() {
     if (m_extractor != NULL && m_track != -1) {
         if (m_duration < 0) {
             m_duration = -1;
-            AMediaFormat *format = AMediaExtractor_getTrackFormat(m_extractor, m_track);
-            if (format != NULL) {
+            if (m_format != NULL) {
                 int64_t durationUs;
-                if (AMediaFormat_getInt64(format, "durationUs", &durationUs)) {
+                if (AMediaFormat_getInt64(m_format, AMEDIAFORMAT_KEY_DURATION, &durationUs)) {
                     m_duration = durationUs;
                     if (m_duration < 0) {
                         m_duration = -1;
@@ -129,10 +216,12 @@ int BaseExtractor::GetSampleFlag() {
 
 ssize_t BaseExtractor::ReadBuffer(uint8_t *buffer) {
     if (m_extractor != NULL && m_track != -1) {
-        AMediaExtractor_selectTrack(m_extractor, m_track);
+        media_status_t select = AMediaExtractor_selectTrack(m_extractor, m_track);
+        LOGE(TAG, "select: %d", select)
         ssize_t read_sample_count = AMediaExtractor_readSampleData(m_extractor, buffer, 0);
+        LOGE(TAG, "ReadBuffer() %d", read_sample_count)
         if (read_sample_count < 0) {
-            return 0;
+            return -1;
         }
         // 记录当前帧的时间戳
         m_cur_sample_time = AMediaExtractor_getSampleTime(m_extractor);
@@ -146,15 +235,22 @@ ssize_t BaseExtractor::ReadBuffer(uint8_t *buffer) {
 }
 
 void BaseExtractor::Stop() {
+    LOGE(TAG, "Stop()")
     if (m_extractor != NULL) {
         AMediaExtractor_delete(m_extractor);
         m_extractor = NULL;
+        if (m_media_fd > 0) {
+            close(m_media_fd);
+            m_media_fd = -1;
+        }
+        if (m_mine != NULL) {
+            free(m_mine);
+        }
         m_track = -1;
-        memset((void *) m_mine, 0, sizeof(char) * 200);
+        m_format = NULL;
         m_duration = -1;
         m_cur_sample_time = -1;
         m_cur_sample_flag = -1;
-
         StopVirtual();
     }
 }

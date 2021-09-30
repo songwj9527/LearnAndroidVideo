@@ -13,7 +13,7 @@ public:
     virtual void  Pause() = 0;
     virtual void  Resume() = 0;
     virtual void  Stop() = 0;
-    virtual void  Release() = 0;
+    virtual void  Reset() = 0;
     virtual jlong GetDuration() = 0;
     virtual jlong GetCurrentTimestamp() = 0;
     virtual bool  SeekTo(int64_t timestamp) = 0;

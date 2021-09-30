@@ -9,8 +9,6 @@
 
 class VideoExtractor : public BaseExtractor {
 private:
-    const char *TAG = "VideoExtractor";
-
     /**
      * 视频宽、高、旋转角度
      */

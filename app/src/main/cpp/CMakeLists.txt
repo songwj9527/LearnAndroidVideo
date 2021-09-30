@@ -159,11 +159,14 @@ add_library(
         ${CMAKE_SOURCE_DIR}/media/codec/extractor/video_extractor.cpp
 
         # MediaCodec音视频轨道
+        ${CMAKE_SOURCE_DIR}/media/codec/track/i_sync_clock_receiver.h
         ${CMAKE_SOURCE_DIR}/media/codec/track/i_track_callback.h
         ${CMAKE_SOURCE_DIR}/media/codec/track/i_video_track_callback.h
         ${CMAKE_SOURCE_DIR}/media/codec/track/i_track.h
         ${CMAKE_SOURCE_DIR}/media/codec/track/base_track.h
         ${CMAKE_SOURCE_DIR}/media/codec/track/base_track.cpp
+        ${CMAKE_SOURCE_DIR}/media/codec/track/audio_track.h
+        ${CMAKE_SOURCE_DIR}/media/codec/track/audio_track.cpp
         ${CMAKE_SOURCE_DIR}/media/codec/track/base_video_track.h
         ${CMAKE_SOURCE_DIR}/media/codec/track/base_video_track.cpp
         ${CMAKE_SOURCE_DIR}/media/codec/track/default_video_track.h
@@ -173,6 +176,10 @@ add_library(
         # MediaCodec音视频渲染器
 
         # MediaCodec音视频播放器
+        ${CMAKE_SOURCE_DIR}/media/player/codec_player/codec_player.h
+        ${CMAKE_SOURCE_DIR}/media/player/codec_player/codec_player.cpp
+        ${CMAKE_SOURCE_DIR}/media/player/codec_player/default_codec_player.h
+        ${CMAKE_SOURCE_DIR}/media/player/codec_player/default_codec_player.cpp
 
         # 重新打包器
         ${CMAKE_SOURCE_DIR}/media/muxer/ff_repack.h

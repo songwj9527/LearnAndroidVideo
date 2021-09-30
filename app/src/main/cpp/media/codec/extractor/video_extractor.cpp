@@ -7,7 +7,7 @@
 #include "../../utils/logger.h"
 
 VideoExtractor::VideoExtractor() {
-
+    TAG = "VideoExtractor";
 }
 
 VideoExtractor::~VideoExtractor() {
@@ -19,10 +19,16 @@ int32_t VideoExtractor::GetVideoWidth() {
         if (m_video_width == -1) {
             AMediaFormat *format = GetMediaFormat();
             if (format != NULL) {
-                AMediaFormat_getInt32(format, "width", &m_video_width);
+                bool result = AMediaFormat_getInt32(format, AMEDIAFORMAT_KEY_WIDTH, &m_video_width);
+                if (!result) {
+                    LOGE(TAG, "AMediaFormat_Width: false")
+                    return 0;
+                }
                 if (m_video_width < 0) {
                     m_video_width = -1;
                 }
+            } else {
+                return 0;
             }
         }
         return m_video_width;
@@ -35,10 +41,16 @@ int32_t VideoExtractor::GetVideoHeight() {
         if (m_video_height == -1) {
             AMediaFormat *format = GetMediaFormat();
             if (format != NULL) {
-                AMediaFormat_getInt32(format, "height", &m_video_height);
+                bool result = AMediaFormat_getInt32(format, AMEDIAFORMAT_KEY_HEIGHT, &m_video_height);
+                if (!result) {
+                    LOGE(TAG, "AMediaFormat_Height: false")
+                    return 0;
+                }
                 if (m_video_height < 0) {
                     m_video_height = -1;
                 }
+            } else {
+                return 0;
             }
         }
         return m_video_height;
@@ -51,7 +63,16 @@ int32_t VideoExtractor::GetVideoRotation() {
         if (m_video_rotation == -1) {
             AMediaFormat *format = GetMediaFormat();
             if (format != NULL) {
-                AMediaFormat_getInt32(format, "rotation-degrees", &m_video_rotation);
+                bool result = false;
+                if (__ANDROID_API__ >= 28) {
+                    result = AMediaFormat_getInt32(format, AMEDIAFORMAT_KEY_ROTATION, &m_video_rotation);
+                } else {
+                    result = AMediaFormat_getInt32(format, "rotation-degrees", &m_video_rotation);
+                }
+                if (!result) {
+                    LOGE(TAG, "AMediaFormat_Rotation: false")
+                    return 0;
+                }
                 if (m_video_rotation < 0) {
                     m_video_rotation = -1;
                 }
@@ -67,10 +88,16 @@ int32_t VideoExtractor::GetVideoFps() {
         if (m_video_fps == -1) {
             AMediaFormat *format = GetMediaFormat();
             if (format != NULL) {
-                AMediaFormat_getInt32(format, "frame-rate", &m_video_fps);
+                bool result = AMediaFormat_getInt32(format, AMEDIAFORMAT_KEY_FRAME_RATE, &m_video_fps);
+                if (!result) {
+                    LOGE(TAG, "AMediaFormat_FrameRate: false")
+                    return 0;
+                }
                 if (m_video_fps < 0) {
                     m_video_fps = -1;
                 }
+            } else {
+                return 0;
             }
         }
         return m_video_fps;
@@ -140,5 +167,7 @@ int64_t VideoExtractor::SeekTo(int64_t position) {
     if (m_extractor != NULL) {
         int64_t valid_sample_time = GetValidSampleTime(position, 20);
         AMediaExtractor_seekTo(m_extractor, valid_sample_time, AMEDIAEXTRACTOR_SEEK_CLOSEST_SYNC);
+        return valid_sample_time;
     }
+    return position;
 }

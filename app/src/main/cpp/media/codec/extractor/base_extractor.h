@@ -9,8 +9,6 @@
 
 class BaseExtractor {
 private:
-    const char *TAG = "IExtractor";
-
     /**
      * 初始化音视频信道、获取时长等参数
      * @return
@@ -19,17 +17,32 @@ private:
 
 
 protected:
+    const char *TAG = "IExtractor";
+
+    /**
+     * 音视频文件描述符
+     */
+    int m_media_fd = -1;
+
     /**音视频分离器*/
     AMediaExtractor *m_extractor = NULL;
 
+    /**
+     * *音视频格式参数
+     */
+    AMediaFormat *m_format = NULL;
     /**音视频解码器类型**/
-    const char m_mine[200] = {0};
+    const char *m_mine_out[1] = {0};
+    char *m_mine = NULL;
 
     /**音视频频通道索引**/
     int m_track = -1;
 
     /**音视频总时长**/
     int64_t m_duration = -1;
+
+    /**音视频最大输出缓存**/
+    int32_t m_max_input_size = -1;
 
     /**当前帧时间戳*/
     volatile int64_t m_cur_sample_time = -1;
@@ -97,6 +110,12 @@ public:
      * @return
      */
     AMediaFormat *GetMediaFormat();
+
+    /**
+     * 获取音视频最大输出缓存
+     * @return
+     */
+    int32_t GetMaxInputSize();
 
     /**
      * 获取当前帧时间（单位：microseconds微妙）

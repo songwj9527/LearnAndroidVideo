@@ -6,6 +6,7 @@
 #include "media/player/ffmpeg_player/opengl_player/opengl_player.h"
 #include "media/muxer/ff_repack.h"
 #include "media/player/player.h"
+#include "media/player/codec_player/default_codec_player.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -406,6 +407,11 @@ JNIEXPORT jint JNICALL nativeCreateGLPlayer(JNIEnv *env, jobject obj) {
     return (jint) mediaPlayer;
 }
 
+JNIEXPORT jint JNICALL nativeCreateCodecPlayer(JNIEnv *env, jobject obj) {
+    DefaultCodecPlayer *mediaPlayer = new DefaultCodecPlayer(env, obj);
+    return (jint) mediaPlayer;
+}
+
 JNIEXPORT jint JNICALL nativeCreateRepack(JNIEnv *env, jobject obj, jstring srcPath, jstring destPath) {
     FFRepack *ffRepack = new FFRepack(env, srcPath, destPath);
     return (jint) ffRepack;
@@ -450,6 +456,7 @@ static const JNINativeMethod gMethods_NativePlayer[] = {
         {"nativeGetVolumeLevel", "(I)I", (void *)nativeGetVolumeLevel},
         {"nativeSetVolumeLevel", "(II)V", (void *)nativeSetVolumeLevel},
         {"nativeCreateGLPlayer", "()I", (void *)nativeCreateGLPlayer},
+        {"nativeCreateCodecPlayer", "()I", (void *)nativeCreateCodecPlayer},
 };
 #define JNI_CLASS_NATIVE_PLAYER "com/songwj/openvideo/ffmpeg/NativePlayer"
 static int registerNatives_NativePlayer(JNIEnv *env) {

@@ -125,7 +125,7 @@ public:
 
     /**
      * 指定位置播放
-     * @param position
+     * @param position（单位：ms）
      */
     virtual void seekTo(jlong position) = 0;
 

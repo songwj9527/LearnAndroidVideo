@@ -14,6 +14,7 @@ public class NativePlayer {
     public enum PlayerType {
         DEFAULT_PLAYER,
         OPENGL_PLAYER,
+        CODEC_PLAYER,
     }
 
     public native String ffmpegInfo();
@@ -21,6 +22,7 @@ public class NativePlayer {
 
     private native int nativeCreatePlayer();
     private native int nativeCreateGLPlayer();
+    private native int nativeCreateCodecPlayer();
     private native void nativeSetDataSource(int nativePlayer, String url);
     private native void nativePrepareSync(int nativePlayer);
     private native void nativeSetSurface(int nativePlayer, Surface surface);
@@ -42,7 +44,17 @@ public class NativePlayer {
      *******************************************************/
     public NativePlayer(PlayerType type) {
         playerType = type;
-        nativePlayer = type == PlayerType.DEFAULT_PLAYER ? nativeCreatePlayer() : nativeCreateGLPlayer();
+        switch (type) {
+            case OPENGL_PLAYER:
+                nativePlayer = nativeCreateGLPlayer();
+                break;
+            case CODEC_PLAYER:
+                nativePlayer = nativeCreateCodecPlayer();
+                break;
+            default:
+                nativePlayer = nativeCreatePlayer();
+                break;
+        }
         Looper looper;
         if ((looper = Looper.myLooper()) != null) {
             eventHandler = new EventHandler(this, looper);

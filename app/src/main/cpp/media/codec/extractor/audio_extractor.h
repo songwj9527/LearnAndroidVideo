@@ -9,7 +9,6 @@
 
 class AudioExtractor : public BaseExtractor {
 private:
-    const char *TAG = "AudioExtractor";
     /**采样率*/
     int32_t m_sample_rate = -1;
 

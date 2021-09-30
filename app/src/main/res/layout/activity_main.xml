@@ -90,6 +90,13 @@
                 android:layout_marginTop="10dp"
                 android:text="FFmpeg_Repack" />
 
+            <Button
+                android:id="@+id/btn_native_codec_player"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="NATIVE_CODEC_Player" />
+
         </LinearLayout>
 
     </ScrollView>
