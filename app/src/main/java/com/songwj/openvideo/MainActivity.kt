@@ -31,6 +31,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
         btn_native_ffmpeg_egl_player.setOnClickListener(this)
         btn_native_ffmpeg_repack.setOnClickListener(this)
         btn_native_codec_player.setOnClickListener(this)
+        btn_model_loader.setOnClickListener(this)
+        btn_cube_scale_rotate.setOnClickListener(this)
 
         var test : ArrayBlockingQueue<String>? = null
         var lock: ReentrantLock? = null
@@ -68,7 +70,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
             }
             else if (id == R.id.btn_simple_opengl_render) {
                 var newIntent = Intent(this, SimpleRenderGLSurfaceViewActivity::class.java)
-                newIntent.putExtra("type", 0)
+                newIntent.putExtra("type", 1)
                 startActivity(newIntent)
             }
             else if (id == R.id.btn_opengl_player) {
@@ -99,6 +101,11 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
                 startActivity(Intent(this, FFmpegRepackActivity::class.java))
             } else if (id == R.id.btn_native_codec_player) {
                 startActivity(Intent(this, NativeCodecPlayerActivity::class.java))
+            } else if (id == R.id.btn_model_loader) {
+                startActivity(Intent(this, ModelLoaderActivity::class.java))
+            }
+            else if (id == R.id.btn_cube_scale_rotate) {
+                startActivity(Intent(this, CubeScaleRotateActivity::class.java))
             }
         }
     }

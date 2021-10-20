@@ -3,7 +3,7 @@ package com.songwj.openvideo
 import android.graphics.BitmapFactory
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import com.songwj.openvideo.opengl.SimpleRender
+import com.songwj.openvideo.opengl.renders.SimpleRender
 import com.songwj.openvideo.opengl.drawer.BitmapDrawer
 import com.songwj.openvideo.opengl.drawer.IDrawer
 import com.songwj.openvideo.opengl.drawer.TriangleDrawer

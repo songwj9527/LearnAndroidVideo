@@ -7,7 +7,7 @@ import android.view.Surface
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.songwj.openvideo.mediacodec.MediaCodecPlayer
-import com.songwj.openvideo.opengl.SimpleRender
+import com.songwj.openvideo.opengl.renders.SimpleRender
 import com.songwj.openvideo.opengl.drawer.IDrawer
 import com.songwj.openvideo.opengl.drawer.VideoDrawer
 import kotlinx.android.synthetic.main.activity_opengl_player.*

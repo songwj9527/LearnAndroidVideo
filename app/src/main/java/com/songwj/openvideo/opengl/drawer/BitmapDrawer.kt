@@ -20,21 +20,37 @@ import javax.microedition.khronos.opengles.GL10
  */
 class BitmapDrawer(private val mBitmap: Bitmap): IDrawer {
 
+//    // 顶点坐标
+//    private val mVertexCoors = floatArrayOf(
+//        -1f, -1f,
+//        1f, -1f,
+//        -1f, 1f,
+//        1f, 1f
+//    )
+//
+//    // 纹理坐标
+//    private val mTextureCoors = floatArrayOf(
+//        0f, 1f,
+//        1f, 1f,
+//        0f, 0f,
+//        1f, 0f
+//    )
+
     // 顶点坐标
     private val mVertexCoors = floatArrayOf(
         -1f, -1f,
         1f, -1f,
-        -1f, 1f,
-        1f, 1f
+        0f, 1f
     )
 
     // 纹理坐标
     private val mTextureCoors = floatArrayOf(
         0f, 1f,
         1f, 1f,
-        0f, 0f,
-        1f, 0f
+        0.5f, 0f
     )
+
+    private val mPointCount = 3;
 
     private var mTextureId: Int = -1
 
@@ -163,8 +179,8 @@ class BitmapDrawer(private val mBitmap: Bitmap): IDrawer {
         //设置着色器参数， 第二个参数表示一个顶点包含的数据数量，这里为xy，所以为2
         GLES20.glVertexAttribPointer(mVertexPosHandler, 2, GLES20.GL_FLOAT, false, 0, mVertexBuffer)
         GLES20.glVertexAttribPointer(mTexturePosHandler, 2, GLES20.GL_FLOAT, false, 0, mTextureBuffer)
-        //开始绘制
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
+        //开始绘制 count表示纹理顶点数：三角形为3，正常图片为矩形4
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, mPointCount)
     }
 
     override fun release() {

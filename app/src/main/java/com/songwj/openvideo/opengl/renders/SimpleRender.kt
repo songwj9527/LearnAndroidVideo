@@ -1,7 +1,8 @@
-package com.songwj.openvideo.opengl
+package com.songwj.openvideo.opengl.renders
 
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
+import com.songwj.openvideo.opengl.OpenGLTools
 import com.songwj.openvideo.opengl.drawer.IDrawer
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10

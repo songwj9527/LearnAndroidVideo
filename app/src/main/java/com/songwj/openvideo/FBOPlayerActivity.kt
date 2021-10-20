@@ -6,7 +6,7 @@ import android.os.Environment
 import android.view.Surface
 import android.view.View
 import com.songwj.openvideo.mediacodec.MediaCodecPlayer
-import com.songwj.openvideo.opengl.SimpleRender
+import com.songwj.openvideo.opengl.renders.SimpleRender
 import com.songwj.openvideo.opengl.drawer.*
 import kotlinx.android.synthetic.main.activity_fbo_player.*
 

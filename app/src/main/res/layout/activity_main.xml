@@ -97,6 +97,20 @@
                 android:layout_marginTop="10dp"
                 android:text="NATIVE_CODEC_Player" />
 
+            <Button
+                android:id="@+id/btn_model_loader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="OPENGL_MODEL_LOADER" />
+
+            <Button
+                android:id="@+id/btn_cube_scale_rotate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="OPENGL_CUBE_SCALE_ROTATE" />
+
         </LinearLayout>
 
     </ScrollView>
