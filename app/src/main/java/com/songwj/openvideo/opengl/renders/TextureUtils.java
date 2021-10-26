@@ -118,7 +118,7 @@ public class TextureUtils {
     }
 
 
-    // [mod dj 2020-06-21] 逻辑待完善
+    // 逻辑待完善
     public static int[] loadTextures(Context context, int[] resourceIds) {
         int count = resourceIds.length;
         final int[] textureIds = new int[count];

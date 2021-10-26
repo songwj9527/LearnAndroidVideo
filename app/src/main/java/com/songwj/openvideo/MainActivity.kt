@@ -33,6 +33,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
         btn_native_codec_player.setOnClickListener(this)
         btn_model_loader.setOnClickListener(this)
         btn_cube_scale_rotate.setOnClickListener(this)
+        btn_skybox.setOnClickListener(this)
 
         var test : ArrayBlockingQueue<String>? = null
         var lock: ReentrantLock? = null
@@ -106,6 +107,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
             }
             else if (id == R.id.btn_cube_scale_rotate) {
                 startActivity(Intent(this, CubeScaleRotateActivity::class.java))
+            }
+            else if (id == R.id.btn_skybox) {
+                startActivity(Intent(this, SkyboxActivity::class.java))
             }
         }
     }

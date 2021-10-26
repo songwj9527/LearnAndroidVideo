@@ -158,7 +158,6 @@ public class CubeMultiSixRotateRender implements GLSurfaceView.Renderer {
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer();
         //要把所有6个面的数据都塞进去
-
         vertexBuffer.put(vertexCoordinate);
         vertexBuffer.position(0);
 
