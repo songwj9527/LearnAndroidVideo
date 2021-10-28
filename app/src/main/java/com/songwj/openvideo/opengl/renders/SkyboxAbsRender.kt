@@ -162,6 +162,12 @@ public class SkyboxAbsRender : BaseAbsRender() {
             GLES20.glUseProgram(0)
         }
 
+        override fun release() {
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+            GLES20.glDeleteTextures(1, intArrayOf(skyboxTexture), 0)
+            GLES20.glDeleteProgram(program)
+        }
+
         fun rotation(rotateMatrix: FloatArray) {
             rotationMatrix = rotateMatrix
         }
@@ -281,6 +287,12 @@ public class SkyboxAbsRender : BaseAbsRender() {
             if(angle >= 360){
                 angle = 0F
             }
+        }
+
+        override fun release() {
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+            GLES20.glDeleteTextures(1, intArrayOf(cubeTexture), 0)
+            GLES20.glDeleteProgram(program)
         }
 
     }

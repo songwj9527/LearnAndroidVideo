@@ -14,7 +14,7 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class BaseAbsRender implements GLSurfaceView.Renderer {
     private static final String TAG = "BaseCameraRenderer";
-    private List<AbsObjectRender> objectRenders = new ArrayList<>();
+    protected List<AbsObjectRender> objectRenders = new ArrayList<>();
     protected float[] projectMatrix = new float[16];
     protected float[] cameraMatrix  = new float[16];
 
@@ -55,5 +55,12 @@ public class BaseAbsRender implements GLSurfaceView.Renderer {
             }
             objRender.onDrawFrame();
         }
+    }
+
+    public void release() {
+        for (AbsObjectRender item : objectRenders) {
+            item.release();
+        }
+        objectRenders.clear();
     }
 }

@@ -48,6 +48,11 @@ class SkyboxActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        skyboxAbsRender?.release()
+    }
+
     override fun onSensorChanged(event: SensorEvent) {
         SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
         gl_surface_view.queueEvent(Runnable {

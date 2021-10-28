@@ -58,4 +58,9 @@ public abstract class AbsObjectRender {
     *【说明】：在onDrawFrame中调用
     */
     abstract public void onDrawFrame();
+
+    /**
+     * 释放资源
+     */
+    abstract public void release();
 }
