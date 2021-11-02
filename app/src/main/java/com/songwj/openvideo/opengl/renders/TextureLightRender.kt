@@ -284,7 +284,7 @@ internal class TextureLightRender : BaseAbsRender() {
                 // 2-- 光照
                 GLES20.glUniform3f(lightPosHandle, lightPosInEyeSpace[0], lightPosInEyeSpace[1], lightPosInEyeSpace[2])
 
-                GLES20.glUniform3f(lightAmbientPosHandle, 0.2f, 0.2f, 0.2f)
+                GLES20.glUniform3f(lightAmbientPosHandle, 0.3f, 0.3f, 0.3f)
                 GLES20.glUniform3f(lightDiffusePosHandle, 0.5f, 0.5f, 0.5f)
                 GLES20.glUniform3f(lightSpecularPosHandle, 1.0f, 1.0f, 1.0f)
 
