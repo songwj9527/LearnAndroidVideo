@@ -35,6 +35,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
         btn_cube_scale_rotate.setOnClickListener(this)
         btn_skybox.setOnClickListener(this)
         btn_feng_light.setOnClickListener(this)
+        btn_texture_light.setOnClickListener(this)
 
         var test : ArrayBlockingQueue<String>? = null
         var lock: ReentrantLock? = null
@@ -114,6 +115,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
             }
             else if (id == R.id.btn_feng_light) {
                 startActivity(Intent(this, FengLightActivity::class.java))
+            }
+            else if (id == R.id.btn_texture_light) {
+                startActivity(Intent(this, TextureLightActivity::class.java))
             }
         }
     }
