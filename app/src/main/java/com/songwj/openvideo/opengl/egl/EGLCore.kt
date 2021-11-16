@@ -9,11 +9,6 @@ import android.view.Surface
 /**
  * EGL基础封装
  *
- * @author Chen Xiaoping (562818444@qq.com)
- * @since LearningVideo
- * @version LearningVideo
- * @Datetime 2019-11-30 22:44
- *
  */
 const val FLAG_RECORDABLE = 0x01
 

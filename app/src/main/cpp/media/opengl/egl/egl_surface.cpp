@@ -32,6 +32,10 @@ void EglSurface::CreateEglSurface(ANativeWindow *native_window, int width, int h
     MakeCurrent();
 }
 
+void EglSurface::SetPresentationTime(int64_t nsecs) {
+    m_core->SetPresentationTimeANDROID(m_surface, nsecs);
+}
+
 void EglSurface::SwapBuffers() {
     LOGE(TAG, "SwapBuffers()")
     m_core->SwapBuffers(m_surface);

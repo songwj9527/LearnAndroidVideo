@@ -14,12 +14,7 @@ import kotlin.random.Random
 
 
 /**
- * 灵魂出窍视频渲染器
- *
- * @author Chen Xiaoping (562818444@qq.com)
- * @since LearningVideo
- * @version LearningVideo
- * @Datetime 2019-10-26 15:45
+ * 视频毛刺渲染器
  *
  */
 class SoulBurrVideoDrawer : IDrawer {

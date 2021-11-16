@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Camera1PreviewGLSurfaceActivity">
+
+    <com.songwj.openvideo.opengl.Camera1PreviewGLSurfaceView
+        android:id="@+id/camera1_preview_gl_surface_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </com.songwj.openvideo.opengl.Camera1PreviewGLSurfaceView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="bottom"
+        android:gravity="center"
+        android:layout_marginBottom="30dp">
+
+        <Button
+            android:id="@+id/btn_start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="开始录制"/>
+
+        <Button
+            android:id="@+id/btn_stop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="停止录制"/>
+
+    </LinearLayout>
+
+</FrameLayout>

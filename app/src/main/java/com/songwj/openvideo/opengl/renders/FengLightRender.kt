@@ -214,6 +214,10 @@ class FengLightRender : BaseAbsRender() {
 //            }
         }
 
+        override fun initMatrix() {
+
+        }
+
         override fun onDrawFrame() {
             /**
              * 每次渲染都要重新获取一下渲染程序，如果在initProgram()中进行的话，两个render会出现后一个覆盖前一个的情况
@@ -313,6 +317,10 @@ class FengLightRender : BaseAbsRender() {
 //                positionHandle = GLES20.glGetAttribLocation(program, "aPosition")
 //                mvpMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix")
 //            }
+        }
+
+        override fun initMatrix() {
+
         }
 
         override fun onDrawFrame() {

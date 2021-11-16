@@ -14,12 +14,6 @@ import java.nio.FloatBuffer
 
 /**
  * 灵魂出窍视频渲染器
- *
- * @author Chen Xiaoping (562818444@qq.com)
- * @since LearningVideo
- * @version LearningVideo
- * @Datetime 2019-10-26 15:45
- *
  */
 class SoulVideoDrawer : IDrawer {
     /**上下颠倒的顶点矩阵*/

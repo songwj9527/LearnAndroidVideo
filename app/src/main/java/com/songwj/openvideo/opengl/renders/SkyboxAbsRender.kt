@@ -137,6 +137,10 @@ public class SkyboxAbsRender : BaseAbsRender() {
             skyBoxPosHandle = GLES30.glGetUniformLocation(program, "skybox")
         }
 
+        override fun initMatrix() {
+
+        }
+
         override fun onDrawFrame() {
             GLES20.glUseProgram(program)
             GLES20.glEnableVertexAttribArray(positionHandle)
@@ -252,6 +256,10 @@ public class SkyboxAbsRender : BaseAbsRender() {
             textCoordsHandle = GLES20.glGetAttribLocation(program, "aTexCoords")
             mvpMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix")
             texturePosHandle = GLES20.glGetUniformLocation(program, "texture")
+        }
+
+        override fun initMatrix() {
+
         }
 
         override fun onDrawFrame() {

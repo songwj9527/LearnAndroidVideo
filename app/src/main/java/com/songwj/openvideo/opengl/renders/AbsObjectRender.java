@@ -2,6 +2,8 @@ package com.songwj.openvideo.opengl.renders;
 
 import java.nio.FloatBuffer;
 
+import javax.microedition.khronos.opengles.GL10;
+
 /**
  * 【说明】：添加其他绘制元素时的抽象类
  */
@@ -50,9 +52,18 @@ public abstract class AbsObjectRender {
      * @param cameraMatrix
      */
     public void setProjectAndCameraMatrix(float[] projectMatrix,float[] cameraMatrix){
-        this.projectMatrix = projectMatrix;
-        this.cameraMatrix = cameraMatrix;
+        for (int i = 0; i < 16; i++) {
+            this.projectMatrix[i] = projectMatrix[i];
+        }
+        for (int i = 0; i < 16; i++) {
+            this.cameraMatrix[i] = cameraMatrix[i];
+        }
     }
+
+    /**
+     * 在onSurfaceChanged中调用，初始化相关矩阵
+     */
+    abstract public void initMatrix();
 
     /**
     *【说明】：在onDrawFrame中调用

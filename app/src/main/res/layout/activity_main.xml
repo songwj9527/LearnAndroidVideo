@@ -132,6 +132,34 @@
                 android:layout_marginTop="10dp"
                 android:text="OPENGL_TEXTURE_LIGHT" />
 
+            <Button
+                android:id="@+id/btn_camera1_preview_surface_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="OPENGL_CAMERA1_PREVIEW_SURFACE_VIEW" />
+
+            <Button
+                android:id="@+id/btn_camera1_preview_texture_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="OPENGL_CAMERA1_PREVIEW_TEXTURE_VIEW" />
+
+            <Button
+                android:id="@+id/btn_camera1_video_record_from_nv21"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="OPENGL_CAMERA1_VIDEO_RECORD_FROM_NV21" />
+
+            <Button
+                android:id="@+id/btn_camera1_preview_gl_surface_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="OPENGL_CAMERA1_PREVIEW_GL_SURFACE_VIEW" />
+
         </LinearLayout>
 
     </ScrollView>

@@ -2,6 +2,7 @@ package com.songwj.openvideo
 
 import android.Manifest
 import android.content.Intent
+import android.graphics.Camera
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -36,6 +37,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
         btn_skybox.setOnClickListener(this)
         btn_feng_light.setOnClickListener(this)
         btn_texture_light.setOnClickListener(this)
+        btn_camera1_preview_surface_view.setOnClickListener(this)
+        btn_camera1_preview_texture_view.setOnClickListener(this)
+        btn_camera1_video_record_from_nv21.setOnClickListener(this)
+        btn_camera1_preview_gl_surface_view.setOnClickListener(this)
 
         var test : ArrayBlockingQueue<String>? = null
         var lock: ReentrantLock? = null
@@ -47,10 +52,12 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
     private val REQUEST_PERMISSION = 101
     private fun handlerPermission() {
         requestPermissions(arrayOf(
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            ),
-            REQUEST_PERMISSION
-        )
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.CAPTURE_AUDIO_OUTPUT
+
+        ), REQUEST_PERMISSION)
     }
 
     override fun onRequestPermissionsResult(
@@ -118,6 +125,18 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
             }
             else if (id == R.id.btn_texture_light) {
                 startActivity(Intent(this, TextureLightActivity::class.java))
+            }
+            else if (id == R.id.btn_camera1_preview_surface_view) {
+                startActivity(Intent(this, Camera1PreviewSurfaceViewActivity::class.java))
+            }
+            else if (id == R.id.btn_camera1_preview_texture_view) {
+                startActivity(Intent(this, Camera1PreviewTextureViewActivity::class.java))
+            }
+            else if (id == R.id.btn_camera1_video_record_from_nv21) {
+                startActivity(Intent(this, Camera1VideoRecordFromNV21Activity::class.java))
+            }
+            else if (id == R.id.btn_camera1_preview_gl_surface_view) {
+                startActivity(Intent(this, Camera1PreviewGLSurfaceActivity::class.java))
             }
         }
     }

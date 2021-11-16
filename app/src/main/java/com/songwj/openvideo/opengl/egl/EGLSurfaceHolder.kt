@@ -6,12 +6,6 @@ import android.opengl.EGLSurface
 
 /**
  * EGLSurface 持有者
- *
- * @author Chen Xiaoping (562818444@qq.com)
- * @since LearningVideo
- * @version LearningVideo
- * @Datetime 2019-11-30 23:27
- *
  */
 class EGLSurfaceHolder {
 
@@ -32,23 +26,51 @@ class EGLSurfaceHolder {
         } else {
             mEGLCore.createOffscreenSurface(width, height)
         }
+        makeCurrent()
     }
 
-    fun makeCurrent() {
+    private fun makeCurrent() {
         if (mEGLSurface != null) {
             mEGLCore.makeCurrent(mEGLSurface!!)
         }
     }
 
-    fun swapBuffers() {
+    fun onDrawMs(timeMs: Long) {
+        setTimestampMs(timeMs)
+        swapBuffers()
+    }
+
+    fun onDrawUs(timeUs: Long) {
+        setTimestampUs(timeUs)
+        swapBuffers()
+    }
+
+    fun onDrawNs(timeNs: Long) {
+        setTimestampNs(timeNs)
+        swapBuffers()
+    }
+
+    private fun swapBuffers() {
         if (mEGLSurface != null) {
             mEGLCore.swapBuffers(mEGLSurface!!)
         }
     }
 
-    fun setTimestamp(timeMs: Long) {
+    private fun setTimestampMs(timeMs: Long) {
         if (mEGLSurface != null) {
-            mEGLCore.setPresentationTime(mEGLSurface!!, timeMs * 1000)
+            mEGLCore.setPresentationTime(mEGLSurface!!, timeMs * 1000 * 1000)
+        }
+    }
+
+    private fun setTimestampUs(timeUs: Long) {
+        if (mEGLSurface != null) {
+            mEGLCore.setPresentationTime(mEGLSurface!!, timeUs * 1000)
+        }
+    }
+
+    private fun setTimestampNs(timeNs: Long) {
+        if (mEGLSurface != null) {
+            mEGLCore.setPresentationTime(mEGLSurface!!, timeNs)
         }
     }
 

@@ -2,61 +2,62 @@ package com.songwj.openvideo.mediacodec.encoder
 
 import android.media.MediaCodec
 import android.media.MediaFormat
+import android.os.Build
+import android.os.SystemClock
 import android.util.Log
-import com.songwj.openvideo.mediacodec.Frame
 import com.songwj.openvideo.mediacodec.muxer.MMuxer
 import java.nio.ByteBuffer
 
 
 /**
  * 基础编码器
- *
- * @author Chen Xiaoping (562818444@qq.com)
- * @since LearningVideo
- * @version LearningVideo
- * @Datetime 2019-12-15 17:10
- *
  */
-abstract class BaseEncoder(muxer: MMuxer, width: Int = -1, height: Int = -1) : Runnable {
-
-    private val TAG = "BaseEncoder"
+abstract class BaseEncoder : Thread {
+    protected var TAG = "BaseEncoder"
 
     // 目标视频宽，只有视频编码的时候才有效
-    protected val mWidth: Int = width
-
+    protected var mWidth = 0
     // 目标视频高，只有视频编码的时候才有效
-    protected val mHeight: Int = height
+    protected var mHeight = 0
+
+    // 视频是否手动编码，false，颜色空间 从编码视图的surface窗口获得；true，颜色空间 从外部获得，需要外部传入数据放到编码队列中去编码
+    protected var isVideoEncodeManually = true
+
+    // 状态锁
+    private var mFramesLock = Object()
 
     // Mp4合成器
-    private var mMuxer: MMuxer = muxer
-
-    // 线程运行
-    private var mRunning = true
-
-    // 编码帧序列
-    private var mFrames = mutableListOf<Frame>()
+    protected var mMuxer: MMuxer? = null
+    // 是否已经添加了MuxerTrack
+    protected var mAddedMuxerTrack = false
 
     // 编码器
-    private lateinit var mCodec: MediaCodec
+    protected lateinit var mCodec: MediaCodec
 
     // 当前编码帧信息
     private val mBufferInfo = MediaCodec.BufferInfo()
-
-    // 编码输出缓冲区
-    private var mOutputBuffers: Array<ByteBuffer>? = null
-
-    // 编码输入缓冲区
-    private var mInputBuffers: Array<ByteBuffer>? = null
-
+    // 状态锁
     private var mLock = Object()
 
     // 是否编码结束
     private var mIsEOS = false
 
-    // 编码状态监听器
-    private var mStateListener: IEncodeStateListener? = null
+    // 是否主动停止编码
+    private var mStop = false
 
-    init {
+    // 编码状态监听器
+    protected var mStateListener: IEncodeStateListener? = null
+
+    constructor(muxer: MMuxer) {
+        this.mMuxer = muxer
+        initCodec()
+    }
+
+    constructor(muxer: MMuxer, width: Int, height: Int, isEncodeManually: Boolean) {
+        this.mMuxer = muxer
+        this.mWidth = width
+        this.mHeight = height
+        this.isVideoEncodeManually = isEncodeManually
         initCodec()
     }
 
@@ -64,17 +65,35 @@ abstract class BaseEncoder(muxer: MMuxer, width: Int = -1, height: Int = -1) : R
      * 初始化编码器
      */
     private fun initCodec() {
-        mCodec = MediaCodec.createEncoderByType(encodeType())
+        mCodec = createCodec()
         configEncoder(mCodec)
         mCodec.start()
-        mOutputBuffers = mCodec.outputBuffers
-        mInputBuffers = mCodec.inputBuffers
         Log.i(TAG, "编码器初始化完成")
     }
 
+    abstract fun createCodec() : MediaCodec
+
     override fun run() {
+        super.run()
         loopEncode()
-        done()
+        doneEncode()
+    }
+
+    fun dequeueFrame(frame: Frame?) {
+        frame?.let {
+//            synchronized(mFramesLock) {
+//                if (!mStop) {
+//                    mFrames.add(it)
+//                    dequeueInputBuffer(frame.buffer, frame.presentationTimeUs)
+//                }
+//            }
+//            SystemClock.sleep(frameWaitTimeMs())
+            synchronized(mFramesLock) {
+                if (!mStop) {
+                    dequeueInputBuffer(frame.buffer, frame.presentationTimeUs)
+                }
+            }
+        }
     }
 
     /**
@@ -82,104 +101,112 @@ abstract class BaseEncoder(muxer: MMuxer, width: Int = -1, height: Int = -1) : R
      */
     private fun loopEncode() {
         Log.i(TAG, "开始编码")
-        while (mRunning && !mIsEOS) {
-            val empty = synchronized(mFrames) {
-                mFrames.isEmpty()
-            }
-            if (empty) {
-                justWait()
-            }
-            if (mFrames.isNotEmpty()) {
-                val frame = synchronized(mFrames) {
-                    mFrames.removeAt(0)
-                }
-
-                if (encodeManually()) {
-                    encode(frame)
-                } else if (frame.buffer == null) { // 如果是自动编码（比如视频），遇到结束帧的时候，直接结束掉
-                    Log.e(TAG, "发送编码结束标志")
-                    // This may only be used with encoders receiving input from a Surface
-                    mCodec.signalEndOfInputStream()
-                    mIsEOS = true
-                }
-            }
+        mStateListener?.encodeStart(this)
+        firstAddTrack()
+        mCodec.flush()
+        while (!mIsEOS) {
             drain()
+            if (mStop) {
+//                drain()
+                break
+            }
         }
     }
 
     /**
-     * 编码
+     * 因为视频编码 var index = mCodec.dequeueOutputBuffer(mBufferInfo, 100000)，
+     * 得到的index一直等于MediaCodec.INFO_OUTPUT_FORMAT_CHANGED，
+     * 也就无法调用muxer.addTrack()方法来添加轨道
+     * 所以由次方法来
      */
-    private fun encode(frame: Frame) {
-
-        val index = mCodec.dequeueInputBuffer(-1)
-
-        /*向编码器输入数据*/
-        if (index >= 0) {
-            val inputBuffer = mInputBuffers!![index]
-            inputBuffer.clear()
-            if (frame.buffer != null) {
-                inputBuffer.put(frame.buffer)
-            }
-            if (frame.buffer == null || frame.bufferInfo.size <= 0) { // 小于等于0时，为音频结束符标记
-                mCodec.queueInputBuffer(index, 0, 0,
-                    frame.bufferInfo.presentationTimeUs, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
-            } else {
-                frame.buffer?.flip()
-                frame.buffer?.mark()
-                mCodec.queueInputBuffer(index, 0, frame.bufferInfo.size,
-                    frame.bufferInfo.presentationTimeUs, 0)
-            }
-            frame.buffer?.clear()
-        }
-    }
+    abstract protected fun firstAddTrack()
 
     /**
      * 榨干编码输出数据
      */
     private fun drain() {
-        loop@ while (!mIsEOS) {
-            val index = mCodec.dequeueOutputBuffer(mBufferInfo, 1000)
-            when (index) {
-                MediaCodec.INFO_TRY_AGAIN_LATER -> break@loop
-                MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
-                    addTrack(mMuxer, mCodec.outputFormat)
-                }
-                MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED -> {
-                    mOutputBuffers = mCodec.outputBuffers
-                }
-                else -> {
-                    if (mBufferInfo.flags == MediaCodec.BUFFER_FLAG_END_OF_STREAM) {
-                        mIsEOS = true
-                        mBufferInfo.set(0, 0, 0, mBufferInfo.flags)
-                        Log.e(TAG, "编码结束")
-                    }
+        var index = mCodec.dequeueOutputBuffer(mBufferInfo, 100000)
+        Log.i(TAG, "dequeueOutputBuffer(): $index")
+        if (MediaCodec.INFO_OUTPUT_FORMAT_CHANGED == index) {
+            Log.i(TAG, "drain(): 添加轨道")
+            mMuxer?.let {
+                addTrack(it, mCodec.outputFormat)
+            }
+            mAddedMuxerTrack = true
+        } else if (MediaCodec.INFO_TRY_AGAIN_LATER == index) {
 
-                    if (mBufferInfo.flags == MediaCodec.BUFFER_FLAG_CODEC_CONFIG) {
-                        // SPS or PPS, which should be passed by MediaFormat.
-                        mCodec.releaseOutputBuffer(index, false)
-                        continue@loop
-                    }
+        } else if (MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED == index) {
 
-                    if (!mIsEOS) {
-                        writeData(mMuxer, mOutputBuffers!![index], mBufferInfo)
+        } else {
+            while (index >= 0) {
+//                if (mBufferInfo.flags == MediaCodec.BUFFER_FLAG_END_OF_STREAM) {
+//                    Log.e(TAG, "drain(): 编码结束")
+//                    mIsEOS = true
+//                    mBufferInfo.set(0, 0, 0, mBufferInfo.flags)
+//                    break
+//                }
+//                if (((mBufferInfo.flags) and MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+                if (mBufferInfo.flags == MediaCodec.BUFFER_FLAG_CODEC_CONFIG) {
+                    // SPS or PPS, which should be passed by MediaFormat.
+                    var outputBuffer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        mCodec.getOutputBuffer(index)!!
+                    } else {
+                        mCodec.outputBuffers[index]
                     }
+                    outputBuffer.get()
                     mCodec.releaseOutputBuffer(index, false)
+                    index = mCodec.dequeueOutputBuffer(mBufferInfo, 100000)
+                    continue
                 }
+
+//                if (!mIsEOS) {
+//                    var outputBuffer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//                        mCodec.getOutputBuffer(index)!!
+//                    } else {
+//                        mCodec.outputBuffers[index]
+//                    }
+//                    mMuxer?.let {
+//                        Log.e(TAG, "writeData(): ${mBufferInfo.presentationTimeUs}")
+//                        writeData(it, outputBuffer, mBufferInfo)
+//                    }
+//                }
+                if (!mMuxer!!.isStarted()) {
+                    mCodec.releaseOutputBuffer(index, false)
+                    SystemClock.sleep(10)
+                    if (mStop) {
+                        break
+                    }
+                    index = mCodec.dequeueOutputBuffer(mBufferInfo, 100000)
+                    continue
+                }
+                var outputBuffer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    mCodec.getOutputBuffer(index)!!
+                } else {
+                    mCodec.outputBuffers[index]
+                }
+                mMuxer?.let {
+                    writeData(it, outputBuffer, mBufferInfo)
+                }
+                mCodec.releaseOutputBuffer(index, false)
+                if (mStop) {
+                    break
+                }
+                index = mCodec.dequeueOutputBuffer(mBufferInfo, 100000)
             }
         }
     }
 
     /**
-     * 编码结束，是否资源
+     * 编码结束，释放资源
      */
-    private fun done() {
+    private fun doneEncode() {
+        Log.i(TAG, "doneEncode(): $mIsEOS, $mStop")
+        mStop = true
         try {
-            Log.i(TAG, "release")
-            release(mMuxer)
+            release(mMuxer!!)
+            mMuxer = null
             mCodec.stop()
             mCodec.release()
-            mRunning = false
             mStateListener?.encoderFinish(this)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -189,10 +216,14 @@ abstract class BaseEncoder(muxer: MMuxer, width: Int = -1, height: Int = -1) : R
     /**
      * 编码进入等待
      */
-    private fun justWait() {
+    private fun notifyWait(timeout: Long) {
         try {
             synchronized(mLock) {
-                mLock.wait(1000)
+                if (timeout > 0) {
+                    mLock.wait(1000)
+                } else {
+                    mLock.wait()
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -213,26 +244,56 @@ abstract class BaseEncoder(muxer: MMuxer, width: Int = -1, height: Int = -1) : R
     }
 
     /**
-     * 将一帧数据压入队列，等待编码
+     * 开始编码
      */
-    fun encodeOneFrame(frame: Frame) {
-        synchronized(mFrames) {
-            mFrames.add(frame)
+    fun startEncode() {
+        Log.e(TAG, "startEncode()(: 开始编码")
+        try {
+            synchronized(mLock) {
+                mLock.notify()
+            }
+        } catch (e : Exception) {
+            e.printStackTrace()
         }
-        notifyGo()
-        // 延时一点时间，避免掉帧
-        Thread.sleep(frameWaitTimeMs())
     }
 
     /**
      * 通知结束编码
      */
-    fun endOfStream() {
-        synchronized(mFrames) {
-            val frame = Frame()
-            frame.buffer = null
-            mFrames.add(frame)
-            notifyGo()
+    fun stopEncode() {
+        Log.e(TAG, "stopEncode()(: 结束编码")
+        synchronized(mFramesLock) {
+            if (!mStop) {
+                mStop = true
+//                if (!encodeManually()) {
+//                    mCodec.signalEndOfInputStream()
+//                }
+            }
+        }
+        notifyGo()
+    }
+
+    /**
+     * 将数据放置到编码输入缓存区编码
+     */
+    private fun dequeueInputBuffer(buffer: ByteArray?, presentationTimeUs: Long) {
+        val index = mCodec.dequeueInputBuffer(50000)
+        /*向编码器输入数据*/
+        if (index >= 0) {
+            val inputBuffer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                mCodec.getInputBuffer(index);
+            } else {
+                mCodec.inputBuffers[index]
+            }
+            inputBuffer?.clear()
+            if (buffer != null && buffer.isNotEmpty()) {
+                inputBuffer?.put(buffer)
+                mCodec.queueInputBuffer(index, 0, buffer.size,
+                    presentationTimeUs, 0)
+            } else { // 音频结束符标记
+                mCodec.queueInputBuffer(index, 0, 0,
+                    presentationTimeUs, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+            }
         }
     }
 
@@ -275,9 +336,9 @@ abstract class BaseEncoder(muxer: MMuxer, width: Int = -1, height: Int = -1) : R
 
     /**
      * 是否手动编码
-     * 视频：false 音频：true
-     *
-     * 注：视频编码通过Surface，MediaCodec自动完成编码；音频数据需要用户自己压入编码缓冲区，完成编码
+     * 音频：true,  音频数据需要用户自己压入编码缓冲区，完成编码
+     * 视频：false, 即设置outputFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface)，视频编码通过Surface，MediaCodec自动完成编码
+     *      true,  即设置outputFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible)，视频编码需要用户自己压入编码缓冲区，完成编码
      */
     open fun encodeManually() = true
 }

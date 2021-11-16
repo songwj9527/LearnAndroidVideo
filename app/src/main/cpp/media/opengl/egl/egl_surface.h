@@ -26,6 +26,7 @@ public:
     bool Init();
     void CreateEglSurface(ANativeWindow *native_window, int width, int height);
     void MakeCurrent();
+    void SetPresentationTime(int64_t nsecs);
     void SwapBuffers();
     void DestroyEglSurface();
     void Release();

@@ -12,13 +12,7 @@ import java.lang.ref.WeakReference
 
 /**
  * 自定义的OpenGL渲染器
- *
  * 包含EGL的初始化，线程与OpenGL上下文绑定，渲染循环，资源销毁等
- *
- * @author Chen Xiaoping (562818444@qq.com)
- * @since LearningVideo
- * @version LearningVideo
- *
  */
 class CustomerGLSurfaceRender : SurfaceHolder.Callback {
 
@@ -219,8 +213,9 @@ class CustomerGLSurfaceRender : SurfaceHolder.Callback {
         }
 
         private fun createEGLSurface() {
+//            mEGLSurface?.createEGLSurface(mSurface)
+//            mEGLSurface?.makeCurrent()
             mEGLSurface?.createEGLSurface(mSurface)
-            mEGLSurface?.makeCurrent()
         }
 
         private fun generateTextureID() {
@@ -251,8 +246,9 @@ class CustomerGLSurfaceRender : SurfaceHolder.Callback {
             if (render) {
                 GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
                 mDrawers.forEach { it.draw() }
-                mEGLSurface?.setTimestamp(mCurTimestamp)
-                mEGLSurface?.swapBuffers()
+//                mEGLSurface?.setTimestamp(mCurTimestamp)
+//                mEGLSurface?.swapBuffers()
+                mEGLSurface?.onDrawUs(mCurTimestamp)
             }
         }
 

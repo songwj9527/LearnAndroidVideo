@@ -206,6 +206,10 @@ internal class TextureLightRender : BaseAbsRender() {
             vertexBuffer = GLDataUtil.createFloatBuffer(cubeVertices)
         }
 
+        override fun initMatrix() {
+
+        }
+
         override fun onDrawFrame() {
             /**
              * 每次渲染都要重新获取一下渲染程序，如果在initProgram()中进行的话，两个render会出现后一个覆盖前一个的情况
@@ -330,6 +334,10 @@ internal class TextureLightRender : BaseAbsRender() {
         private var lightMVPMatrix:FloatArray?=FloatArray(16)
 
         override fun initProgram() {
+
+        }
+
+        override fun initMatrix() {
 
         }
 

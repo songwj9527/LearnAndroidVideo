@@ -12,10 +12,18 @@ extern "C" {
 #include <EGL/eglext.h>
 };
 
+#define FLAG_RECORDABLE 0x01
+//#define FLAG_TRY_GLES2 0x02
+//#define FLAG_TRY_GLES3 0x04
+//
+//#define EGL_OPENGL_ES3_BIT_KHR 0x0040
+//#define EGL_RECORDABLE_ANDROID 0x3142
+
+// egl.h没有eglPresentationTimeANDROID接口
+typedef EGLBoolean (*EGL_PRESENTATION_TIME_ANDROID_PROC)(EGLDisplay eglDisplay, EGLSurface eglSurface, int64_t nsecs);
+
 class EglCore {
 private:
-    const int FLAG_RECORDABLE = 0x01;
-
     const char *TAG = "EglCore";
 
     // EGL显示窗口
@@ -26,6 +34,8 @@ private:
 
     // EGL配置
     EGLConfig m_egl_cfg;
+
+    EGL_PRESENTATION_TIME_ANDROID_PROC eglPresentationTimeANDROID = NULL;
 
     EGLConfig GetEGLConfig();
 
@@ -56,6 +66,13 @@ public:
      */
     void MakeCurrent(EGLSurface egl_surface);
     void MakeCurrent(EGLSurface egl_draw_surface, EGLSurface egl_read_surface);
+
+    /**
+     * 设置PresentationTime
+     * @param egl_surface
+     * @param nsecs
+     */
+    void SetPresentationTimeANDROID(EGLSurface egl_surface, int64_t nsecs);
 
     /**
      * 将缓存数据交换到前台进行显示

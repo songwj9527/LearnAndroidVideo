@@ -1,5 +1,7 @@
 package com.songwj.openvideo.opengl.renders;
 
+import android.opengl.GLES20;
+import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 
@@ -28,9 +30,40 @@ public class BaseAbsRender implements GLSurfaceView.Renderer {
         objectRenders.addAll(absObjectRenders);
     }
 
+    public void addObjectRender(AbsObjectRender absObjectRender){
+        objectRenders.add(absObjectRender);
+    }
+
+    public void addObjectRender(AbsObjectRender absObjectRender, int index){
+        if (index > objectRenders.size()) {
+            objectRenders.add(absObjectRender);
+            return;
+        }
+        objectRenders.add(index, absObjectRender);
+    }
+
+    public void deleteObjectRender(int index) {
+        if (index >= 0 && index < objectRenders.size()) {
+            objectRenders.remove(index);
+        }
+    }
+
+    public int getObjectRenderSize() {
+        return objectRenders.size();
+    }
+
 
     @Override
     public void onSurfaceCreated(GL10 gl10, EGLConfig eglConfig) {
+        GLES30.glClearColor(0f, 0f, 0f, 0f);
+        GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT | GLES30.GL_DEPTH_BUFFER_BIT);
+        //------开启混合，即半透明---------
+        // 开启很混合模式
+        GLES30.glEnable(GLES30.GL_BLEND);
+        // 配置混合算法
+        GLES30.glBlendFunc(GLES30.GL_SRC_ALPHA, GLES30.GL_ONE_MINUS_SRC_ALPHA);
+        //------------------------------
+
         for (AbsObjectRender objRender:objectRenders){
             objRender.initProgram();
         }
@@ -41,6 +74,7 @@ public class BaseAbsRender implements GLSurfaceView.Renderer {
         for (AbsObjectRender objRender:objectRenders){
             objRender.setProjectAndCameraMatrix(projectMatrix, cameraMatrix);
             objRender.setScreenSize(width, height);
+            objRender.initMatrix();
         }
     }
 

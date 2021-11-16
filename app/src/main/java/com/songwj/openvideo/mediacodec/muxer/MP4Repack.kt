@@ -10,11 +10,6 @@ import java.nio.ByteBuffer
 /**
  * MP4重打包工具
  *
- * @author Chen Xiaoping (562818444@qq.com)
- * @since LearningVideo
- * @version LearningVideo
- * @Datetime 2019-09-19 14:09
- *
  */
 class MP4Repack(path: String) {
 
@@ -22,7 +17,7 @@ class MP4Repack(path: String) {
 
     private val mAExtractor: AudioExtractor = AudioExtractor(path)
     private val mVExtractor: VideoExtractor = VideoExtractor(path)
-    private val mMuxer: MMuxer = MMuxer()
+    private val mMuxer: MMuxer = MMuxer("")
 
     fun start() {
         val audioFormat = mAExtractor.getFormat()

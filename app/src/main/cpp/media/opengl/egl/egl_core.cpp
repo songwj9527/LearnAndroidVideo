@@ -68,6 +68,12 @@ bool EglCore::Init(EGLContext share_ctx) {
         return false;
     }
 
+    eglPresentationTimeANDROID = (EGL_PRESENTATION_TIME_ANDROID_PROC)
+            eglGetProcAddress("eglPresentationTimeANDROID");
+    if (eglPresentationTimeANDROID == NULL) {
+        LOGI(TAG, "EGL eglPresentationTimeANDROID is not available.")
+    }
+
     LOGI(TAG, "EGL init success")
     return true;
 }
@@ -171,6 +177,12 @@ void EglCore::MakeCurrent(EGLSurface egl_draw_surface, EGLSurface egl_read_surfa
     if (!eglMakeCurrent(m_egl_dsp, egl_draw_surface, egl_read_surface, m_egl_cxt)) {
         LOGE(TAG, "EGL make current fail");
 
+    }
+}
+
+void EglCore::SetPresentationTimeANDROID(EGLSurface egl_surface, int64_t nsecs) {
+    if (eglPresentationTimeANDROID != NULL) {
+        eglPresentationTimeANDROID(m_egl_dsp, egl_surface, nsecs);
     }
 }
 
