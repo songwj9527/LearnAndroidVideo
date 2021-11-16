@@ -105,7 +105,7 @@ class Camera1VideoRecordFromNV21Activity : AppCompatActivity(), TextureView.Surf
             data?.let {
                 val cameraSize = Camera1Manager.getInstance().cameraSize
                 var dest = ByteArray(cameraSize.width * cameraSize.height * 3 / 2)
-                // 默认摄像头图像传感器的坐标系（图像）逆时针90度，才是屏幕正常显示的坐标（图像）
+                // 默认摄像头图像传感器的坐标系（图像）旋转相应角度，才是屏幕正常显示的坐标（图像）
                 if (Camera1Manager.getInstance().cameraOrientation == 270) {
                     CameraUtils.nv21RotateTo270(it, dest, cameraSize.width, cameraSize.height)
                 } else if (Camera1Manager.getInstance().cameraOrientation == 90) {
