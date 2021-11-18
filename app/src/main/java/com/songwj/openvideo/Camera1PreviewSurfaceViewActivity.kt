@@ -3,6 +3,7 @@ package com.songwj.openvideo
 import android.hardware.Camera
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
 import android.view.SurfaceHolder
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -45,8 +46,7 @@ class Camera1PreviewSurfaceViewActivity : AppCompatActivity(), SurfaceHolder.Cal
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder?) {
-        holder?.removeCallback(this)
-        Camera1Manager.getInstance().stopPreview()
+
     }
 
     override fun onResume() {

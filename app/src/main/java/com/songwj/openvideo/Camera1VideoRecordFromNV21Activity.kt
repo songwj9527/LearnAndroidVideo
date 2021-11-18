@@ -108,6 +108,8 @@ class Camera1VideoRecordFromNV21Activity : AppCompatActivity(), TextureView.Surf
                 // 默认摄像头图像传感器的坐标系（图像）旋转相应角度，才是屏幕正常显示的坐标（图像）
                 if (Camera1Manager.getInstance().cameraOrientation == 270) {
                     CameraUtils.nv21RotateTo270(it, dest, cameraSize.width, cameraSize.height)
+                } else if (Camera1Manager.getInstance().cameraOrientation == 180) {
+                    CameraUtils.nv21RotateTo180(it, dest, cameraSize.width, cameraSize.height)
                 } else if (Camera1Manager.getInstance().cameraOrientation == 90) {
                     CameraUtils.nv21RotateTo90(it, dest, cameraSize.width, cameraSize.height)
                 } else {

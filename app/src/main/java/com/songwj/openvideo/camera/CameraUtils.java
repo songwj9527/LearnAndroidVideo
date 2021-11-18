@@ -118,6 +118,23 @@ public class CameraUtils {
         return output;
     }
 
+    public static byte[] nv21RotateTo180(byte[] data, byte[] output, int width, int height) {
+        int yLen = width * height;
+        int buffserSize = yLen * 3 / 2;
+
+        // Rotate the Y
+        for (int x = 0; x < yLen; x++) {
+            output[x] = data[yLen - 1 - x];
+        }
+        // Rotate the U and V color components
+        for (int x = yLen; x < buffserSize; x = (x + 2)) {
+            int offset = (buffserSize - 1) - (x - yLen);
+            output[x] = data[offset - 1];
+            output[x + 1] = data[offset];
+        }
+        return output;
+    }
+
     public static byte[] nv21RotateTo270(byte[] data, byte[] output, int width, int height) {
         int yLen = width * height;
         int buffserSize = yLen * 3 / 2;

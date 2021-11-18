@@ -83,7 +83,6 @@ abstract public class AbstractRectFilter {
             return textureId;
         }
         Log.e("AbstractRectFilter", "onDrawFrame()");
-//        FilterContext filterContext = filterChain.filterContext;
         // 1- 设置视图的尺寸和位置
         GLES30.glUseProgram(program);
         GLES30.glViewport(0, 0, width, height);
@@ -122,8 +121,12 @@ abstract public class AbstractRectFilter {
         return textureId;
     }
 
+    public int onDrawFrame(int textureId, FilterChain filterChain) {
+        return onDrawFrame(textureId);
+    }
+
     public void onSurfaceDestroy() {
-        if(program !=-1){
+        if(program != -1){
             GLES30.glDisableVertexAttribArray(vTextureCoordHandler);
             GLES30.glDisableVertexAttribArray(vTextureCoordHandler);
             GLES30.glDeleteProgram(program);

@@ -115,10 +115,10 @@ class Camera1PreviewRender(context: Context?, onFrameAvailableListener: OnFrameA
                 "}"
 
         private val posCoordinate = floatArrayOf(
-            -1f, -1f,1f,
-            -1f, 1f,1f,
-            1f, -1f,1f,
-            1f, 1f,1f)
+            -1f, -1f, 1f,
+            -1f, 1f, 1f,
+            1f, -1f, 1f,
+            1f, 1f, 1f)
         private val texCoordinate = floatArrayOf(0f, 1f, 1f, 1f, 0f, 0f, 1f, 0f)
 
         private var mvpMatrixHandle = 0

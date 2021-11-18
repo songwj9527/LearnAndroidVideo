@@ -234,8 +234,23 @@ public class Camera1Manager implements Camera.PreviewCallback  {
             return;
         }
         byte[] dest = new byte[cameraSize.width * cameraSize.height * 3 / 2];
-        // 默认摄像头图像传感器的坐标系（图像）逆时针90度，才是屏幕正常显示的坐标（图像）
-        CameraUtils.nv21RotateTo270(data, dest, cameraSize.width, cameraSize.height);
+        int width = cameraSize.width;
+        int height = cameraSize.height;
+        // 默认摄像头图像传感器的坐标系（图像）有旋转角度的，所以想要旋转相应角度，才是屏幕正常显示的坐标（图像）
+        if (cameraOrientation == 270) {
+            CameraUtils.nv21RotateTo270(data, dest, cameraSize.width, cameraSize.height);
+            width = cameraSize.height;
+            height = cameraSize.width;
+        } else if (cameraOrientation == 180) {
+            CameraUtils.nv21RotateTo180(data, dest, cameraSize.width, cameraSize.height);
+        } else if (cameraOrientation == 90) {
+            CameraUtils.nv21RotateTo90(data, dest, cameraSize.width, cameraSize.height);
+            width = cameraSize.height;
+            height = cameraSize.width;
+        } else {
+            System.arraycopy(data, 0, dest, 0, (cameraSize.width * cameraSize.height * 3 / 2));
+        }
+
 //        byte[] nv12 = CameraUtils.nv21toNV12(data);
 //        CameraUtils.portraitData2Raw(nv12, dest, cameraSize.width, cameraSize.height);
         File captureFile = new File(capturePath);
@@ -257,8 +272,8 @@ public class Camera1Manager implements Camera.PreviewCallback  {
                 image = new YuvImage(
                         dest,
                         ImageFormat.NV21,
-                        cameraSize.height,
-                        cameraSize.width,
+                        width,
+                        height,
                         null); //将NV21 data保存成YuvImage
                 image.compressToJpeg(new Rect(0, 0, image.getWidth(), image.getHeight()), 100, fileOutputStream);
             } catch (IOException e) {
