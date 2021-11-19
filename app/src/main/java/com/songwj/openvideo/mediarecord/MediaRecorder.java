@@ -36,7 +36,9 @@ public class MediaRecorder implements MMuxer.IMuxerStateListener, AudioCapture.O
     private AudioCapture audioCapture = null;
 
     private boolean isPrepared = false;
-    private boolean isStarted = false;
+    private volatile boolean isStarted = false;
+
+    private long startTimestamp = 0L;
 
     public MediaRecorder(String filePath, int videoWidth, int videoHeight, boolean isVideoEncodeManually) {
         this.filePath = filePath;
@@ -63,7 +65,6 @@ public class MediaRecorder implements MMuxer.IMuxerStateListener, AudioCapture.O
         if (isStarted) {
             return true;
         }
-        isStarted = true;
         Log.e("MediaRecorder", "filePath: " + filePath + "\n"
                 + "videoWidth: " + videoWidth + ", videoHeight: " + videoHeight);
         try {
@@ -76,7 +77,9 @@ public class MediaRecorder implements MMuxer.IMuxerStateListener, AudioCapture.O
             audioCapture.start();
             videoEncoder = new VideoEncoder(mmuxer, videoWidth, videoHeight, isVideoEncodeManually);
             videoEncoder.start();
+            isStarted = true;
             frameIndex = 0L;
+            startTimestamp = System.currentTimeMillis();
 
             if (!isVideoEncodeManually) {
                 handlerThread = new HandlerThread("codec-gl");
@@ -130,7 +133,6 @@ public class MediaRecorder implements MMuxer.IMuxerStateListener, AudioCapture.O
                     }
                 });
             }
-            isStarted = false;
         }
         return isStarted;
     }
@@ -228,21 +230,27 @@ public class MediaRecorder implements MMuxer.IMuxerStateListener, AudioCapture.O
         if (isStarted) {
             Log.i("MediaRecorder", "onVideoFrameUpdate()");
             long presentTimestamp = System.currentTimeMillis();
-            if (videoFrame != null) {
-//                long count = (presentTimestamp - prevFrameTimestamp) * 30 / 1000;
-                long count = (presentTimestamp - prevFrameTimestamp) / 34;
-                for (int i = 0; i < count; i++) {
-                    if ((presentTimestamp - prevFrameTimestamp) > 45) {
-                        if (videoEncoder != null) {
-                            videoEncoder.dequeueFrame(videoFrame, computePresentationTime(frameIndex++, 30));
-                        }
-                    }
-                }
-            }
-            prevFrameTimestamp = presentTimestamp;
-            videoFrame = data;
+//            if (videoFrame != null) {
+////                long count = (presentTimestamp - prevFrameTimestamp) * 30 / 1000;
+//                long count = (presentTimestamp - prevFrameTimestamp) / 34;
+//                prevFrameTimestamp = presentTimestamp;
+//                for (int i = 0; i < count; i++) {
+//                    if (videoEncoder != null) {
+//                        videoEncoder.dequeueFrame(videoFrame, computePresentationTime(frameIndex++, 30));
+//                    }
+//                }
+//                videoFrame = data;
+//            } else {
+//                prevFrameTimestamp = presentTimestamp;
+//                videoFrame = data;
+//                if (videoEncoder != null) {
+//                    videoEncoder.dequeueFrame(data, computePresentationTime(frameIndex++, 30));
+//                }
+//            }
+
+            long frameCount = (long) ((presentTimestamp- startTimestamp) / 33.33f + 0.47f);
             if (videoEncoder != null) {
-                videoEncoder.dequeueFrame(data, computePresentationTime(frameIndex++, 30));
+                videoEncoder.dequeueFrame(data, computePresentationTime(frameCount, 30));
             }
         } else {
             prevFrameTimestamp = 0L;

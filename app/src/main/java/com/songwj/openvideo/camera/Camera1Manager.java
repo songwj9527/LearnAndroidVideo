@@ -94,6 +94,7 @@ public class Camera1Manager implements Camera.PreviewCallback  {
             if(parameters.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)){
                 parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
             }
+            // 设置预览帧率
             int[] fpsRange = getBestPreviewFpsRange(camera, 30000);
             if (fpsRange != null) {
                 parameters.setPreviewFpsRange(fpsRange[0], fpsRange[fpsRange.length - 1]);

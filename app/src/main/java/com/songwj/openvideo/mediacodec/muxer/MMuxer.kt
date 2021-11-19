@@ -102,13 +102,13 @@ class MMuxer(filePath: String) {
     fun writeVideoData(byteBuffer: ByteBuffer, bufferInfo: MediaCodec.BufferInfo) {
         synchronized(this) {
             if (mIsStart && !mIsVideoEnd) {
-                if (mIsPrepareStop) {
-                    mLastVideoDataList.add(byteBuffer)
-                    val info = MediaCodec.BufferInfo()
-                    info.set(bufferInfo.offset, bufferInfo.size, bufferInfo.presentationTimeUs, bufferInfo.flags)
-                    mLastVideoInfoList.add(info)
-                    return
-                }
+//                if (mIsPrepareStop) {
+//                    mLastVideoDataList.add(byteBuffer)
+//                    val info = MediaCodec.BufferInfo()
+//                    info.set(bufferInfo.offset, bufferInfo.size, bufferInfo.presentationTimeUs, bufferInfo.flags)
+//                    mLastVideoInfoList.add(info)
+//                    return
+//                }
                 mMediaMuxer?.writeSampleData(mVideoTrackIndex, byteBuffer, bufferInfo)
                 mVideoTrackTimeUs = bufferInfo.presentationTimeUs
                 Log.i(TAG, "writeVideoData() ${(bufferInfo.presentationTimeUs / 1000000.0f)}")
@@ -119,13 +119,13 @@ class MMuxer(filePath: String) {
     fun writeAudioData(byteBuffer: ByteBuffer, bufferInfo: MediaCodec.BufferInfo) {
         synchronized(this) {
             if (mIsStart && !mIsAudioEnd) {
-                if (mIsPrepareStop) {
-                    mLastAudioDataList.add(byteBuffer)
-                    val info = MediaCodec.BufferInfo()
-                    info.set(bufferInfo.offset, bufferInfo.size, bufferInfo.presentationTimeUs, bufferInfo.flags)
-                    mLastAudioInfoList.add(info)
-                    return
-                }
+//                if (mIsPrepareStop) {
+//                    mLastAudioDataList.add(byteBuffer)
+//                    val info = MediaCodec.BufferInfo()
+//                    info.set(bufferInfo.offset, bufferInfo.size, bufferInfo.presentationTimeUs, bufferInfo.flags)
+//                    mLastAudioInfoList.add(info)
+//                    return
+//                }
                 mMediaMuxer?.writeSampleData(mAudioTrackIndex, byteBuffer, bufferInfo)
                 mAudioTrackTimeUs = bufferInfo.presentationTimeUs
                 Log.i(TAG, "writeAudioData() ${(bufferInfo.presentationTimeUs / 1000000.0f)}")
@@ -193,49 +193,49 @@ class MMuxer(filePath: String) {
                 Log.d(TAG, "lastAudioTimestamp: $mAudioTrackTimeUs; lastVideoTimestamp: $mVideoTrackTimeUs")
                 var lastVideoTimestamp = mVideoTrackTimeUs
                 var lastAudioTimestamp = mAudioTrackTimeUs
-                if (mLastVideoDataList.size > 0) {
-                    lastVideoTimestamp = mLastVideoInfoList[mLastVideoInfoList.size - 1].presentationTimeUs
-                }
-                if (mLastAudioDataList.size > 0) {
-                    lastAudioTimestamp = mLastAudioInfoList[mLastAudioInfoList.size - 1].presentationTimeUs
-                }
-                while(abs(lastVideoTimestamp - lastAudioTimestamp) > 10000L) {
-                    if (lastVideoTimestamp > lastAudioTimestamp) {
-                        if (mLastVideoDataList.size > 0) {
-                            mLastVideoDataList.removeAt(mLastVideoDataList.size - 1)
-                            mLastVideoInfoList.removeAt(mLastVideoInfoList.size - 1)
-                        }
-                        if (mLastVideoDataList.size > 0) {
-                            lastVideoTimestamp = mLastVideoInfoList[mLastVideoInfoList.size - 1].presentationTimeUs
-                        } else {
-                            lastVideoTimestamp = mVideoTrackTimeUs
-                        }
-                    } else {
-                        if (mLastAudioDataList.size > 0) {
-                            mLastAudioDataList.removeAt(mLastAudioDataList.size - 1)
-                            mLastAudioInfoList.removeAt(mLastAudioInfoList.size - 1)
-                        }
-                        if (mLastAudioDataList.size > 0) {
-                            lastAudioTimestamp = mLastAudioInfoList[mLastAudioInfoList.size - 1].presentationTimeUs
-                        } else {
-                            lastAudioTimestamp = mAudioTrackTimeUs
-                        }
-                    }
-                    if (mLastVideoDataList.size == 0 && mLastAudioDataList.size == 0) {
-                        break
-                    }
-                }
-                if (mLastAudioDataList.size > 0) {
-                    for (index in mLastAudioDataList.indices) {
-                        mMediaMuxer?.writeSampleData(mAudioTrackIndex, mLastAudioDataList[index], mLastAudioInfoList[index])
-                    }
-                }
-                if (mLastVideoDataList.size > 0) {
-                    for (index in mLastVideoDataList.indices) {
-                        mMediaMuxer?.writeSampleData(mVideoTrackIndex, mLastVideoDataList[index], mLastVideoInfoList[index])
-                    }
-                }
-                Log.d(TAG, "lastAudioTimestamp: $lastAudioTimestamp; lastVideoTimestamp: $lastVideoTimestamp")
+//                if (mLastVideoDataList.size > 0) {
+//                    lastVideoTimestamp = mLastVideoInfoList[mLastVideoInfoList.size - 1].presentationTimeUs
+//                }
+//                if (mLastAudioDataList.size > 0) {
+//                    lastAudioTimestamp = mLastAudioInfoList[mLastAudioInfoList.size - 1].presentationTimeUs
+//                }
+//                while(abs(lastVideoTimestamp - lastAudioTimestamp) > 10000L) {
+//                    if (lastVideoTimestamp > lastAudioTimestamp) {
+//                        if (mLastVideoDataList.size > 0) {
+//                            mLastVideoDataList.removeAt(mLastVideoDataList.size - 1)
+//                            mLastVideoInfoList.removeAt(mLastVideoInfoList.size - 1)
+//                        }
+//                        if (mLastVideoDataList.size > 0) {
+//                            lastVideoTimestamp = mLastVideoInfoList[mLastVideoInfoList.size - 1].presentationTimeUs
+//                        } else {
+//                            lastVideoTimestamp = mVideoTrackTimeUs
+//                        }
+//                    } else {
+//                        if (mLastAudioDataList.size > 0) {
+//                            mLastAudioDataList.removeAt(mLastAudioDataList.size - 1)
+//                            mLastAudioInfoList.removeAt(mLastAudioInfoList.size - 1)
+//                        }
+//                        if (mLastAudioDataList.size > 0) {
+//                            lastAudioTimestamp = mLastAudioInfoList[mLastAudioInfoList.size - 1].presentationTimeUs
+//                        } else {
+//                            lastAudioTimestamp = mAudioTrackTimeUs
+//                        }
+//                    }
+//                    if (mLastVideoDataList.size == 0 && mLastAudioDataList.size == 0) {
+//                        break
+//                    }
+//                }
+//                if (mLastAudioDataList.size > 0) {
+//                    for (index in mLastAudioDataList.indices) {
+//                        mMediaMuxer?.writeSampleData(mAudioTrackIndex, mLastAudioDataList[index], mLastAudioInfoList[index])
+//                    }
+//                }
+//                if (mLastVideoDataList.size > 0) {
+//                    for (index in mLastVideoDataList.indices) {
+//                        mMediaMuxer?.writeSampleData(mVideoTrackIndex, mLastVideoDataList[index], mLastVideoInfoList[index])
+//                    }
+//                }
+//                Log.d(TAG, "lastAudioTimestamp: $lastAudioTimestamp; lastVideoTimestamp: $lastVideoTimestamp")
 
                 mIsStart = false
                 try {

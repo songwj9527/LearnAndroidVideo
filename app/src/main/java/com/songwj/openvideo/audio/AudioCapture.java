@@ -73,7 +73,7 @@ public class AudioCapture implements Runnable {
                     }
                 }
                 //延迟写入 SystemClock  --  Android专用
-                SystemClock.sleep(9);
+                SystemClock.sleep(10);
             }
         } catch (Exception e) {
             e.printStackTrace();

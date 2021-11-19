@@ -31,6 +31,7 @@ class AudioEncoder(muxer: MMuxer): BaseEncoder(muxer) {
 
     init {
         TAG = "AudioEncoder"
+        mFramesMaxSize = 0
     }
 
     override fun createCodec():MediaCodec {

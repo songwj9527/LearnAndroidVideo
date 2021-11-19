@@ -27,7 +27,7 @@ abstract class BaseEncoder : Thread {
     // 待编码帧缓存
     private var mFrames = LinkedList<Frame>()
     // 待编码帧缓存最大帧个数（因为编码较慢，mFrames会不断堆积，容易造成内存溢出；这里如果待编码帧缓存个数超过最大个数，待编码帧缓存就出列一帧，并将该帧压入到codec中编码）
-    private var mFramesMaxSize = 30
+    protected var mFramesMaxSize = 60
     // 待编码帧缓存的操作锁
     private var mFramesLock = Object()
 
@@ -90,9 +90,9 @@ abstract class BaseEncoder : Thread {
                 if (!mStop) {
                     mFrames.add(it)
                     // （因为编码较慢，mFrames会不断堆积，容易造成内存溢出；这里如果待编码帧缓存个数超过最大个数，待编码帧缓存就出列一帧，并将该帧压入到codec中编码）
-                    if (mFrames.size > mFramesMaxSize) {
-                        var frame =  mFrames.removeFirst()
-                        frame?.let {
+                    if (mFramesMaxSize != 0 && mFrames.size > mFramesMaxSize) {
+                        var first =  mFrames.removeFirst()
+                        first?.let {
                             dequeueInputBuffer(it.buffer, it.presentationTimeUs)
                         }
                     }
@@ -126,6 +126,30 @@ abstract class BaseEncoder : Thread {
                 if (frame == null) {
                     notifyWait(500)
                 }
+            }
+        }
+    }
+
+    /**
+     * 将数据放置到编码输入缓存区编码
+     */
+    private fun dequeueInputBuffer(buffer: ByteArray?, presentationTimeUs: Long) {
+        val index = mCodec.dequeueInputBuffer(5000)
+        /*向编码器输入数据*/
+        if (index >= 0) {
+            val inputBuffer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                mCodec.getInputBuffer(index);
+            } else {
+                mCodec.inputBuffers[index]
+            }
+            inputBuffer?.clear()
+            if (buffer != null && buffer.isNotEmpty()) {
+                inputBuffer?.put(buffer)
+                mCodec.queueInputBuffer(index, 0, buffer.size,
+                    presentationTimeUs, 0)
+            } else { // 音频结束符标记
+                mCodec.queueInputBuffer(index, 0, 0,
+                    presentationTimeUs, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
             }
         }
     }
@@ -275,30 +299,6 @@ abstract class BaseEncoder : Thread {
             }
         }
         notifyGo()
-    }
-
-    /**
-     * 将数据放置到编码输入缓存区编码
-     */
-    private fun dequeueInputBuffer(buffer: ByteArray?, presentationTimeUs: Long) {
-        val index = mCodec.dequeueInputBuffer(-1)
-        /*向编码器输入数据*/
-        if (index >= 0) {
-            val inputBuffer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                mCodec.getInputBuffer(index);
-            } else {
-                mCodec.inputBuffers[index]
-            }
-            inputBuffer?.clear()
-            if (buffer != null && buffer.isNotEmpty()) {
-                inputBuffer?.put(buffer)
-                mCodec.queueInputBuffer(index, 0, buffer.size,
-                    presentationTimeUs, 0)
-            } else { // 音频结束符标记
-                mCodec.queueInputBuffer(index, 0, 0,
-                    presentationTimeUs, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
-            }
-        }
     }
 
     /**
