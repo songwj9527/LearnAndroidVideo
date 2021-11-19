@@ -24,9 +24,11 @@ abstract class BaseEncoder : Thread {
     // 是否手动编码
     protected var isEncodeManually = true
 
+    // 待编码帧缓存
     private var mFrames = LinkedList<Frame>()
+    // 待编码帧缓存最大帧个数（因为编码较慢，mFrames会不断堆积，容易造成内存溢出；这里如果待编码帧缓存个数超过最大个数，待编码帧缓存就出列一帧，并将该帧压入到codec中编码）
     private var mFramesMaxSize = 30
-    // 状态锁
+    // 待编码帧缓存的操作锁
     private var mFramesLock = Object()
 
     // Mp4合成器
@@ -87,6 +89,7 @@ abstract class BaseEncoder : Thread {
             synchronized(mFramesLock) {
                 if (!mStop) {
                     mFrames.add(it)
+                    // （因为编码较慢，mFrames会不断堆积，容易造成内存溢出；这里如果待编码帧缓存个数超过最大个数，待编码帧缓存就出列一帧，并将该帧压入到codec中编码）
                     if (mFrames.size > mFramesMaxSize) {
                         var frame =  mFrames.removeFirst()
                         frame?.let {
