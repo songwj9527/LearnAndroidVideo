@@ -28,8 +28,9 @@ class VideoEncoder(muxer: MMuxer, width: Int, height: Int, isEncodeManually: Boo
         TAG = "VideoEncoder"
     }
 
+    // 是否手动编码，false，颜色空间 从编码视图的surface窗口获得；true，颜色空间 从外部获得，需要外部传入数据放到编码队列中去编码
     override fun encodeManually(): Boolean {
-        return isVideoEncodeManually
+        return isEncodeManually
     }
 
     override fun createCodec(): MediaCodec {
@@ -144,13 +145,6 @@ class VideoEncoder(muxer: MMuxer, width: Int, height: Int, isEncodeManually: Boo
             )
         }
         codec.configure(outputFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
-    }
-
-    override fun firstAddTrack() {
-//        mMuxer?.let {
-//            addTrack(it, mCodec.outputFormat)
-//        }
-//        mAddedMuxerTrack = true
     }
 
     override fun addTrack(muxer: MMuxer, mediaFormat: MediaFormat) {

@@ -73,6 +73,19 @@ public class CameraUtils {
         return nv12;
     }
 
+    public static byte[] nv21toNV12(byte[] nv21, byte[] nv12) {
+        int size = nv21.length;
+        int len = size * 2 / 3;
+        System.arraycopy(nv21, 0, nv12, 0, len);
+        int i = len;
+        while (i < size - 1) {
+            nv12[i] = nv21[i + 1];
+            nv12[i + 1] = nv21[i];
+            i += 2;
+        }
+        return nv12;
+    }
+
     /**
      * yuv转成nv21
      */
@@ -86,6 +99,19 @@ public class CameraUtils {
             nv21[i + 1] = u[uIndex];
             vIndex += 2;
             uIndex += 2;
+        }
+    }
+
+    public static byte[] nv21Rotate(byte[] data, byte[] output, int width, int height, int rotation) {
+        if (rotation == 270) {
+            return nv21RotateTo270(data, output, width, height);
+        } else if (rotation == 180) {
+            return nv21RotateTo180(data, output, width, height);
+        } else if (rotation == 90) {
+            return nv21RotateTo90(data, output, width, height);
+        } else {
+            System.arraycopy(data, 0, output, 0, (width * height * 3 / 2));
+            return output;
         }
     }
 
@@ -156,6 +182,26 @@ public class CameraUtils {
                 output[i] = data[offset - (width - 1 - x) - 1];
                 i--;
                 offset -= width;
+            }
+        }
+        return output;
+    }
+
+    public static byte[] nv21Reversed(byte[] data, byte[] output, int width, int height) {
+        int yLen = width * height;
+        int buffserSize = yLen * 3 / 2;
+
+        // Rotate the Y
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                output[width * y + x] = data[width * y + (width - 1 - x)];
+            }
+        }
+        // Rotate the U and V color components
+        for (int y = 0; y < height / 2; y++) {
+            for (int x = 0; x < width; x = (x + 2)) {
+                output[yLen + width * y + x] = data[yLen + width * y + (width - 1 - x - 1)];
+                output[yLen + width * y + x + 1] = data[yLen + width * y + (width - 1 - x)];
             }
         }
         return output;

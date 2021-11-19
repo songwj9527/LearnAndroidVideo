@@ -7,6 +7,7 @@ import android.os.SystemClock
 import android.util.Log
 import com.songwj.openvideo.mediacodec.muxer.MMuxer
 import java.nio.ByteBuffer
+import java.util.*
 
 
 /**
@@ -20,9 +21,11 @@ abstract class BaseEncoder : Thread {
     // 目标视频高，只有视频编码的时候才有效
     protected var mHeight = 0
 
-    // 视频是否手动编码，false，颜色空间 从编码视图的surface窗口获得；true，颜色空间 从外部获得，需要外部传入数据放到编码队列中去编码
-    protected var isVideoEncodeManually = true
+    // 是否手动编码
+    protected var isEncodeManually = true
 
+    private var mFrames = LinkedList<Frame>()
+    private var mFramesMaxSize = 30
     // 状态锁
     private var mFramesLock = Object()
 
@@ -57,7 +60,7 @@ abstract class BaseEncoder : Thread {
         this.mMuxer = muxer
         this.mWidth = width
         this.mHeight = height
-        this.isVideoEncodeManually = isEncodeManually
+        this.isEncodeManually = isEncodeManually
         initCodec()
     }
 
@@ -81,16 +84,15 @@ abstract class BaseEncoder : Thread {
 
     fun dequeueFrame(frame: Frame?) {
         frame?.let {
-//            synchronized(mFramesLock) {
-//                if (!mStop) {
-//                    mFrames.add(it)
-//                    dequeueInputBuffer(frame.buffer, frame.presentationTimeUs)
-//                }
-//            }
-//            SystemClock.sleep(frameWaitTimeMs())
             synchronized(mFramesLock) {
                 if (!mStop) {
-                    dequeueInputBuffer(frame.buffer, frame.presentationTimeUs)
+                    mFrames.add(it)
+                    if (mFrames.size > mFramesMaxSize) {
+                        var frame =  mFrames.removeFirst()
+                        frame?.let {
+                            dequeueInputBuffer(it.buffer, it.presentationTimeUs)
+                        }
+                    }
                 }
             }
         }
@@ -102,30 +104,34 @@ abstract class BaseEncoder : Thread {
     private fun loopEncode() {
         Log.i(TAG, "开始编码")
         mStateListener?.encodeStart(this)
-        firstAddTrack()
         mCodec.flush()
         while (!mIsEOS) {
             drain()
-            if (mStop) {
-//                drain()
-                break
+            if (!mMuxer!!.isStarted()) {
+                notifyWait(500)
+            } else if (encodeManually()) {
+                var frame = synchronized(mFramesLock) {
+                    if (mFrames.isEmpty()) {
+                        null
+                    } else {
+                        mFrames.removeFirst()
+                    }
+                }
+                frame?.let {
+                    dequeueInputBuffer(it.buffer, it.presentationTimeUs)
+                }
+                if (frame == null) {
+                    notifyWait(500)
+                }
             }
         }
     }
 
     /**
-     * 因为视频编码 var index = mCodec.dequeueOutputBuffer(mBufferInfo, 100000)，
-     * 得到的index一直等于MediaCodec.INFO_OUTPUT_FORMAT_CHANGED，
-     * 也就无法调用muxer.addTrack()方法来添加轨道
-     * 所以由次方法来
-     */
-    abstract protected fun firstAddTrack()
-
-    /**
      * 榨干编码输出数据
      */
     private fun drain() {
-        var index = mCodec.dequeueOutputBuffer(mBufferInfo, 100000)
+        var index = mCodec.dequeueOutputBuffer(mBufferInfo, 5000)
         Log.i(TAG, "dequeueOutputBuffer(): $index")
         if (MediaCodec.INFO_OUTPUT_FORMAT_CHANGED == index) {
             Log.i(TAG, "drain(): 添加轨道")
@@ -139,12 +145,12 @@ abstract class BaseEncoder : Thread {
 
         } else {
             while (index >= 0) {
-//                if (mBufferInfo.flags == MediaCodec.BUFFER_FLAG_END_OF_STREAM) {
-//                    Log.e(TAG, "drain(): 编码结束")
-//                    mIsEOS = true
-//                    mBufferInfo.set(0, 0, 0, mBufferInfo.flags)
-//                    break
-//                }
+                if (mBufferInfo.flags == MediaCodec.BUFFER_FLAG_END_OF_STREAM) {
+                    Log.e(TAG, "drain(): 编码结束")
+                    mIsEOS = true
+                    mBufferInfo.set(0, 0, 0, mBufferInfo.flags)
+                    break
+                }
 //                if (((mBufferInfo.flags) and MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
                 if (mBufferInfo.flags == MediaCodec.BUFFER_FLAG_CODEC_CONFIG) {
                     // SPS or PPS, which should be passed by MediaFormat.
@@ -155,43 +161,34 @@ abstract class BaseEncoder : Thread {
                     }
                     outputBuffer.get()
                     mCodec.releaseOutputBuffer(index, false)
-                    index = mCodec.dequeueOutputBuffer(mBufferInfo, 100000)
+                    index = mCodec.dequeueOutputBuffer(mBufferInfo, 5000)
                     continue
                 }
 
-//                if (!mIsEOS) {
-//                    var outputBuffer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//                        mCodec.getOutputBuffer(index)!!
-//                    } else {
-//                        mCodec.outputBuffers[index]
-//                    }
-//                    mMuxer?.let {
-//                        Log.e(TAG, "writeData(): ${mBufferInfo.presentationTimeUs}")
-//                        writeData(it, outputBuffer, mBufferInfo)
-//                    }
-//                }
-                if (!mMuxer!!.isStarted()) {
+                if (!mIsEOS) {
+                    if (!mMuxer!!.isStarted()) {
+                        mCodec.releaseOutputBuffer(index, false)
+                        SystemClock.sleep(10)
+                        if (mStop) {
+                            break
+                        }
+                        index = mCodec.dequeueOutputBuffer(mBufferInfo, 5000)
+                        continue
+                    }
+                    var outputBuffer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        mCodec.getOutputBuffer(index)!!
+                    } else {
+                        mCodec.outputBuffers[index]
+                    }
+                    mMuxer?.let {
+                        writeData(it, outputBuffer, mBufferInfo)
+                    }
                     mCodec.releaseOutputBuffer(index, false)
-                    SystemClock.sleep(10)
                     if (mStop) {
                         break
                     }
-                    index = mCodec.dequeueOutputBuffer(mBufferInfo, 100000)
-                    continue
+                    index = mCodec.dequeueOutputBuffer(mBufferInfo, 5000)
                 }
-                var outputBuffer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    mCodec.getOutputBuffer(index)!!
-                } else {
-                    mCodec.outputBuffers[index]
-                }
-                mMuxer?.let {
-                    writeData(it, outputBuffer, mBufferInfo)
-                }
-                mCodec.releaseOutputBuffer(index, false)
-                if (mStop) {
-                    break
-                }
-                index = mCodec.dequeueOutputBuffer(mBufferInfo, 100000)
             }
         }
     }
@@ -220,7 +217,7 @@ abstract class BaseEncoder : Thread {
         try {
             synchronized(mLock) {
                 if (timeout > 0) {
-                    mLock.wait(1000)
+                    mLock.wait(timeout)
                 } else {
                     mLock.wait()
                 }
@@ -248,13 +245,13 @@ abstract class BaseEncoder : Thread {
      */
     fun startEncode() {
         Log.e(TAG, "startEncode()(: 开始编码")
-        try {
-            synchronized(mLock) {
-                mLock.notify()
-            }
-        } catch (e : Exception) {
-            e.printStackTrace()
-        }
+//        try {
+//            synchronized(mLock) {
+//                mLock.notify()
+//            }
+//        } catch (e : Exception) {
+//            e.printStackTrace()
+//        }
     }
 
     /**
@@ -268,6 +265,10 @@ abstract class BaseEncoder : Thread {
 //                if (!encodeManually()) {
 //                    mCodec.signalEndOfInputStream()
 //                }
+                val frame = Frame()
+                frame.buffer = null
+                frame.presentationTimeUs = 0L
+                mFrames.add(frame)
             }
         }
         notifyGo()
@@ -277,7 +278,7 @@ abstract class BaseEncoder : Thread {
      * 将数据放置到编码输入缓存区编码
      */
     private fun dequeueInputBuffer(buffer: ByteArray?, presentationTimeUs: Long) {
-        val index = mCodec.dequeueInputBuffer(50000)
+        val index = mCodec.dequeueInputBuffer(-1)
         /*向编码器输入数据*/
         if (index >= 0) {
             val inputBuffer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

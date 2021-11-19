@@ -90,8 +90,13 @@ public class Camera1Manager implements Camera.PreviewCallback  {
             parameters.setPictureSize(cameraSize.width, cameraSize.height);
 //            // 开启闪光灯
 //            parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+            // 自动对焦
             if(parameters.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)){
                 parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+            }
+            int[] fpsRange = getBestPreviewFpsRange(camera, 30000);
+            if (fpsRange != null) {
+                parameters.setPreviewFpsRange(fpsRange[0], fpsRange[fpsRange.length - 1]);
             }
             parameters.setPreviewSize(cameraSize.width, cameraSize.height);
             camera.setParameters(parameters);
@@ -237,22 +242,18 @@ public class Camera1Manager implements Camera.PreviewCallback  {
         int width = cameraSize.width;
         int height = cameraSize.height;
         // 默认摄像头图像传感器的坐标系（图像）有旋转角度的，所以想要旋转相应角度，才是屏幕正常显示的坐标（图像）
-        if (cameraOrientation == 270) {
-            CameraUtils.nv21RotateTo270(data, dest, cameraSize.width, cameraSize.height);
+        CameraUtils.nv21Rotate(data, dest, cameraSize.width, cameraSize.height, cameraOrientation);
+        if (cameraOrientation == 270 || cameraOrientation == 90) {
             width = cameraSize.height;
             height = cameraSize.width;
-        } else if (cameraOrientation == 180) {
-            CameraUtils.nv21RotateTo180(data, dest, cameraSize.width, cameraSize.height);
-        } else if (cameraOrientation == 90) {
-            CameraUtils.nv21RotateTo90(data, dest, cameraSize.width, cameraSize.height);
-            width = cameraSize.height;
-            height = cameraSize.width;
-        } else {
-            System.arraycopy(data, 0, dest, 0, (cameraSize.width * cameraSize.height * 3 / 2));
+        }
+        // 反转镜像
+        if (cameraId == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            byte[] reversed = new byte[cameraSize.width * cameraSize.height * 3 / 2];
+            CameraUtils.nv21Reversed(dest, reversed, width, height);
+            dest = reversed;
         }
 
-//        byte[] nv12 = CameraUtils.nv21toNV12(data);
-//        CameraUtils.portraitData2Raw(nv12, dest, cameraSize.width, cameraSize.height);
         File captureFile = new File(capturePath);
         if (!captureFile.exists()) {
             try {
@@ -312,6 +313,35 @@ public class Camera1Manager implements Camera.PreviewCallback  {
         }
         Log.e("Camera1Manager", "Camera Display Rotation: " + result);
         return result;
+    }
+
+    public int[] getBestPreviewFpsRange(Camera camera, int fps) {
+        if(camera != null){
+            List<int[]> range = camera.getParameters().getSupportedPreviewFpsRange();
+            if (range != null) {
+                int abs_best = -1;
+                int[] best = null;
+                for (int[] item : range) {
+                    Log.d("Camera1Manager", "fps range: ");
+                    for(int k = 0; k < item.length; k++) {
+                        Log.d("Camera1Manager", "fps: " + item[k]);
+                    }
+                    if (item.length > 1) {
+                        int result = (item[0] + item[item.length - 1]) / 2;
+                        int abs = Math.abs(result - fps);
+                        if (abs_best == -1) {
+                            abs_best = abs;
+                            best = item;
+                        } else if (abs < abs_best) {
+                            abs_best = abs;
+                            best = item;
+                        }
+                    }
+                }
+                return best;
+            }
+        }
+        return null;
     }
 
     public Camera.Size getLargePictureSize(Camera camera){

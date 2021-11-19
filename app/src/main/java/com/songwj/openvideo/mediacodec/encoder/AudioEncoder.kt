@@ -83,10 +83,6 @@ class AudioEncoder(muxer: MMuxer): BaseEncoder(muxer) {
         codec.configure(outputFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
     }
 
-    override fun firstAddTrack() {
-
-    }
-
     override fun addTrack(muxer: MMuxer, mediaFormat: MediaFormat) {
         muxer.addAudioTrack(mediaFormat)
     }

@@ -100,21 +100,18 @@ class Camera1VideoRecordFromNV21Activity : AppCompatActivity(), TextureView.Surf
         Camera1Manager.getInstance().setPreviewTexture(surface)
     }
 
+    var dest: ByteArray ? = null
     override fun onPreviewFrame(data: ByteArray?, camera: Camera?) {
         if (isRecord) {
+            Log.e("RecordFromNV21", "onPreviewFrame()")
             data?.let {
                 val cameraSize = Camera1Manager.getInstance().cameraSize
-                var dest = ByteArray(cameraSize.width * cameraSize.height * 3 / 2)
-                // 默认摄像头图像传感器的坐标系（图像）旋转相应角度，才是屏幕正常显示的坐标（图像）
-                if (Camera1Manager.getInstance().cameraOrientation == 270) {
-                    CameraUtils.nv21RotateTo270(it, dest, cameraSize.width, cameraSize.height)
-                } else if (Camera1Manager.getInstance().cameraOrientation == 180) {
-                    CameraUtils.nv21RotateTo180(it, dest, cameraSize.width, cameraSize.height)
-                } else if (Camera1Manager.getInstance().cameraOrientation == 90) {
-                    CameraUtils.nv21RotateTo90(it, dest, cameraSize.width, cameraSize.height)
-                } else {
-                    dest = it
+                val cameraOrientation = Camera1Manager.getInstance().cameraOrientation
+                if (dest == null || dest!!.size != (cameraSize.width * cameraSize.height * 3 / 2)) {
+                    dest = ByteArray(cameraSize.width * cameraSize.height * 3 / 2)
                 }
+                // 默认摄像头图像传感器的坐标系（图像）旋转相应角度，才是屏幕正常显示的坐标（图像）
+                CameraUtils.nv21Rotate(it, dest, cameraSize.width, cameraSize.height, cameraOrientation)
                 // nv21转换成nv12的数据
                 var nv12 = CameraUtils.nv21toNV12(dest)
                 mediaRecorder?.onVideoFrameUpdate(nv12)

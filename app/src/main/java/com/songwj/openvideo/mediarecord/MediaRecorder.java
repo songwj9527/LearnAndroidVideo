@@ -143,13 +143,11 @@ public class MediaRecorder implements MMuxer.IMuxerStateListener, AudioCapture.O
             if (videoEncoder != null) {
                 videoEncoder.stopEncode();
             }
-            if (audioCapture != null) {
-                audioCapture.stop();
-            }
             if (audioEncoder != null) {
                 audioEncoder.stopEncode();
             }
             if (audioCapture != null) {
+                audioCapture.stop();
                 audioCapture.setOnAudioCaptureListener(null);
             }
             videoEncoder = null;
@@ -230,15 +228,14 @@ public class MediaRecorder implements MMuxer.IMuxerStateListener, AudioCapture.O
         if (isStarted) {
             Log.i("MediaRecorder", "onVideoFrameUpdate()");
             long presentTimestamp = System.currentTimeMillis();
-            if (prevFrameTimestamp == 0L) {
-                prevFrameTimestamp = presentTimestamp;
-            }
-//            long count = (presentTimestamp - prevFrameTimestamp) * 30 / 1000;
-            long count = (presentTimestamp - prevFrameTimestamp) / 34;
-            for (int i = 0; i < count; i++) {
-                if ((presentTimestamp - prevFrameTimestamp) > 45 && videoFrame != null) {
-                    if (videoEncoder != null) {
-                        videoEncoder.dequeueFrame(videoFrame, computePresentationTime(frameIndex++, 30));
+            if (videoFrame != null) {
+//                long count = (presentTimestamp - prevFrameTimestamp) * 30 / 1000;
+                long count = (presentTimestamp - prevFrameTimestamp) / 34;
+                for (int i = 0; i < count; i++) {
+                    if ((presentTimestamp - prevFrameTimestamp) > 45) {
+                        if (videoEncoder != null) {
+                            videoEncoder.dequeueFrame(videoFrame, computePresentationTime(frameIndex++, 30));
+                        }
                     }
                 }
             }

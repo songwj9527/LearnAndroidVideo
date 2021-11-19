@@ -6,7 +6,6 @@ import android.media.MediaMuxer
 import android.os.Environment
 import android.text.TextUtils
 import android.util.Log
-import java.io.File
 import java.nio.ByteBuffer
 import kotlin.math.abs
 
@@ -50,7 +49,7 @@ class MMuxer(filePath: String) {
 
     fun addVideoTrack(mediaFormat: MediaFormat) {
         synchronized(this) {
-//            if (mIsVideoTrackAdd) return
+            if (mIsVideoTrackAdd) return
             mMediaMuxer?.let {
                 try {
                     mVideoTrackIndex = it.addTrack(mediaFormat)
