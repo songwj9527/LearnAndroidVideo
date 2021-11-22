@@ -109,9 +109,9 @@ class Camera1PreviewRender(context: Context?, onFrameAvailableListener: OnFrameA
                 "varying vec2 aTextureCoord;\n" +
                 "void main() {\n" +
                 "    vec4 tc = texture2D(vTexture, aTextureCoord);\n" +
-                "    float color = tc.r * 0.3 + tc.g * 0.59 + tc.b * 0.11;\n" +
-                //    gl_FragColor = vec4(color,color,color,1.0);\n
-                "    gl_FragColor = tc;\n" +
+//                "    gl_FragColor = tc;\n" +
+                // 滤镜效果
+                "    gl_FragColor = vec4(tc.r * 0.875, tc.g * 0.62, tc.b * 0.863, tc.a);\n" +
                 "}"
 
         private val posCoordinate = floatArrayOf(
