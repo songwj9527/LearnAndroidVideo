@@ -39,6 +39,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
         btn_texture_light.setOnClickListener(this)
         btn_camera1_preview_surface_view.setOnClickListener(this)
         btn_camera1_preview_texture_view.setOnClickListener(this)
+        btn_camera1_system_media_record.setOnClickListener(this)
         btn_camera1_video_record_from_nv21.setOnClickListener(this)
         btn_camera1_preview_gl_surface_view.setOnClickListener(this)
 
@@ -131,6 +132,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
             }
             else if (id == R.id.btn_camera1_preview_texture_view) {
                 startActivity(Intent(this, Camera1PreviewTextureViewActivity::class.java))
+            }
+            else if (id == R.id.btn_camera1_system_media_record) {
+                startActivity(Intent(this, Camera1SystemMediaRecordActivity::class.java))
             }
             else if (id == R.id.btn_camera1_video_record_from_nv21) {
                 startActivity(Intent(this, Camera1VideoRecordFromNV21Activity::class.java))

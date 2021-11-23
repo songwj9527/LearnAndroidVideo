@@ -168,6 +168,7 @@ public class Camera1Manager implements Camera.PreviewCallback  {
             camera = null;
             cameraSize = null;
             previewBuffer = null;
+            cameraOrientation = 0;
             displayOrientation = 0;
         }
     }
@@ -180,14 +181,20 @@ public class Camera1Manager implements Camera.PreviewCallback  {
         autoFocusCallback  = null;
         autoFocusMoveCallback = null;
         activity = null;
+        cameraOrientation = 0;
         displayOrientation = 0;
     }
 
-    public void switchCamera() {
+    public boolean switchCamera() {
+        boolean ret = false;
         int tempCameraId = (cameraId == Camera.CameraInfo.CAMERA_FACING_FRONT) ? Camera.CameraInfo.CAMERA_FACING_BACK : Camera.CameraInfo.CAMERA_FACING_FRONT;
         stopPreview();
         cameraId = tempCameraId;
-        startPreview();
+        ret = openCamera(cameraId);
+        if (ret) {
+            camera.startPreview();
+        }
+        return ret;
     }
 
     public int getCameraOrientation() {
@@ -233,6 +240,10 @@ public class Camera1Manager implements Camera.PreviewCallback  {
             previewCallback.onPreviewFrame(data, camera);
         }
         camera.addCallbackBuffer(data);
+    }
+
+    public Camera getCamera() {
+        return camera;
     }
 
     public void capture(byte[] data, String capturePath) {
