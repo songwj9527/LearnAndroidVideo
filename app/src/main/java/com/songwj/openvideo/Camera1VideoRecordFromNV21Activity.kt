@@ -8,7 +8,7 @@ import android.util.Log
 import android.view.TextureView
 import androidx.appcompat.app.AppCompatActivity
 import com.songwj.openvideo.camera.Camera1Manager
-import com.songwj.openvideo.camera.CameraUtils
+import com.songwj.openvideo.camera.Camera1Utils
 import com.songwj.openvideo.mediarecord.MediaRecorder
 import kotlinx.android.synthetic.main.activity_camera1_video_record_from_nv21.*
 
@@ -111,9 +111,9 @@ class Camera1VideoRecordFromNV21Activity : AppCompatActivity(), TextureView.Surf
                     dest = ByteArray(cameraSize.width * cameraSize.height * 3 / 2)
                 }
                 // 默认摄像头图像传感器的坐标系（图像）旋转相应角度，才是屏幕正常显示的坐标（图像）
-                CameraUtils.nv21Rotate(it, dest, cameraSize.width, cameraSize.height, cameraOrientation)
+                Camera1Utils.nv21Rotate(it, dest, cameraSize.width, cameraSize.height, cameraOrientation)
                 // nv21转换成nv12的数据
-                var nv12 = CameraUtils.nv21toNV12(dest)
+                var nv12 = Camera1Utils.nv21toNV12(dest)
                 mediaRecorder?.onVideoFrameUpdate(nv12)
             }
         }

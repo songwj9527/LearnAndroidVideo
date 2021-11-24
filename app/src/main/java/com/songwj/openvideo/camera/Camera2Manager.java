@@ -50,6 +50,7 @@ class Camera2Manager {
     private Boolean isFlashSupported = false; // 是否支持闪光灯
     private Float maxDigitalZoom = 0.0f; // 最大的数字调焦值
     private Float minFocusDistance = 0.0f; // 最小的调焦距离，某些手机上获取到的该values为null或者0.0。前摄像头大部分有固定焦距，无法调节。
+    private Rect cameraRect = null; // 摄像头坐标区域（为点击屏幕对焦准备）
     private Size previewSize = null;
 
     private int displayOrientation = 0;
@@ -118,6 +119,8 @@ class Camera2Manager {
                 if (minFocusDistance == null) {
                     minFocusDistance = 0.0f;
                 }
+                // 获取摄像头坐标区域（为点击屏幕对焦准备）
+                cameraRect = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
 
                 // 管理摄像头支持的所有输出格式和尺寸
                 StreamConfigurationMap configurationMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);

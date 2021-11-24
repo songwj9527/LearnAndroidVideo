@@ -3,12 +3,10 @@ package com.songwj.openvideo
 import android.hardware.Camera
 import android.os.Bundle
 import android.os.Environment
-import android.util.Log
 import android.view.SurfaceHolder
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.songwj.openvideo.camera.Camera1Manager
-import com.songwj.openvideo.camera.CameraUtils
 import kotlinx.android.synthetic.main.activity_camera1_preview.*
 
 

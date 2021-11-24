@@ -1,9 +1,7 @@
 package com.songwj.openvideo.camera;
 
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.ImageFormat;
-import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.graphics.YuvImage;
@@ -254,7 +252,7 @@ public class Camera1Manager implements Camera.PreviewCallback  {
         int width = cameraSize.width;
         int height = cameraSize.height;
         // 默认摄像头图像传感器的坐标系（图像）有旋转角度的，所以想要旋转相应角度，才是屏幕正常显示的坐标（图像）
-        CameraUtils.nv21Rotate(data, dest, cameraSize.width, cameraSize.height, cameraOrientation);
+        Camera1Utils.nv21Rotate(data, dest, cameraSize.width, cameraSize.height, cameraOrientation);
         if (cameraOrientation == 270 || cameraOrientation == 90) {
             width = cameraSize.height;
             height = cameraSize.width;
@@ -262,7 +260,7 @@ public class Camera1Manager implements Camera.PreviewCallback  {
         // 反转镜像
         if (cameraId == Camera.CameraInfo.CAMERA_FACING_FRONT) {
             byte[] reversed = new byte[cameraSize.width * cameraSize.height * 3 / 2];
-            CameraUtils.nv21Reversed(dest, reversed, width, height);
+            Camera1Utils.nv21Reversed(dest, reversed, width, height);
             dest = reversed;
         }
 
