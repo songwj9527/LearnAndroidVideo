@@ -44,11 +44,19 @@ public class Camera2Utils {
         Size[] supportSize = map.getOutputSizes(format);
         sortCamera2Size(supportSize);
         for (Size size : supportSize) {
-            if (Config.ratioMatched(size)) {
+            if (ratioMatched4x3(size)) {
                 return size;
             }
         }
         return supportSize[0];
+    }
+
+    public static boolean ratioMatched4x3(Size size) {
+        return size.getWidth() * 3 == size.getHeight() * 4;
+    }
+
+    public static boolean videoRatioMatched16x9(Size size) {
+        return size.getWidth() * 9 == size.getHeight() * 16;
     }
 
     /**
@@ -61,7 +69,7 @@ public class Camera2Utils {
         Size[] supportSize = map.getOutputSizes(SurfaceTexture.class);
         sortCamera2Size(supportSize);
         for (Size size : supportSize) {
-            if (!Config.ratioMatched(size)) {continue;}
+            if (!ratioMatched4x3(size)) {continue;}
             if ((size.getHeight() == displaySize.x)
                     || (size.getWidth() <= displaySize.y && size.getHeight() <= displaySize.x)) {
                 return size;
@@ -95,7 +103,7 @@ public class Camera2Utils {
         Size[] supportSize = map.getOutputSizes(MediaRecorder.class);
         sortCamera2Size(supportSize);
         for (Size size : supportSize) {
-            if (Config.videoRatioMatched(size) && size.getHeight() <= displaySize.x) {
+            if (videoRatioMatched16x9(size) && size.getHeight() <= displaySize.x) {
                 return size;
             }
         }
@@ -188,7 +196,7 @@ public class Camera2Utils {
         Point realPoint = new Point();
         windowManager.getDefaultDisplay().getRealSize(realPoint);
         for (int i = 0; i < supportSize.length; i++) {
-            if (!Config.ratioMatched(supportSize[i])) {
+            if (!ratioMatched4x3(supportSize[i])) {
                 continue;
             }
             if ((supportSize[i].getHeight() == realPoint.x) || (supportSize[i].getWidth()

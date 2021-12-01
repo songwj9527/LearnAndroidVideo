@@ -130,6 +130,10 @@
             android:name=".Camera1SystemMediaRecordActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait" />
+        <activity
+            android:name=".Camera2PreviewActivity"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

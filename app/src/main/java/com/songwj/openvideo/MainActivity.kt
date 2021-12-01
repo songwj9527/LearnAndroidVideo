@@ -42,6 +42,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
         btn_camera1_system_media_record.setOnClickListener(this)
         btn_camera1_video_record_from_nv21.setOnClickListener(this)
         btn_camera1_preview_gl_surface_view.setOnClickListener(this)
+        btn_camera2_preview.setOnClickListener(this)
 
         var test : ArrayBlockingQueue<String>? = null
         var lock: ReentrantLock? = null
@@ -141,6 +142,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
             }
             else if (id == R.id.btn_camera1_preview_gl_surface_view) {
                 startActivity(Intent(this, Camera1PreviewGLSurfaceActivity::class.java))
+            }
+            else if (id == R.id.btn_camera2_preview) {
+                startActivity(Intent(this, Camera2PreviewActivity::class.java))
             }
         }
     }
