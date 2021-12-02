@@ -4,11 +4,14 @@ import android.content.Context;
 import android.graphics.ImageFormat;
 import android.graphics.Point;
 import android.graphics.SurfaceTexture;
+import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.MediaRecorder;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.Range;
 import android.util.Size;
 import android.view.WindowManager;
 
@@ -301,4 +304,126 @@ public class Camera2Utils {
         }
     }
 
+    public static String[] getCameraIds(CameraManager cameraManager) {
+        String[] ret = null;
+        try {
+            ret = cameraManager.getCameraIdList();
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+        return ret;
+    }
+
+    public static int getHardwareSupportedLevel(CameraCharacteristics characteristics) {
+        Integer deviceLevel = characteristics.get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL);
+        if (deviceLevel == null) {
+            Log.e(TAG, "can not get INFO_SUPPORTED_HARDWARE_LEVEL");
+            return -1;
+        }
+        /**
+         * LEVEL_LEGACY: 向后兼容模式, 如果是此等级, 所有设备都会支持，基本没有额外功能, 也就是和过时的Camera API支持的特性是一致的;
+         * LEVEL_LIMITED: 有最基本的功能, 还支持一些额外的高级功能, 这些高级功能是LEVEL_FULL的子集;
+         * LEVEL_FULL: 全方位的硬件支持，支持对每一帧数据进行控制、允许手动控制全高清的摄像、支持连拍模式以及其他新特性;
+         * LEVEL_3: 支持YUV后处理和Raw格式图片拍摄, 还支持额外的输出流配置
+         * LEVEL_EXTERNAL: API28中加入的, 应该是外接的摄像头, 功能和LIMITED类似
+         *
+         * 各个等级从支持的功能多少排序为: LEGACY < LIMITED < FULL < LEVEL_3
+         */
+        switch (deviceLevel) {
+            case CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY:
+                Log.w(TAG, "hardware supported level:LEVEL_LEGACY");
+                break;
+            case CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LIMITED:
+                Log.w(TAG, "hardware supported level:LEVEL_LIMITED");
+                break;
+            case CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_FULL:
+                Log.w(TAG, "hardware supported level:LEVEL_FULL");
+                break;
+            case CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_3:
+                Log.w(TAG, "hardware supported level:LEVEL_3");
+                break;
+            case CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_EXTERNAL:
+                Log.w(TAG, "hardware supported level:LEVEL_3");
+                break;
+        }
+        return deviceLevel;
+    }
+
+    public static Size getBestPreviewSize(CameraCharacteristics characteristics, Size targetSize) {
+        if (characteristics == null) {
+            return targetSize;
+        }
+
+        // 管理摄像头支持的所有输出格式和尺寸
+        StreamConfigurationMap configurationMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+        if (configurationMap == null) {
+            return targetSize;
+        }
+
+        // 适配的尺寸数组
+        Size[] outputSizes = configurationMap.getOutputSizes(SurfaceTexture.class);
+        if (outputSizes == null || outputSizes.length == 0) {
+            return targetSize;
+        }
+
+        if (targetSize == null) {
+            return outputSizes[0];
+        }
+
+        Size bestSize = null;
+        for (Size size : outputSizes) {
+            if (size.getWidth() == targetSize.getWidth()
+                    && size.getHeight() == targetSize.getHeight()) {
+                bestSize = size;
+                break;
+            }
+        }
+        if (bestSize == null) {
+            float ratoi = (targetSize.getWidth() * 1.0f) / (targetSize.getHeight() * 1.0f);
+            for (Size size : outputSizes) {
+                Log.d(TAG, "size: " + size.getWidth() + ", " + size.getHeight());
+                float currentRatoi = (size.getWidth() * 1.0f) / (size.getHeight() * 1.0f);
+                float currentAbs = Math.abs(currentRatoi - ratoi);
+                int currentWidthAbs = Math.abs(size.getWidth() - targetSize.getWidth());
+                int currentHeightAbs =  Math.abs(size.getHeight() - targetSize.getHeight());
+                if (bestSize == null) {
+                    bestSize = size;
+                } else {
+                    float prevRatoi = (bestSize.getWidth() * 1.0f) / (bestSize.getHeight() * 1.0f);
+                    float prevAbs = Math.abs(prevRatoi - ratoi);
+                    int prevWidthAbs = Math.abs(bestSize.getWidth() - targetSize.getWidth());
+                    int prevHeightAbs =  Math.abs(bestSize.getHeight() - targetSize.getHeight());
+                    if (currentAbs <= prevAbs
+                            && (currentWidthAbs < prevWidthAbs || currentHeightAbs < prevHeightAbs)) {
+                        bestSize = size;
+                    }
+                }
+                Log.d(TAG, "bestSize: " + bestSize.getWidth() + ", " + bestSize.getHeight());
+            }
+        }
+        return bestSize;
+    }
+
+    public static Range<Integer> getBestPreviewFps(CameraCharacteristics characteristics, int fps) {
+        Range<Integer>[] fpsRanges = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES);
+        if (fpsRanges != null && fpsRanges.length > 0) {
+            Log.d(TAG, "SYNC_MAX_LATENCY_PER_FRAME_CONTROL: " + Arrays.toString(fpsRanges));
+            int abs_best = -1;
+            Range<Integer> best = null;
+            for (Range<Integer> range : fpsRanges) {
+                Log.d(TAG, "fps range: " + range.toString());
+                int result = (range.getLower() + range.getUpper()) / 2;
+                int abs = Math.abs(result - fps);
+                if (abs_best == -1) {
+                    abs_best = abs;
+                    best = range;
+                } else if (abs < abs_best) {
+                    abs_best = abs;
+                    best = range;
+                }
+            }
+            return best;
+        }
+        return null;
+    }
 }

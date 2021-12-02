@@ -13,6 +13,7 @@ import kotlinx.android.synthetic.main.activity_camera2_preview.*
 class Camera2PreviewActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
     var texture_view: TextureRenderView? = null
     var isOpened = false
+    var isPaused = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,10 +71,16 @@ class Camera2PreviewActivity : AppCompatActivity(), TextureView.SurfaceTextureLi
 
     override fun onResume() {
         super.onResume()
+        if (isPaused) {
+            isPaused = false
+            Camera2Manager.getInstance().startPreview()
+        }
     }
 
-    override fun onStop() {
-        super.onStop()
+    override fun onPause() {
+        super.onPause()
+        isPaused = true
+        Camera2Manager.getInstance().stopPreview()
     }
 
     override fun onDestroy() {
@@ -90,7 +97,6 @@ class Camera2PreviewActivity : AppCompatActivity(), TextureView.SurfaceTextureLi
     }
 
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {
-//        Camera2Manager.getInstance().closeCamera()
         surface?.release()
         return true
     }
