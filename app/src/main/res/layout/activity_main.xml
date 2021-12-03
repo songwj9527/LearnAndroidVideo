@@ -172,7 +172,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="OPENGL_CAMERA2_PREVIEW" />
+                android:text="CAMERA2_PREVIEW" />
 
         </LinearLayout>
 

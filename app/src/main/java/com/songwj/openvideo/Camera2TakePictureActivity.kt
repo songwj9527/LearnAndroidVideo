@@ -2,28 +2,28 @@ package com.songwj.openvideo
 
 import android.graphics.SurfaceTexture
 import android.os.Bundle
+import android.os.Environment
 import android.view.Gravity
 import android.view.TextureView
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.songwj.openvideo.camera.Camera2Manager
-import kotlinx.android.synthetic.main.activity_camera2_preview.*
+import kotlinx.android.synthetic.main.activity_camera2_take_picture.*
 
-class Camera2PreviewActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
+class Camera2TakePictureActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
     var texture_view: TextureRenderView? = null
     var isOpened = false
     var isPaused = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_camera2_preview)
+        setContentView(R.layout.activity_camera2_take_picture)
         Camera2Manager.getInstance().releaseCamera()
-
-        Camera2Manager.getInstance().switchMode(
-            Camera2Manager.Mode.PREVIEW)
+        
         var cameraOrientation = Camera2Manager.getInstance().cameraOrientation
         var previewSize = Camera2Manager.getInstance().previewSize
+
 
         isOpened = Camera2Manager.getInstance().openCamera()
         if (isOpened) {
@@ -45,8 +45,6 @@ class Camera2PreviewActivity : AppCompatActivity(), TextureView.SurfaceTextureLi
         btn_switch_camera.setOnClickListener {
             if (isOpened) {
                 Camera2Manager.getInstance().releaseCamera()
-                Camera2Manager.getInstance().switchMode(
-                    Camera2Manager.Mode.PREVIEW)
                 isOpened = Camera2Manager.getInstance().swichCamera()
                 if (isOpened) {
                     var cameraOrientation = Camera2Manager.getInstance().cameraOrientation
@@ -69,6 +67,10 @@ class Camera2PreviewActivity : AppCompatActivity(), TextureView.SurfaceTextureLi
                     camera_container.requestLayout()
                 }
             }
+        }
+
+        btn_take_capture.setOnClickListener {
+            val jpegFilePath = Environment.getExternalStorageDirectory().absolutePath + "/capture_" + System.currentTimeMillis() + ".jpg"
         }
     }
 
