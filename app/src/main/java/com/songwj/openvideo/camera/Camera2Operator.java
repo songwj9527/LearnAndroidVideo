@@ -508,7 +508,7 @@ public abstract class Camera2Operator {
         public void onImageAvailable(ImageReader reader) {
             Image image = reader.acquireLatestImage();
             if (image != null) {
-                Log.d(TAG,"onImageAvailableOutput(): " + imageReader.getWidth() + ", " + imageReader.getHeight());
+                Log.d(TAG,"onImageAvailable(): " + imageReader.getWidth() + ", " + imageReader.getHeight());
                 if (outputListener != null) {
                     Image.Plane[] planes = image.getPlanes();
                     if (planes != null) {
@@ -521,7 +521,6 @@ public abstract class Camera2Operator {
                             for (Image.Plane plane : image.getPlanes()) {
                                 totalBuffer.put(plane.getBuffer());
                             }
-                            Log.d(TAG,"onImageAvailableOutput(): totalSize = " + totalSize);
                             if (outputListener != null) {
                                 outputListener.onImageAvailable(totalBuffer.array(), new Size(image.getWidth(), image.getHeight()));
                             }
