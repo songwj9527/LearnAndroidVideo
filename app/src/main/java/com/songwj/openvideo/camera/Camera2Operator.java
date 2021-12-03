@@ -513,6 +513,15 @@ public abstract class Camera2Operator {
                     Image.Plane[] planes = image.getPlanes();
                     if (planes != null) {
                         try {
+//                            if (y == null) {
+//                                y = new byte[(planes[0].getBuffer().limit() - planes[0].getBuffer().position())];
+//                            }
+//                            if (u == null) {
+//                                u = new byte[(planes[1].getBuffer().limit() - planes[1].getBuffer().position())];
+//                            }
+//                            if (v == null) {
+//                                v = new byte[(planes[2].getBuffer().limit() - planes[2].getBuffer().position())];
+//                            }
                             int totalSize = 0;
                             for (Image.Plane plane : planes) {
                                 totalSize += plane.getBuffer().remaining();
