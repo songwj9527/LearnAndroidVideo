@@ -3,4 +3,8 @@
     <color name="colorPrimary">#008577</color>
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
+
+    <color name="focus_success">#13ce67</color>
+    <color name="focus_failed">#ce132c</color>
+    <color name="focus_normal">#e7d5fa</color>
 </resources>

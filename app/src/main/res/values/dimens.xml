@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--for focus view-->
+    <dimen name="focus_radius_outer">50dp</dimen>
+    <dimen name="focus_radius_inner">30dp</dimen>
+    <dimen name="focus_stroke_width">2dp</dimen>
+</resources>

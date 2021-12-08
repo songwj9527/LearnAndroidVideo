@@ -1,10 +1,15 @@
 package com.songwj.openvideo.camera;
 
+import android.content.Context;
 import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.graphics.YuvImage;
 import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.params.MeteringRectangle;
+import android.os.Handler;
+import android.text.TextUtils;
+import android.util.Log;
 import android.util.Size;
 
 import java.io.File;
@@ -17,6 +22,7 @@ public class Camera2Manager {
     private Camera2Manager() {
 
     }
+
     static private class Singleton {
         static private Camera2Manager instance = new Camera2Manager();
     }
@@ -32,31 +38,12 @@ public class Camera2Manager {
         OUTPUT_YUV420,
     }
 
+
     private Mode mode = Mode.PREVIEW;
     private Camera2Operator operator = null;
 
-    synchronized Mode getMode() {
-        return mode;
-    }
 
-    synchronized public void switchMode(Mode mode) {
-        this.mode = mode;
-        if (operator != null) {
-            operator.releaseCamera();
-            operator = null;
-        }
-        if (mode == Mode.VIDEO_RECORD) {
-            operator = new Camera2VideoOperator();
-        } else if (mode == Mode.TAKE_PICTURE) {
-            operator = new Camera2PictureOperator();
-        } else if (mode == Mode.OUTPUT_YUV420) {
-            operator = new Camera2OutputOperator();
-        } else {
-            operator = new Camera2PreviewOperator();
-        }
-    }
-
-    synchronized public boolean openCamera() {
+    private void createOperator() {
         if (operator == null) {
             if (mode == Mode.VIDEO_RECORD) {
                 operator = new Camera2VideoOperator();
@@ -68,6 +55,25 @@ public class Camera2Manager {
                 operator = new Camera2PreviewOperator();
             }
         }
+    }
+
+    synchronized public void switchMode(Mode mode) {
+        if (this.mode != mode) {
+            this.mode = mode;
+            if (operator != null) {
+                operator.releaseCamera();
+                operator = null;
+            }
+        }
+        createOperator();
+    }
+
+    synchronized Mode getMode() {
+        return mode;
+    }
+
+    synchronized public boolean openCamera() {
+        createOperator();
         if (operator != null) {
             return operator.openCamera();
         }
@@ -99,6 +105,13 @@ public class Camera2Manager {
         return false;
     }
 
+    synchronized public boolean setFlashMode(Camera2Operator.FlashMode flashMode) {
+        if (operator != null) {
+            return operator.setFlashMode(flashMode);
+        }
+        return false;
+    }
+
     synchronized public void releaseCamera() {
         if (operator != null) {
             operator.releaseCamera();
@@ -106,65 +119,80 @@ public class Camera2Manager {
         }
     }
 
-    public Size getPreviewSize() {
+    synchronized public void setSurfaceTexture(SurfaceTexture surfaceTexture) {
+        if (operator != null) {
+            operator.setSurfaceTexture(surfaceTexture);
+        }
+    }
+
+    synchronized public void setTouchFocusRegions(MeteringRectangle focusRect, MeteringRectangle meterRect) {
+        if (operator != null) {
+            operator.setTouchFocusRegions(focusRect, meterRect);
+        }
+    }
+
+    synchronized public void resetTouchToFocus() {
+        if (operator != null) {
+            operator.resetTouchToFocus();
+        }
+    }
+
+    synchronized public void setFocusDistance(int distance) {
+        if (operator != null) {
+            operator.setFocusDistance(distance);
+        }
+    }
+
+    synchronized public void setOnImageAvailableOutputListener(Camera2Operator.OnImageAvailableOutputListener outputListener) {
+        if (mode == Mode.OUTPUT_YUV420 && operator != null) {
+            operator.setOnImageAvailableOutputListener(outputListener);
+        }
+    }
+
+    synchronized public void setRequestCallback(Camera2Operator.RequestCallback callback) {
+        operator.setRequestCallback(callback);
+    }
+
+    synchronized public Size getPreviewSize() {
         if (operator != null) {
             return operator.getPreviewSize();
         }
         return null;
     }
 
-    public Size getSwitchPreviewSize() {
-        if (operator != null) {
-            return operator.getSwitchPreviewSize();
-        }
-        return null;
-    }
-
-    public int getCameraOrientation() {
+    synchronized public int getCameraOrientation() {
         if (operator != null) {
             return operator.getCameraOrientation();
         }
         return 0;
     }
 
-    public int getSwitchCameraOrientation() {
-        if (operator != null) {
-            return operator.getSwitchCameraOrientation();
+    synchronized public void takePictureYUV420(String capturePath, byte[] y, byte[] u, byte[] v, int stride, Size size, int cameraId, int cameraOrientation) {
+        if (TextUtils.isEmpty(capturePath)
+                || y == null
+                || u == null
+                || v == null
+                || size == null) {
+            return;
         }
-        return 0;
+        byte[] nv21 = new byte[size.getWidth() * size.getHeight() * 3 / 2];
+        // YUV转换成NV21
+        CameraFrameUtils.yuvToNv21(y, u, v, nv21, stride, size.getHeight());
+        new Thread(new CaptureYUV420Runnable(capturePath, nv21, size, cameraId, cameraOrientation)).start();
     }
 
-    public void setSurfaceTexture(SurfaceTexture surfaceTexture) {
-        if (operator != null) {
-            operator.setSurfaceTexture(surfaceTexture);
-        }
+    synchronized public void takePictureYUV420(String capturePath, byte[] yuv, Size size, int cameraId, int cameraOrientation) {
+        new Thread(new CaptureYUV420Runnable(capturePath, yuv, size, cameraId, cameraOrientation)).start();
     }
 
-    synchronized public void setOnImageAvailableOutputListener(Camera2Operator.OnImageAvailableOutputListener listener) {
-        if (operator != null && mode == Mode.OUTPUT_YUV420) {
-            operator.setOnImageAvailableOutputListener(listener);
+    synchronized public void takePictureYUV420(Handler handler, CaptureYUV420Runnable runnable) {
+        if (handler == null || runnable == null) {
+            return;
         }
+        handler.post(runnable);
     }
 
-//    synchronized public void takePictureYUV420(String capturePath, byte[] y, byte[] u, byte[] v, int stride, Size size) {
-//        if (TextUtils.isEmpty(capturePath)
-//                || y == null
-//                || u == null
-//                || v == null
-//                || size == null) {
-//            return;
-//        }
-//        if ((state == Camera2State.DEVICE_OPENED
-//                || state == Camera2State.DEVICE_PREVIEW)
-//                && cameraHandler != null) {
-//            byte[] nv21 = new byte[size.getWidth() * size.getHeight() * 3 / 2];
-//            // YUV转换成NV21
-//            CameraFrameUtils.yuvToNv21(y, u, v, nv21, stride, size.getHeight());
-//            cameraHandler.post(new CaptureYUV420Runnable(capturePath, nv21, size, cameraId, cameraOrientation))
-//        }
-//    }
-
-    class CaptureYUV420Runnable implements Runnable {
+    public static class CaptureYUV420Runnable implements Runnable {
         private int cameraId;
         private int cameraOrientation;
         private byte[] nv21;
@@ -189,7 +217,7 @@ public class Camera2Manager {
                 width = size.getHeight();
                 height = size.getWidth();
             }
-            // 反转镜像
+            // 反转镜像(小米8手机CameraCharacteristics.LENS_FACING_BACK对应的是前置摄像头，正常应该判断LENS_FACING_FRONT)
             if (cameraId == CameraCharacteristics.LENS_FACING_BACK) {
                 CameraFrameUtils.nv21Reversed(dest, nv21, width, height);
                 dest = nv21;

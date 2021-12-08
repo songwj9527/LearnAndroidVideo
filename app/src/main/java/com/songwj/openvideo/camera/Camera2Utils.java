@@ -164,11 +164,10 @@ public class Camera2Utils {
     public static Range<Integer> getBestPreviewFps(CameraCharacteristics characteristics, int fps) {
         Range<Integer>[] fpsRanges = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES);
         if (fpsRanges != null && fpsRanges.length > 0) {
-            Log.d(TAG, "SYNC_MAX_LATENCY_PER_FRAME_CONTROL: " + Arrays.toString(fpsRanges));
+            Log.d(TAG, "FpsRanges: " + Arrays.toString(fpsRanges));
             int abs_best = -1;
             Range<Integer> best = null;
             for (Range<Integer> range : fpsRanges) {
-                Log.d(TAG, "fps range: " + range.toString());
                 int result = (range.getLower() + range.getUpper()) / 2;
                 int abs = Math.abs(result - fps);
                 if (abs_best == -1) {

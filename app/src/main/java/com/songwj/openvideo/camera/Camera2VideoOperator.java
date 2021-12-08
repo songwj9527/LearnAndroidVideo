@@ -1,6 +1,6 @@
 package com.songwj.openvideo.camera;
 
-import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.CaptureResult;
 
 public class Camera2VideoOperator extends Camera2Operator {
 
@@ -9,10 +9,7 @@ public class Camera2VideoOperator extends Camera2Operator {
     }
 
     @Override
-    protected void sendPreviewRequest() {
-        CaptureRequest.Builder builder = getPreviewBuilder();
-        if (builder != null) {
-            sendRepeatingRequest(getPreviewRequest(builder), null, cameraHandler);
-        }
+    protected void processPreCapture(CaptureResult result) {
+
     }
 }

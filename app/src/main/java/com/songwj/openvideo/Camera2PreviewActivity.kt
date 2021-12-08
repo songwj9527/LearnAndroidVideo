@@ -1,17 +1,22 @@
 package com.songwj.openvideo
 
+import android.graphics.Rect
 import android.graphics.SurfaceTexture
+import android.hardware.camera2.CaptureResult
+import android.hardware.camera2.params.MeteringRectangle
 import android.os.Bundle
-import android.view.Gravity
-import android.view.TextureView
-import android.view.ViewGroup
+import android.os.Looper
+import android.util.Log
+import android.view.*
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
-import com.songwj.openvideo.camera.Camera2Manager
+import com.songwj.openvideo.camera.*
 import kotlinx.android.synthetic.main.activity_camera2_preview.*
 
 class Camera2PreviewActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
-    var texture_view: TextureRenderView? = null
+    var texture_view: GestureTextureRenderView? = null
+    var focus_view: FocusView? = null
+    var focusManager: FocusManager? = null
     var isOpened = false
     var isPaused = false
 
@@ -20,56 +25,163 @@ class Camera2PreviewActivity : AppCompatActivity(), TextureView.SurfaceTextureLi
         setContentView(R.layout.activity_camera2_preview)
         Camera2Manager.getInstance().releaseCamera()
 
-        Camera2Manager.getInstance().switchMode(
-            Camera2Manager.Mode.PREVIEW)
-        var cameraOrientation = Camera2Manager.getInstance().cameraOrientation
-        var previewSize = Camera2Manager.getInstance().previewSize
-
-        isOpened = Camera2Manager.getInstance().openCamera()
-        if (isOpened) {
-            texture_view = TextureRenderView(this)
-            if (cameraOrientation == 90 || cameraOrientation == 270) {
-                texture_view?.setVideoFrame(previewSize.height, previewSize.width)
-            } else {
-                texture_view?.setVideoFrame(previewSize.width, previewSize.height)
+        Camera2Manager.getInstance().switchMode(Camera2Manager.Mode.PREVIEW)
+        Camera2Manager.getInstance().setRequestCallback(object : Camera2Operator.RequestCallback {
+            override fun onOpened(
+                cameraId: Int,
+                sensorOrientation: Int,
+                sensorRect: Rect,
+                width: Int,
+                height: Int
+            ) {
+                Log.e("Camera2PreviewActivity", "onOpened(): $width, $height, $cameraId, $sensorOrientation")
+                if (isOpened) {
+                    runOnUiThread({
+                        attachTextureView(width, height, cameraId, sensorOrientation, sensorRect)
+                    })
+                }
             }
-            texture_view?.surfaceTextureListener = this
-            val lp = FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-            lp.gravity = Gravity.CENTER
-            camera_container.addView(texture_view, lp)
-        }
+
+
+            override fun onAFStateChanged(state: Int) {
+                if (!isOpened) {
+                    return
+                }
+                Log.e("Camera2PreviewActivity", "onAFStateChanged(): $state")
+                when (state) {
+                    CaptureResult.CONTROL_AF_STATE_ACTIVE_SCAN -> {
+                        if (isOpened) {
+                            runOnUiThread({
+                                focusManager?.startFocus()
+                            })
+                        }
+                    }
+                    CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED -> {
+                        if (isOpened) {
+                            runOnUiThread({
+                                focusManager?.focusSuccess()
+                            })
+                        }
+                    }
+                    CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED -> {
+                        if (isOpened) {
+                            runOnUiThread({
+                                focusManager?.focusFailed()
+                            })
+                        }
+                    }
+                    CaptureResult.CONTROL_AF_STATE_PASSIVE_FOCUSED -> {
+                        if (isOpened) {
+                            runOnUiThread({
+                                focusManager?.focusSuccess()
+                            })
+                        }
+                    }
+                    CaptureResult.CONTROL_AF_STATE_PASSIVE_SCAN -> {
+                        if (isOpened) {
+                            runOnUiThread({
+                                focusManager?.autoFocus()
+                            })
+                        }
+                    }
+                    CaptureResult.CONTROL_AF_STATE_PASSIVE_UNFOCUSED -> {
+                        if (isOpened) {
+                            runOnUiThread({
+                                focusManager?.focusFailed()
+                            })
+                        }
+                    }
+                    CaptureResult.CONTROL_AF_STATE_INACTIVE -> {
+                        if (isOpened) {
+                            runOnUiThread({
+                                focusManager?.hideFocusUI()
+                            })
+                        }
+                    }
+                }
+            }
+
+        })
+        isOpened = Camera2Manager.getInstance().openCamera()
 
         btn_switch_camera.setOnClickListener {
             if (isOpened) {
-                Camera2Manager.getInstance().releaseCamera()
-                Camera2Manager.getInstance().switchMode(
-                    Camera2Manager.Mode.PREVIEW)
+                isOpened = false
+                focusManager?.setListener(null)
+                focusManager?.removeDelayMessage()
+                focusManager = null
+                texture_view = null
+                Camera2Manager.getInstance().setSurfaceTexture(null)
                 isOpened = Camera2Manager.getInstance().swichCamera()
-                if (isOpened) {
-                    var cameraOrientation = Camera2Manager.getInstance().cameraOrientation
-                    var previewSize = Camera2Manager.getInstance().previewSize
-
-                    camera_container.removeAllViews()
-                    texture_view = TextureRenderView(this)
-                    if (cameraOrientation == 90 || cameraOrientation == 270) {
-                        texture_view?.setVideoFrame(previewSize.height, previewSize.width)
-                    } else {
-                        texture_view?.setVideoFrame(previewSize.width, previewSize.height)
-                    }
-                    texture_view?.surfaceTextureListener = this
-                    val lp = FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                    )
-                    lp.gravity = Gravity.CENTER
-                    camera_container.addView(texture_view, lp)
-                    camera_container.requestLayout()
-                }
             }
         }
+
+        btn_off.setOnClickListener {
+            if (isOpened) {
+                Camera2Manager.getInstance().setFlashMode(Camera2Operator.FlashMode.OFF)
+            }
+        }
+        btn_on.setOnClickListener {
+            if (isOpened) {
+                Camera2Manager.getInstance().setFlashMode(Camera2Operator.FlashMode.ON)
+            }
+        }
+        btn_auto.setOnClickListener {
+            if (isOpened) {
+                Camera2Manager.getInstance().setFlashMode(Camera2Operator.FlashMode.AUTO)
+            }
+        }
+        btn_torch.setOnClickListener {
+            if (isOpened) {
+                Camera2Manager.getInstance().setFlashMode(Camera2Operator.FlashMode.TORCH)
+            }
+        }
+    }
+
+    private fun attachTextureView(width: Int,
+                                  height: Int,
+                                  cameraId: Int,
+                                  orientation: Int,
+                                  cameraRect: Rect) {
+        camera_container.removeAllViews()
+        texture_view = GestureTextureRenderView(this)
+        if (orientation == 90 || orientation == 270) {
+            texture_view?.setVideoFrame(height, width)
+        } else {
+            texture_view?.setVideoFrame(width, height)
+        }
+        texture_view?.surfaceTextureListener = this
+        val lp = FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+        lp.gravity = Gravity.CENTER
+        camera_container.addView(texture_view, lp)
+        focus_view = FocusView(this)
+        camera_container.addView(focus_view)
+        camera_container.requestLayout()
+
+        focusManager = FocusManager(focus_view, Looper.getMainLooper())
+        focusManager?.onPreviewChanged(width, height, cameraId, orientation, cameraRect)
+        focusManager?.setListener(object : FocusManager.CameraUiEvent {
+            override fun resetTouchToFocus() {
+                if (isOpened) {
+                    Camera2Manager.getInstance().resetTouchToFocus()
+                }
+            }
+        })
+        texture_view?.setOnGestureListener(object : GestureTextureRenderView.OnGestureListener {
+            override fun onClick(x: Float, y: Float) {
+                if (isOpened) {
+                    focusManager?.let {
+                        it.startFocus(x, y)
+                        val focusRect: MeteringRectangle = it.getFocusArea(x, y, true)
+                        val meterRect: MeteringRectangle = it.getFocusArea(x, y, false)
+                        Camera2Manager.getInstance().setTouchFocusRegions(focusRect, meterRect)
+                    }
+                }
+            }
+        })
     }
 
     override fun onResume() {
@@ -92,6 +204,7 @@ class Camera2PreviewActivity : AppCompatActivity(), TextureView.SurfaceTextureLi
     }
 
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
+        Log.e("Camera2PreviewActivity", "onSurfaceTextureAvailable()")
         Camera2Manager.getInstance().setSurfaceTexture(surface)
     }
 
