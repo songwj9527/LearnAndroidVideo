@@ -22,9 +22,6 @@ void DefaultCodecPlayer::prepareSync() {
         return;
     }
     audio_track = new AudioTrack(jniEnv, sourceURL, this);
-    is_video_prepared = true;
-    is_video_completed = true;
-    is_video_seek_completed  =true;
-//    video_track = new DefaultVideoTrack(jniEnv, sourceURL, this);
+    video_track = new DefaultVideoTrack(jniEnv, sourceURL, this);
     LOGE(TAG, "%s", "prepareSync()");
 }
