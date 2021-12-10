@@ -201,6 +201,9 @@ class Camera2PreviewActivity : AppCompatActivity(), TextureView.SurfaceTextureLi
     override fun onDestroy() {
         super.onDestroy()
         Camera2Manager.getInstance().releaseCamera()
+        focusManager?.setListener(null)
+        focusManager?.removeDelayMessage()
+        focusManager = null
     }
 
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {

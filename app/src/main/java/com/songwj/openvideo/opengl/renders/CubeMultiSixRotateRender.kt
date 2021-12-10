@@ -7,6 +7,8 @@ import android.opengl.Matrix
 import android.util.Log
 import com.songwj.openvideo.MyApplication.Companion.getInstance
 import com.songwj.openvideo.R
+import com.songwj.openvideo.opengl.utils.ShaderUtils
+import com.songwj.openvideo.opengl.utils.TextureUtils
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer

@@ -2,13 +2,22 @@ package com.songwj.openvideo.mediarecord;
 
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Surface;
 
 import com.songwj.openvideo.audio.AudioCapture;
 import com.songwj.openvideo.mediacodec.encoder.AudioEncoder;
 import com.songwj.openvideo.mediacodec.encoder.VideoEncoder;
 import com.songwj.openvideo.mediacodec.muxer.MMuxer;
+import com.songwj.openvideo.opengl.egl.EGLSurfaceHolder;
+import com.songwj.openvideo.opengl.filter.base.AbstractRectFilter;
 
-public class Camera2Recorder implements MMuxer.IMuxerStateListener, AudioCapture.OnAudioCaptureListener {
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
+public class Camera1Recorder implements MMuxer.IMuxerStateListener, AudioCapture.OnAudioCaptureListener {
     private String filePath = "";
     private int videoWidth = 0;
     private int videoHeight = 0;
@@ -25,7 +34,9 @@ public class Camera2Recorder implements MMuxer.IMuxerStateListener, AudioCapture
     private boolean isPrepared = false;
     private volatile boolean isStarted = false;
 
-    public Camera2Recorder(String filePath, int videoWidth, int videoHeight) {
+    private long startTimestamp = 0L;
+
+    public Camera1Recorder(String filePath, int videoWidth, int videoHeight) {
         this.filePath = filePath;
         this.videoWidth = videoWidth;
         this.videoHeight = videoHeight;
@@ -38,7 +49,7 @@ public class Camera2Recorder implements MMuxer.IMuxerStateListener, AudioCapture
         if (isStarted) {
             return true;
         }
-        Log.e("MediaRecorder", "filePath: " + filePath + "\n"
+        Log.e("Camera1Recorder", "filePath: " + filePath + "\n"
                 + "videoWidth: " + videoWidth + ", videoHeight: " + videoHeight);
         try {
             mmuxer = new MMuxer(filePath);
@@ -51,6 +62,8 @@ public class Camera2Recorder implements MMuxer.IMuxerStateListener, AudioCapture
             videoEncoder = new VideoEncoder(mmuxer, videoWidth, videoHeight, true);
             videoEncoder.start();
             isStarted = true;
+            frameIndex = 0L;
+            startTimestamp = System.currentTimeMillis();
         } catch (Exception e) {
             e.printStackTrace();
             if (mmuxer != null) {
@@ -95,6 +108,8 @@ public class Camera2Recorder implements MMuxer.IMuxerStateListener, AudioCapture
             audioEncoder = null;
             mmuxer = null;
             isStarted = false;
+            prevFrameTimestamp = 0L;
+            videoFrame = null;
         }
     }
 
@@ -136,20 +151,44 @@ public class Camera2Recorder implements MMuxer.IMuxerStateListener, AudioCapture
     public void onAudioFrameUpdate(byte[] data, int dataSize) {
 //        if (isStarted && isPrepared) {
         if (isStarted) {
-            Log.i("MediaRecorder", "onAudioFrameUpdate()");
+            Log.i("Camera1Recorder", "onAudioFrameUpdate()");
             if (audioEncoder != null) {
                 audioEncoder.dequeueFrame(data, dataSize);
             }
         }
     }
 
+    private byte[] videoFrame = null;
+    private long prevFrameTimestamp = 0L;
     public void onVideoFrameUpdate(byte[] data) {
 //        if (isStarted && isPrepared) {
         if (isStarted) {
-            Log.i("MediaRecorder", "onVideoFrameUpdate()");
+            Log.i("Camera1Recorder", "onVideoFrameUpdate()");
+            long presentTimestamp = System.currentTimeMillis();
+//            if (videoFrame != null) {
+////                long count = (presentTimestamp - prevFrameTimestamp) * 30 / 1000;
+//                long count = (presentTimestamp - prevFrameTimestamp) / 34;
+//                prevFrameTimestamp = presentTimestamp;
+//                for (int i = 0; i < count; i++) {
+//                    if (videoEncoder != null) {
+//                        videoEncoder.dequeueFrame(videoFrame, computePresentationTime(frameIndex++, 30));
+//                    }
+//                }
+//                videoFrame = data;
+//            } else {
+//                prevFrameTimestamp = presentTimestamp;
+//                videoFrame = data;
+//                if (videoEncoder != null) {
+//                    videoEncoder.dequeueFrame(data, computePresentationTime(frameIndex++, 30));
+//                }
+//            }
+
+            long frameCount = (long) ((presentTimestamp- startTimestamp) / 33.33f + 0.47f);
             if (videoEncoder != null) {
-                videoEncoder.dequeueFrame(data, computePresentationTime(frameIndex++, 30));
+                videoEncoder.dequeueFrame(data, computePresentationTime(frameCount, 30));
             }
+        } else {
+            prevFrameTimestamp = 0L;
         }
     }
 

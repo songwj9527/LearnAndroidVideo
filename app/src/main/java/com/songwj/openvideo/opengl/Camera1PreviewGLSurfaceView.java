@@ -18,18 +18,18 @@ public class Camera1PreviewGLSurfaceView extends GLSurfaceView implements Surfac
         super(context);
         setEGLContextClientVersion(3);
         render = new Camera1PreviewRender(context, this);
+        render.addObjectRender(new CubeRender());
         setRenderer(render);
         setRenderMode(RENDERMODE_WHEN_DIRTY);
-        render.addObjectRender(new CubeRender());
     }
 
     public Camera1PreviewGLSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
         setEGLContextClientVersion(3);
         render = new Camera1PreviewRender(context, this);
+        render.addObjectRender(new CubeRender());
         setRenderer(render);
         setRenderMode(RENDERMODE_WHEN_DIRTY);
-        render.addObjectRender(new CubeRender());
     }
 
     @Override
@@ -41,22 +41,8 @@ public class Camera1PreviewGLSurfaceView extends GLSurfaceView implements Surfac
     public void surfaceDestroyed(SurfaceHolder holder) {
         super.surfaceDestroyed(holder);
         if (render != null) {
-            render.stopRecord();
             render.release();
             render = null;
-        }
-    }
-
-    public boolean startRecord() {
-        if (render != null) {
-            return render.startRecord();
-        }
-        return false;
-    }
-
-    public void stopRecord() {
-        if (render != null) {
-            render.stopRecord();
         }
     }
 }

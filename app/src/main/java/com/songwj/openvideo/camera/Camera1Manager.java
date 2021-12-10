@@ -57,6 +57,10 @@ public class Camera1Manager implements Camera.PreviewCallback  {
         this.activity = activity;
     }
 
+    public int getCameraId() {
+        return cameraId;
+    }
+
     public Camera.Size getCameraSize() {
         return cameraSize;
     }
@@ -322,6 +326,7 @@ public class Camera1Manager implements Camera.PreviewCallback  {
             result = (cameraInfo.orientation - degrees + 360) % 360;
         }
         Log.e("Camera1Manager", "Camera Display Rotation: " + result);
+        Log.e("Camera1Manager", "Camera Size: " + cameraSize.width + ", " + cameraSize.height);
         return result;
     }
 

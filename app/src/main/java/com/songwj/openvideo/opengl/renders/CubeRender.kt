@@ -5,6 +5,9 @@ import android.opengl.GLES30
 import android.opengl.Matrix
 import com.songwj.openvideo.MyApplication
 import com.songwj.openvideo.R
+import com.songwj.openvideo.opengl.utils.GLDataUtil
+import com.songwj.openvideo.opengl.utils.ShaderUtils
+import com.songwj.openvideo.opengl.utils.TextureUtils
 import java.nio.FloatBuffer
 
 class CubeRender : AbsObjectRender() {
@@ -82,10 +85,10 @@ class CubeRender : AbsObjectRender() {
         var vertexShaderId:Int = ShaderUtils.compileVertexShader(vertexShaderCode)
         var fragmentShaderId:Int = ShaderUtils.compileFragmentShader(fragmentShaderCode)
         program = ShaderUtils.linkProgram(vertexShaderId, fragmentShaderId)
-        positionHandle = GLES20.glGetAttribLocation(program, "vPositionCoord")
-        textCoordsHandle = GLES20.glGetAttribLocation(program, "vTextureCoord")
-        mvpMatrixHandle = GLES20.glGetUniformLocation(program, "vMatrix")
-        texturePosHandle = GLES20.glGetUniformLocation(program, "vTexture")
+        positionHandle = GLES30.glGetAttribLocation(program, "vPositionCoord")
+        textCoordsHandle = GLES30.glGetAttribLocation(program, "vTextureCoord")
+        mvpMatrixHandle = GLES30.glGetUniformLocation(program, "vMatrix")
+        texturePosHandle = GLES30.glGetUniformLocation(program, "vTexture")
     }
 
     override fun initMatrix() {
@@ -97,15 +100,15 @@ class CubeRender : AbsObjectRender() {
     }
 
     override fun onDrawFrame() {
-        GLES20.glUseProgram(program)
-        GLES20.glEnableVertexAttribArray(positionHandle)
-        GLES20.glEnableVertexAttribArray(texturePosHandle)
+        GLES30.glUseProgram(program)
+        GLES30.glEnableVertexAttribArray(positionHandle)
+        GLES30.glEnableVertexAttribArray(texturePosHandle)
 
         val vertexBuffer: FloatBuffer = GLDataUtil.createFloatBuffer(cubeVertices)
-        GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT,
+        GLES30.glVertexAttribPointer(positionHandle, 3, GLES30.GL_FLOAT,
             false, 5 * 4, vertexBuffer)
         vertexBuffer.position(3)
-        GLES20.glVertexAttribPointer(textCoordsHandle, 2, GLES20.GL_FLOAT,
+        GLES30.glVertexAttribPointer(textCoordsHandle, 2, GLES30.GL_FLOAT,
             false, 5 * 4, vertexBuffer)
         Matrix.setIdentityM(modelMatrix, 0)
         Matrix.translateM(modelMatrix, 0, 0.0f, 0.0f, -2f)
@@ -114,16 +117,16 @@ class CubeRender : AbsObjectRender() {
         Matrix.rotateM(modelMatrix, 0, angle, 1.0f, 1.0f, 1f)
         Matrix.multiplyMM(mvpMatrix, 0, cameraMatrix, 0, modelMatrix, 0)
         Matrix.multiplyMM(mvpMatrix, 0, projectMatrix, 0, mvpMatrix, 0)
-        GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix, 0)
+        GLES30.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix, 0)
 
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
-        GLES20.glBindTexture(GLES30.GL_TEXTURE_2D, cubeTexture)
-        GLES20.glUniform1i(texturePosHandle, 0)
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36)
+        GLES30.glActiveTexture(GLES30.GL_TEXTURE0)
+        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, cubeTexture)
+        GLES30.glUniform1i(texturePosHandle, 0)
+        GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 36)
 
-        GLES20.glDisableVertexAttribArray(positionHandle)
-        GLES20.glDisableVertexAttribArray(texturePosHandle)
-        GLES20.glUseProgram(0)
+        GLES30.glDisableVertexAttribArray(positionHandle)
+        GLES30.glDisableVertexAttribArray(texturePosHandle)
+        GLES30.glUseProgram(0)
 
         angle += 1
         if(angle >= 360){
@@ -132,9 +135,9 @@ class CubeRender : AbsObjectRender() {
     }
 
     override fun release() {
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
-        GLES20.glDeleteTextures(1, intArrayOf(cubeTexture), 0)
-        GLES20.glDeleteProgram(program)
+        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, 0)
+        GLES30.glDeleteTextures(1, intArrayOf(cubeTexture), 0)
+        GLES30.glDeleteProgram(program)
     }
 
 }

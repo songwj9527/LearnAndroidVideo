@@ -1,4 +1,4 @@
-package com.songwj.openvideo.opengl.renders;
+package com.songwj.openvideo.opengl.utils;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

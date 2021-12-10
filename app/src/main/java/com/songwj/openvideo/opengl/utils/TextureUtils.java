@@ -1,4 +1,4 @@
-package com.songwj.openvideo.opengl.renders;
+package com.songwj.openvideo.opengl.utils;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -189,7 +189,7 @@ public class TextureUtils {
 //                    GLES30.GL_CLAMP_TO_EDGE);
             GLES30.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL10.GL_TEXTURE_WRAP_S, GL10.GL_CLAMP_TO_EDGE);
             GLES30.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL10.GL_TEXTURE_WRAP_T, GL10.GL_CLAMP_TO_EDGE);
-            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D,0);
+            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, 0);
         }
     }
 

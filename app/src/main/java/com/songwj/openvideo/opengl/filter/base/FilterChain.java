@@ -1,5 +1,7 @@
 package com.songwj.openvideo.opengl.filter.base;
 
+import android.util.Log;
+
 import java.util.List;
 
 public class FilterChain {
@@ -13,54 +15,49 @@ public class FilterChain {
         this.filters = filters;
     }
 
-    public void onSurfaceCreate() {
-        if(index >= filters.size()){
-            ;
-        }
-        FilterChain nextFilterChain = new FilterChain(context, (index + 1), filters);
-        AbstractRectFilter abstractRectFilter = filters.get(index);
-        abstractRectFilter.onSurfaceCreated();
-        nextFilterChain.onSurfaceCreate();
+    public FilterContext getContext() {
+        return context;
     }
 
-    public void onSurfaceChanged(int width, int height) {
+    public void setSize(int width, int height) {
         if (context != null) {
-            context.setWidth(width);
-            context.setHeight(height);
+            context.width = width;
+            context.height = height;
         }
-        if(index >= filters.size()){
-            ;
-        }
-        FilterChain nextFilterChain = new FilterChain(context, (index + 1), filters);
-        AbstractRectFilter abstractRectFilter = filters.get(index);
-        abstractRectFilter.onSurfaceChanged(width, height);
-        nextFilterChain.onSurfaceChanged(width, height);
     }
 
-    public int onDrawFrame(int textureId) {
+    public void init() {
+        if (filters != null && filters.size() > 0) {
+            for (AbstractRectFilter filter : filters) {
+                Log.e("FilterChain", filter.getClass().getSimpleName() + ".onCreated()");
+                filter.onCreated();
+            }
+        }
+    }
+
+    public int proceed(int textureId) {
+        if (filters == null| filters.size() == 0) {
+            return textureId;
+        }
         if(index >= filters.size()){
             return textureId;
         }
         FilterChain nextFilterChain = new FilterChain(context, (index + 1), filters);
         AbstractRectFilter abstractRectFilter = filters.get(index);
+        Log.e("FilterChain", abstractRectFilter.getClass().getSimpleName() + ".onDrawFrame()");
         return abstractRectFilter.onDrawFrame(textureId, nextFilterChain);
     }
 
-    public void onSurfaceDestroy() {
+    public void release() {
         if (filters != null && filters.size() > 0) {
             for (AbstractRectFilter filter : filters) {
-                filter.onSurfaceDestroy();
+                filter.onDestroy();
             }
+            filters.clear();
         }
     }
 
-    public void setProjectmatrix(float[] projectMatrix, int length) {
-        if (context != null) {
-            context.setProjectMatrix(projectMatrix, length);
-        }
-    }
-
-    public void setCameramatrix(float[] cameraMatrix, int length) {
+    public void setCameraMatrix(float[] cameraMatrix, int length) {
         if (context != null) {
             context.setCameraMatrix(cameraMatrix, length);
         }

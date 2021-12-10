@@ -608,7 +608,9 @@ public abstract class Camera2Operator {
         builder.set(CaptureRequest.CONTROL_AF_MODE, afMode);
         builder.set(CaptureRequest.CONTROL_AE_ANTIBANDING_MODE, antiBMode);
         builder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
+
         setBuilderFlashMode(builder);
+
         builder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_IDLE);
 
         // 设置预览画面的帧率 视实际情况而定选择一个帧率范围
@@ -710,10 +712,13 @@ public abstract class Camera2Operator {
 
     protected CaptureRequest getFocusModeRequest(CaptureRequest.Builder builder, int focusMode) {
         int afMode = getValidAFMode(focusMode);
-        builder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
         builder.set(CaptureRequest.CONTROL_AF_MODE, afMode);
-        builder.set(CaptureRequest.CONTROL_AF_REGIONS, resetRect);
-        builder.set(CaptureRequest.CONTROL_AE_REGIONS, resetRect);
+        int antiBMode = getValidAntiBandingMode(CaptureRequest.CONTROL_AE_ANTIBANDING_MODE_AUTO);
+        builder.set(CaptureRequest.CONTROL_AE_ANTIBANDING_MODE, antiBMode);
+        builder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
+        // 这两行会让之前点击的焦点重新变模糊，所以先不设置resetRect
+//        builder.set(CaptureRequest.CONTROL_AF_REGIONS, resetRect);
+//        builder.set(CaptureRequest.CONTROL_AE_REGIONS, resetRect);
 
         setBuilderFlashMode(builder);
 

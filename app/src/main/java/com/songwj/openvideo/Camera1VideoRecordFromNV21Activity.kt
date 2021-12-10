@@ -9,12 +9,12 @@ import android.view.TextureView
 import androidx.appcompat.app.AppCompatActivity
 import com.songwj.openvideo.camera.Camera1Manager
 import com.songwj.openvideo.camera.CameraFrameUtils
-import com.songwj.openvideo.mediarecord.MediaRecorder
+import com.songwj.openvideo.mediarecord.Camera1Recorder
 import kotlinx.android.synthetic.main.activity_camera1_video_record_from_nv21.*
 
 class Camera1VideoRecordFromNV21Activity : AppCompatActivity(), TextureView.SurfaceTextureListener, Camera1Manager.PreviewFrameCallback {
     private var isPaused = false
-    private var mediaRecorder: MediaRecorder? = null
+    private var camera1Recorder: Camera1Recorder? = null
     private var isRecord = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,23 +29,33 @@ class Camera1VideoRecordFromNV21Activity : AppCompatActivity(), TextureView.Surf
             btn_command.setOnClickListener {
                 if (isRecord) {
                     isRecord = false
-                    mediaRecorder?.stop()
-                    mediaRecorder = null
+                    camera1Recorder?.stop()
+                    camera1Recorder = null
                     btn_command.text = "开始"
                 } else {
                     val cameraSize = Camera1Manager.getInstance().cameraSize
                     val filePath = Environment.getExternalStorageDirectory().absolutePath + "/video_" + System.currentTimeMillis() + ".mp4"
                     if (Camera1Manager.getInstance().cameraDisplayOrientation == 90 || Camera1Manager.getInstance().cameraDisplayOrientation == 270) {
-                        mediaRecorder = MediaRecorder(filePath, cameraSize.height, cameraSize.width, true)
+                        camera1Recorder =
+                            Camera1Recorder(
+                                filePath,
+                                cameraSize.height,
+                                cameraSize.width
+                            )
                     } else {
-                        mediaRecorder = MediaRecorder(filePath, cameraSize.width, cameraSize.height, true)
+                        camera1Recorder =
+                            Camera1Recorder(
+                                filePath,
+                                cameraSize.width,
+                                cameraSize.height
+                            )
                     }
-                    if (mediaRecorder!!.start()) {
+                    if (camera1Recorder!!.start()) {
                         isRecord = true
                         btn_command.text = "结束"
                     } else {
-                        mediaRecorder?.stop()
-                        mediaRecorder = null
+                        camera1Recorder?.stop()
+                        camera1Recorder = null
                         isRecord = false
                     }
                 }
@@ -114,7 +124,7 @@ class Camera1VideoRecordFromNV21Activity : AppCompatActivity(), TextureView.Surf
                 CameraFrameUtils.nv21Rotate(it, dest, cameraSize.width, cameraSize.height, cameraOrientation)
                 // nv21转换成nv12的数据
                 var nv12 = CameraFrameUtils.nv21toNV12(dest)
-                mediaRecorder?.onVideoFrameUpdate(nv12)
+                camera1Recorder?.onVideoFrameUpdate(nv12)
             }
         }
     }

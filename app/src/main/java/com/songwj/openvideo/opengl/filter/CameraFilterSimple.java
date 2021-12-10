@@ -8,10 +8,10 @@ import com.songwj.openvideo.opengl.filter.base.AbstractRectFilter;
 import com.songwj.openvideo.opengl.filter.base.FilterChain;
 import com.songwj.openvideo.opengl.filter.base.FilterContext;
 
-public class CameraFilter extends AbstractFboRectFilter {
+public class CameraFilterSimple extends AbstractRectFilter {
     private int vMatrixHandler = -1;
 
-    public CameraFilter() {
+    public CameraFilterSimple() {
         super("uniform mat4 vMatrix;\n" +
                         "attribute vec4 vPositionCoord;\n" + //NDK坐标点
                         "attribute vec2 vTextureCoord;\n" +

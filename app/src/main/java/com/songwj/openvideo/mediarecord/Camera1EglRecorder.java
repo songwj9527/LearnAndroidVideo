@@ -1,6 +1,11 @@
 package com.songwj.openvideo.mediarecord;
 
+import android.graphics.Bitmap;
 import android.opengl.EGLContext;
+import android.opengl.GLES11Ext;
+import android.opengl.GLES30;
+import android.opengl.GLUtils;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.text.TextUtils;
@@ -13,8 +18,18 @@ import com.songwj.openvideo.mediacodec.encoder.VideoEncoder;
 import com.songwj.openvideo.mediacodec.muxer.MMuxer;
 import com.songwj.openvideo.opengl.egl.EGLSurfaceHolder;
 import com.songwj.openvideo.opengl.filter.base.AbstractRectFilter;
+import com.songwj.openvideo.opengl.filter.base.FilterChain;
+import com.songwj.openvideo.opengl.filter.base.FilterContext;
 
-public class MediaRecorder implements MMuxer.IMuxerStateListener, AudioCapture.OnAudioCaptureListener {
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Camera1EglRecorder implements MMuxer.IMuxerStateListener, AudioCapture.OnAudioCaptureListener {
     private String filePath = "";
     private int videoWidth = 0;
     private int videoHeight = 0;
@@ -22,29 +37,27 @@ public class MediaRecorder implements MMuxer.IMuxerStateListener, AudioCapture.O
     private MMuxer mmuxer = null;
 
     private VideoEncoder videoEncoder = null;
-    private boolean isVideoEncodeManually = false;
     private boolean isVideoEncoderPrepared = false;
     private HandlerThread handlerThread = null;
     private Handler handler = null;
     private EGLContext eglContext = null;
     private EGLSurfaceHolder eglSurfaceHolder = null;
     private static final int EGL_RECORDABLE_ANDROID_FLAG = 0x3142;
-    private RecordRender recordRender = null;
+    private FilterChain filterChain = null;
 
     private AudioEncoder audioEncoder = null;
     private boolean isAudioEncoderPrepared = false;
     private AudioCapture audioCapture = null;
 
     private boolean isPrepared = false;
+    private volatile boolean isStarting = false;
     private volatile boolean isStarted = false;
 
-    private long startTimestamp = 0L;
-
-    public MediaRecorder(String filePath, int videoWidth, int videoHeight, boolean isVideoEncodeManually) {
+    public Camera1EglRecorder(String filePath, int videoWidth, int videoHeight, EGLContext eglContext) {
         this.filePath = filePath;
         this.videoWidth = videoWidth;
         this.videoHeight = videoHeight;
-        this.isVideoEncodeManually = isVideoEncodeManually;
+        this.eglContext = eglContext;
     }
 
     public Surface getSurface() {
@@ -54,19 +67,17 @@ public class MediaRecorder implements MMuxer.IMuxerStateListener, AudioCapture.O
         return videoEncoder.getSurface();
     }
 
-    public void setEGLContext(EGLContext eglContext) {
-        this.eglContext = eglContext;
-    }
-
-    synchronized public boolean start() {
+    synchronized public void start() {
         if (TextUtils.isEmpty(filePath)) {
-            return false;
+            return;
         }
-        if (isStarted) {
-            return true;
+        if (isStarting || isStarted) {
+            return;
         }
+        isStarting = true;
         Log.e("MediaRecorder", "filePath: " + filePath + "\n"
                 + "videoWidth: " + videoWidth + ", videoHeight: " + videoHeight);
+
         try {
             mmuxer = new MMuxer(filePath);
             mmuxer.setStateListener(this);
@@ -75,28 +86,8 @@ public class MediaRecorder implements MMuxer.IMuxerStateListener, AudioCapture.O
             audioCapture = new AudioCapture();
             audioCapture.setOnAudioCaptureListener(this);
             audioCapture.start();
-            videoEncoder = new VideoEncoder(mmuxer, videoWidth, videoHeight, isVideoEncodeManually);
+            videoEncoder = new VideoEncoder(mmuxer, videoWidth, videoHeight, false);
             videoEncoder.start();
-            isStarted = true;
-            frameIndex = 0L;
-            startTimestamp = System.currentTimeMillis();
-
-            if (!isVideoEncodeManually) {
-                handlerThread = new HandlerThread("codec-gl");
-                handlerThread.start();
-                handler = new Handler(handlerThread.getLooper());
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        eglSurfaceHolder = new EGLSurfaceHolder();
-                        eglSurfaceHolder.init(eglContext, EGL_RECORDABLE_ANDROID_FLAG);
-                        eglSurfaceHolder.createEGLSurface(videoEncoder.getSurface(), videoWidth, videoHeight);
-                        recordRender = new RecordRender();
-                        recordRender.onSurfaceCreated();
-                        recordRender.onSurfaceChanged(videoWidth, videoHeight);
-                    }
-                });
-            }
         } catch (Exception e) {
             e.printStackTrace();
             if (mmuxer != null) {
@@ -117,24 +108,38 @@ public class MediaRecorder implements MMuxer.IMuxerStateListener, AudioCapture.O
                 audioCapture.stop();
                 audioEncoder = null;
             }
-            if (!isVideoEncodeManually && handler!= null) {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        recordRender.onSurfaceDestroy();
-                        recordRender = null;
-                        eglContext = null;
-                        eglSurfaceHolder.destroyEGLSurface();
-                        eglSurfaceHolder.release();
-                        eglSurfaceHolder = null;
-                        handler.getLooper().quitSafely();
-                        handlerThread = null;
-                        handler = null;
-                    }
-                });
-            }
         }
-        return isStarted;
+
+        if (mmuxer == null) {
+            isStarting = false;
+            return;
+        }
+        handlerThread = new HandlerThread("codec-gl");
+        handlerThread.start();
+        handler = new Handler(handlerThread.getLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                eglSurfaceHolder = new EGLSurfaceHolder();
+                eglSurfaceHolder.init(eglContext, EGL_RECORDABLE_ANDROID_FLAG);
+                eglSurfaceHolder.createEGLSurface(videoEncoder.getSurface(), videoWidth, videoHeight);
+
+                RecordRender recordRender = new RecordRender();
+                List<AbstractRectFilter> filterList = new ArrayList<>();
+                filterList.add(recordRender);
+
+                FilterContext filterContext = new FilterContext();
+                filterContext.setWidth(videoWidth);
+                filterContext.setHeight(videoHeight);
+
+                filterChain = new FilterChain(filterContext, 0, filterList);
+                filterChain.setSize(videoWidth, videoHeight);
+                filterChain.init();
+
+                isStarted = true;
+                isStarting = false;
+            }
+        });
     }
 
     synchronized public void stop() {
@@ -156,25 +161,24 @@ public class MediaRecorder implements MMuxer.IMuxerStateListener, AudioCapture.O
             audioCapture = null;
             audioEncoder = null;
             mmuxer = null;
-            if (!isVideoEncodeManually) {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        recordRender.onSurfaceDestroy();
-                        recordRender = null;
-                        eglContext = null;
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (filterChain != null) {
+                        filterChain.release();
+                        filterChain = null;
+                    }
+                    if (eglSurfaceHolder != null) {
                         eglSurfaceHolder.destroyEGLSurface();
                         eglSurfaceHolder.release();
                         eglSurfaceHolder = null;
-                        handler.getLooper().quitSafely();
-                        handlerThread = null;
-                        handler = null;
                     }
-                });
-            }
-            isStarted = false;
-            prevFrameTimestamp = 0L;
-            videoFrame = null;
+                    handler.getLooper().quitSafely();
+                    handlerThread = null;
+                    handler = null;
+                    isStarted = false;
+                }
+            });
         }
     }
 
@@ -223,53 +227,15 @@ public class MediaRecorder implements MMuxer.IMuxerStateListener, AudioCapture.O
         }
     }
 
-    private byte[] videoFrame = null;
-    private long prevFrameTimestamp = 0L;
-    public void onVideoFrameUpdate(byte[] data) {
-//        if (isStarted && isPrepared) {
-        if (isStarted) {
-            Log.i("MediaRecorder", "onVideoFrameUpdate()");
-            long presentTimestamp = System.currentTimeMillis();
-//            if (videoFrame != null) {
-////                long count = (presentTimestamp - prevFrameTimestamp) * 30 / 1000;
-//                long count = (presentTimestamp - prevFrameTimestamp) / 34;
-//                prevFrameTimestamp = presentTimestamp;
-//                for (int i = 0; i < count; i++) {
-//                    if (videoEncoder != null) {
-//                        videoEncoder.dequeueFrame(videoFrame, computePresentationTime(frameIndex++, 30));
-//                    }
-//                }
-//                videoFrame = data;
-//            } else {
-//                prevFrameTimestamp = presentTimestamp;
-//                videoFrame = data;
-//                if (videoEncoder != null) {
-//                    videoEncoder.dequeueFrame(data, computePresentationTime(frameIndex++, 30));
-//                }
-//            }
-
-            long frameCount = (long) ((presentTimestamp- startTimestamp) / 33.33f + 0.47f);
-            if (videoEncoder != null) {
-                videoEncoder.dequeueFrame(data, computePresentationTime(frameCount, 30));
-            }
-        } else {
-            prevFrameTimestamp = 0L;
-        }
-    }
-
-    private long frameIndex = 0L;
-    private long computePresentationTime(long frameIndex, int frameRate) {
-        //帧率是frameRate  132是偏移量 frameIndex单位是微秒(us)
-        return 132 + frameIndex * 1000000 / frameRate;
-    }
-
     public void onDrawFrame(final int textureId, final long timestampNs){
 //        if (isStarted && isPrepared && !isVideoEncodeManually) {
-        if (isStarted && !isVideoEncodeManually) {
+        if (isStarted) {
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    recordRender.onDrawFrame(textureId);
+                    if (filterChain != null) {
+                        filterChain.proceed(textureId);
+                    }
                     eglSurfaceHolder.onDrawNs(timestampNs);
                 }
             });
@@ -300,12 +266,27 @@ public class MediaRecorder implements MMuxer.IMuxerStateListener, AudioCapture.O
         }
 
         @Override
-        protected void beforeDraw() {
+        protected void activeTexture(int textureId) {
+            //激活指定纹理单元
+            GLES30.glActiveTexture(GLES30.GL_TEXTURE0);
+            //绑定纹理ID到纹理单元
+            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureId);
+            //将激活的纹理单元传递到着色器里面
+            GLES30.glUniform1i(vTextureHandler, 0);
+            //配置边缘过渡参数
+            GLES30.glTexParameterf(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, GLES30.GL_LINEAR);
+            GLES30.glTexParameterf(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, GLES30.GL_LINEAR);
+            GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_S, GLES30.GL_CLAMP_TO_EDGE);
+            GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_T, GLES30.GL_CLAMP_TO_EDGE);
+        }
+
+        @Override
+        protected void beforeDraw(int textureId, FilterChain filterChain) {
 
         }
 
         @Override
-        protected void afterDraw() {
+        protected void afterDraw(int textureId, FilterChain filterChain) {
 
         }
     }

@@ -2,14 +2,11 @@ package com.songwj.openvideo
 
 import android.Manifest
 import android.content.Intent
-import android.graphics.Camera
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.songwj.openvideo.ffmpeg.NativeLoader
 import kotlinx.android.synthetic.main.activity_main.*
-import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.locks.ReentrantLock
 
 class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClickListener {
 
@@ -42,11 +39,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
         btn_camera1_system_media_record.setOnClickListener(this)
         btn_camera1_video_record_from_nv21.setOnClickListener(this)
         btn_camera1_preview_gl_surface_view.setOnClickListener(this)
+        btn_camera1_gl_surface_view_record.setOnClickListener(this)
         btn_camera2_preview.setOnClickListener(this)
-
-        var test : ArrayBlockingQueue<String>? = null
-        var lock: ReentrantLock? = null
-        var hashMap: HashMap<String, Any>? =null
 
         handlerPermission()
     }
@@ -142,6 +136,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
             }
             else if (id == R.id.btn_camera1_preview_gl_surface_view) {
                 startActivity(Intent(this, Camera1PreviewGLSurfaceActivity::class.java))
+            }
+            else if (id == R.id.btn_camera1_gl_surface_view_record) {
+                startActivity(Intent(this, Camera1VideoRecordFromEGLActivity::class.java))
             }
             else if (id == R.id.btn_camera2_preview) {
                 startActivity(Intent(this, Camera2PreviewActivity::class.java))

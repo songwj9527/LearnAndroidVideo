@@ -4,11 +4,10 @@ import android.content.Context
 import android.graphics.SurfaceTexture
 import android.graphics.SurfaceTexture.OnFrameAvailableListener
 import android.opengl.*
-import android.os.Environment
+import android.util.Log
 import com.songwj.openvideo.camera.Camera1Manager
-import com.songwj.openvideo.mediarecord.MediaRecorder
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
+import com.songwj.openvideo.opengl.utils.GLDataUtil
+import com.songwj.openvideo.opengl.utils.ShaderUtils
 import java.nio.FloatBuffer
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
@@ -22,9 +21,6 @@ class Camera1PreviewRender(context: Context?, onFrameAvailableListener: OnFrameA
     private val texture = IntArray(1)
     private var cameraTexture: SurfaceTexture? = null
 
-    private var mediaRecorder: MediaRecorder? = null
-    private var eglContext: EGLContext? = null
-
     init {
         this.context = context
         this.onFrameAvailableListener = onFrameAvailableListener
@@ -34,8 +30,6 @@ class Camera1PreviewRender(context: Context?, onFrameAvailableListener: OnFrameA
     }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
-        // 调用父类，完成另外添加进来的图形的初始化
-        eglContext = EGL14.eglGetCurrentContext()
         super.onSurfaceCreated(gl, config)
     }
 
@@ -45,6 +39,7 @@ class Camera1PreviewRender(context: Context?, onFrameAvailableListener: OnFrameA
         super.onSurfaceChanged(gl, width, height)
     }
 
+    var takePicture = false
     override fun onDrawFrame(gl: GL10?) {
         GLES30.glEnable(GLES20.GL_DEPTH_TEST)
         GLES30.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
@@ -52,8 +47,9 @@ class Camera1PreviewRender(context: Context?, onFrameAvailableListener: OnFrameA
         // 调用父类，完成另外添加进来的图形的绘制
         super.onDrawFrame(gl)
 //        // 1.glReadPixels返回的是大端的RGBA Byte组数，我们使用小端Buffer接收得到ABGR Byte组数
-//        val frameBuffer: ByteBuffer = ByteBuffer.allocateDirect(viewWidth * viewHeight * 4).order(ByteOrder.LITTLE_ENDIAN)
-//        gl?.glReadPixels(0, 0, viewWidth, viewHeight, GLES30.GL_RGBA, GLES30.GL_UNSIGNED_BYTE, frameBuffer)
+//        val frameBuffer: ByteBuffer = ByteBuffer.allocateDirect(viewWidth * viewHeight * 4)
+//            .order(ByteOrder.LITTLE_ENDIAN)
+//        GLES30.glReadPixels(0, 0, viewWidth, viewHeight, GLES30.GL_RGBA, GLES30.GL_UNSIGNED_BYTE, frameBuffer)
 //        frameBuffer.rewind()//reset position
 //        val pixelCount = viewWidth * viewHeight
 //        val colors = IntArray(pixelCount)
@@ -62,44 +58,36 @@ class Camera1PreviewRender(context: Context?, onFrameAvailableListener: OnFrameA
 //            val c = colors[i]   //2.每个int类型的c是接收到的ABGR，但bitmap需要ARGB格式，所以需要交换B和R的位置
 //            colors[i] = c and -0xff0100 or (c and 0x00ff0000 shr 16) or (c and 0x000000ff shl 16) //交换B和R，得到ARGB
 //        }
-        mediaRecorder?.onDrawFrame(texture[0], cameraTexture!!.timestamp)
-    }
-
-    fun startRecord(): Boolean {
-        var ret = true
-        if (mediaRecorder == null) {
-            val cameraSize = Camera1Manager.getInstance().cameraSize
-            val filePath = Environment.getExternalStorageDirectory().absolutePath + "/video_" + System.currentTimeMillis() + ".mp4"
-            if (Camera1Manager.getInstance().cameraDisplayOrientation == 90 || Camera1Manager.getInstance().cameraDisplayOrientation == 270) {
-                mediaRecorder = MediaRecorder(filePath, cameraSize.height, cameraSize.width, false)
-            } else {
-                mediaRecorder = MediaRecorder(filePath, cameraSize.width, cameraSize.height, false)
-            }
-            mediaRecorder?.setEGLContext(eglContext)
-            ret = mediaRecorder!!.start()
-            if (!ret) {
-                mediaRecorder?.stop()
-                mediaRecorder = null
-            }
-        }
-        return ret
-    }
-
-    fun stopRecord() {
-        mediaRecorder?.stop()
-        mediaRecorder = null
+//        var bitmap = Bitmap.createBitmap(viewWidth, viewHeight, Bitmap.Config.ARGB_8888)
+//        bitmap.setPixels(colors, 0, viewWidth, 0, 0 , viewWidth, viewHeight)
+//
+//
+//        var matrix = android.graphics.Matrix()
+//        // 缩放 当sy为-1时向上翻转 当sx为-1时向左翻转 sx、sy都为-1时相当于旋转180°
+//        matrix.postScale(1f, -1f);
+//        // 因为向上翻转了所以y要向下平移一个bitmap的高度
+//        matrix.postTranslate(0f, bitmap.height.toFloat())
+//        bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 
     inner class CameraRender : AbsObjectRender() {
         private //编译顶点着色程序
+//        val vertexShaderStr = "uniform mat4 vMatrix;\n" +
+//                "attribute vec3 vPositionCoord;\n" + //NDK坐标点
+//                "attribute vec2 vTextureCoord;\n" +
+//                "varying   vec2 aTextureCoord;\n" + //纹理坐标点变换后输出
+//                " void main() {\n" +
+//                "//     gl_Position = vPositionCoord;\n" +
+//                "     vec4 pos = vec4(vPositionCoord, 1.0);\n" +
+//                "     gl_Position = (vMatrix * pos).xyww;\n" +
+//                "     aTextureCoord = vTextureCoord;\n" +
+//                " }"
         val vertexShaderStr = "uniform mat4 vMatrix;\n" +
-                "attribute vec3 vPositionCoord;\n" + //NDK坐标点
+                "attribute vec4 vPositionCoord;\n" + //NDK坐标点
                 "attribute vec2 vTextureCoord;\n" +
                 "varying   vec2 aTextureCoord;\n" + //纹理坐标点变换后输出
                 " void main() {\n" +
-                "//     gl_Position = vPositionCoord;\n" +
-                "     vec4 pos = vec4(vPositionCoord, 1.0);\n" +
-                "     gl_Position = (vMatrix * pos).xyww;\n" +
+                "     gl_Position = (vMatrix * vPositionCoord).xyww;\n" +
                 "     aTextureCoord = vTextureCoord;\n" +
                 " }"
         //编译片段着色程序
@@ -114,11 +102,16 @@ class Camera1PreviewRender(context: Context?, onFrameAvailableListener: OnFrameA
                 "    gl_FragColor = vec4(tc.r * 0.875, tc.g * 0.62, tc.b * 0.863, tc.a);\n" +
                 "}"
 
+//        private val posCoordinate = floatArrayOf(
+//            -1f, -1f, 1f,
+//            -1f, 1f, 1f,
+//            1f, -1f, 1f,
+//            1f, 1f, 1f)
         private val posCoordinate = floatArrayOf(
-            -1f, -1f, 1f,
-            -1f, 1f, 1f,
-            1f, -1f, 1f,
-            1f, 1f, 1f)
+            -1f, -1f,
+            -1f, 1f,
+            1f, -1f,
+            1f, 1f)
         private val texCoordinate = floatArrayOf(0f, 1f, 1f, 1f, 0f, 0f, 1f, 0f)
 
         private var mvpMatrixHandle = 0
@@ -153,9 +146,17 @@ class Camera1PreviewRender(context: Context?, onFrameAvailableListener: OnFrameA
             Matrix.setIdentityM(cameraMatrix, 0)
             var widthRatio = 1f
             var heightRatio = 1f
-            var cameraSize = Camera1Manager.getInstance().cameraSize
+            val cameraSize = Camera1Manager.getInstance().cameraSize
+            val cameraOrientation = Camera1Manager.getInstance().cameraOrientation
+            val cameraDisplayOrientation = Camera1Manager.getInstance().cameraDisplayOrientation
+            Log.e(TAG, "width: ${cameraSize.width}, height: ${cameraSize.height}, cameraOrientation: $cameraOrientation, cameraDisplayOrientation: $cameraDisplayOrientation")
+            val cameraRatio = if (cameraOrientation == 90 || cameraOrientation == 270) {
+                cameraSize.height / cameraSize.width.toFloat()
+            } else {
+                cameraSize.width / cameraSize.height.toFloat()
+            }
             val viewRatio = viewWidth / viewHeight.toFloat()
-            val cameraRatio = cameraSize.height / cameraSize.width.toFloat()
+
             if (viewWidth > viewHeight) {
                 if (cameraRatio > viewRatio) {
                     heightRatio = cameraRatio / viewRatio
@@ -175,6 +176,11 @@ class Camera1PreviewRender(context: Context?, onFrameAvailableListener: OnFrameA
                 -heightRatio, heightRatio,
                 3f, 5f
             )
+            val abs = (cameraOrientation + cameraDisplayOrientation) % 360
+            if (abs > 0) {
+                Matrix.rotateM(projectMatrix, 0, abs.toFloat(), 0f, 0f, -1f)
+                Matrix.rotateM(projectMatrix, 0, abs.toFloat(), 0f, -1f, 0f)
+            }
             Matrix.setLookAtM(
                 cameraMatrix, 0,
                 0f, 0f, 5.0f,
@@ -193,7 +199,7 @@ class Camera1PreviewRender(context: Context?, onFrameAvailableListener: OnFrameA
             mvpMatrixHandle = GLES30.glGetUniformLocation(program, "vMatrix")
             uPosHandle = GLES30.glGetAttribLocation(program, "vPositionCoord")
             aTexHandle = GLES30.glGetAttribLocation(program, "vTextureCoord")
-            uTextureHandle = GLES30.glGetAttribLocation(program, "vTexture")
+            uTextureHandle = GLES30.glGetUniformLocation(program, "vTexture")
 
             //激活指定纹理单元
             GLES30.glActiveTexture(GLES30.GL_TEXTURE0)
@@ -211,7 +217,8 @@ class Camera1PreviewRender(context: Context?, onFrameAvailableListener: OnFrameA
 
             // 将前面计算得到的mMVPMatrix(frustumM setLookAtM 通过multiplyMM 相乘得到的矩阵) 传入vMatrix中，与顶点矩阵进行相乘
             GLES30.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix, 0)
-            GLES30.glVertexAttribPointer(uPosHandle, 3, GLES30.GL_FLOAT, false, 0, posBuffer)
+//            GLES30.glVertexAttribPointer(uPosHandle, 3, GLES30.GL_FLOAT, false, 0, posBuffer)
+            GLES30.glVertexAttribPointer(uPosHandle, 2, GLES30.GL_FLOAT, false, 0, posBuffer)
             GLES30.glVertexAttribPointer(aTexHandle, 2, GLES30.GL_FLOAT, false, 0, texBuffer)
             GLES30.glEnableVertexAttribArray(uPosHandle)
             GLES30.glEnableVertexAttribArray(aTexHandle)

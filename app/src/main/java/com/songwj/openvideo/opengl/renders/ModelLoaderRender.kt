@@ -11,6 +11,9 @@ import com.songwj.openvideo.MyApplication.Companion.getInstance
 import com.songwj.openvideo.R
 import com.songwj.openvideo.opengl.model.LoadObjectUtil
 import com.songwj.openvideo.opengl.model.bean.ObjectBean
+import com.songwj.openvideo.opengl.utils.GLDataUtil
+import com.songwj.openvideo.opengl.utils.ShaderUtils
+import com.songwj.openvideo.opengl.utils.TextureUtils
 import java.io.IOException
 import java.nio.FloatBuffer
 import javax.microedition.khronos.egl.EGLConfig

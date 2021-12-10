@@ -60,6 +60,7 @@ public class FocusManager {
         this.focusView = focusView;
         this.handler = new MainHandler(this, looper);
         this.focusView.resetToDefaultPosition();
+        this.focusView.hideFocusView();
         this.focusRect = new Rect();
     }
 

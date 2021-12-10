@@ -157,6 +157,8 @@ abstract class BaseEncoder : Thread {
     /**
      * 榨干编码输出数据
      */
+    var TRY_AGAIN_LATER_MAX_COUNT = 20
+    var TRY_AGAIN_LATER_COUNT = 0
     private fun drain() {
         var index = mCodec.dequeueOutputBuffer(mBufferInfo, 5000)
         Log.i(TAG, "dequeueOutputBuffer(): $index")
@@ -166,11 +168,18 @@ abstract class BaseEncoder : Thread {
                 addTrack(it, mCodec.outputFormat)
             }
             mAddedMuxerTrack = true
+            TRY_AGAIN_LATER_COUNT = 0
         } else if (MediaCodec.INFO_TRY_AGAIN_LATER == index) {
-
+            if (TRY_AGAIN_LATER_COUNT > TRY_AGAIN_LATER_MAX_COUNT) {
+                mIsEOS = true
+                mBufferInfo.set(0, 0, 0, mBufferInfo.flags)
+                return
+            }
+            TRY_AGAIN_LATER_COUNT++
         } else if (MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED == index) {
-
+            TRY_AGAIN_LATER_COUNT = 0
         } else {
+            TRY_AGAIN_LATER_COUNT = 0
             while (index >= 0) {
                 if (mBufferInfo.flags == MediaCodec.BUFFER_FLAG_END_OF_STREAM) {
                     Log.e(TAG, "drain(): 编码结束")
