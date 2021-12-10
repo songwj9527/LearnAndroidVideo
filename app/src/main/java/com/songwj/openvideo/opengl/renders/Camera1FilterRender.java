@@ -1,10 +1,8 @@
 package com.songwj.openvideo.opengl.renders;
 
 import android.graphics.SurfaceTexture;
-import android.hardware.Camera;
 import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
-import android.opengl.Matrix;
 import android.util.Log;
 
 import com.songwj.openvideo.camera.Camera1Manager;
@@ -20,19 +18,19 @@ import java.util.List;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-public class Camera1FilterRender implements GLSurfaceView.Renderer {
+public class Camera1FilterRender implements GLSurfaceView.Renderer, SurfaceTexture.OnFrameAvailableListener {
     private static final String TAG = "Camera1RecordRender";
 
+    private GLSurfaceView glSurfaceView;
     private int[] cameraTextrueId = new int[1];
     private SurfaceTexture cameraTexture = null;
-    private SurfaceTexture.OnFrameAvailableListener listener = null;
 
     private FilterChain filterChain;
 
     private float[] mvpMatrix = new float[16];
 
-    public Camera1FilterRender(SurfaceTexture.OnFrameAvailableListener listener) {
-        this.listener = listener;
+    public Camera1FilterRender(GLSurfaceView glSurfaceView) {
+        this.glSurfaceView = glSurfaceView;
     }
 
     @Override
@@ -48,7 +46,7 @@ public class Camera1FilterRender implements GLSurfaceView.Renderer {
 
         GLES30.glGenTextures(1, cameraTextrueId, 0);
         cameraTexture = new SurfaceTexture(cameraTextrueId[0]);
-        cameraTexture.setOnFrameAvailableListener(listener);
+        cameraTexture.setOnFrameAvailableListener(this);
         Camera1Manager.getInstance().updatePreviewTexture(cameraTexture);
         Camera1Manager.getInstance().resumePreview();
 
@@ -87,6 +85,13 @@ public class Camera1FilterRender implements GLSurfaceView.Renderer {
         if (filterChain != null) {
             filterChain.release();
             filterChain = null;
+        }
+    }
+
+    @Override
+    public void onFrameAvailable(SurfaceTexture surfaceTexture) {
+        if (glSurfaceView != null) {
+            glSurfaceView.requestRender();
         }
     }
 }

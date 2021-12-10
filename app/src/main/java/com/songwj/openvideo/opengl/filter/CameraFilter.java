@@ -8,7 +8,7 @@ import com.songwj.openvideo.opengl.filter.base.AbstractRectFilter;
 import com.songwj.openvideo.opengl.filter.base.FilterChain;
 import com.songwj.openvideo.opengl.filter.base.FilterContext;
 
-public class CameraFilter extends AbstractFboRectFilter {
+public class CameraFilter extends AbstractRectFilter {
     private int vMatrixHandler = -1;
 
     public CameraFilter() {
@@ -19,8 +19,6 @@ public class CameraFilter extends AbstractFboRectFilter {
                         " void main() {\n" +
                         "    gl_Position = vPositionCoord;\n" +
                         "    aTextureCoord = (vMatrix * vec4(vTextureCoord, 1.0, 1.0)).xy;\n" +
-//                        "    gl_Position = vMatrix * vPositionCoord;\n" +
-//                        "    aTextureCoord = vTextureCoord;\n" +
                         " }",
                 "#extension GL_OES_EGL_image_external : require\n" +
                         "precision mediump float;\n" +
