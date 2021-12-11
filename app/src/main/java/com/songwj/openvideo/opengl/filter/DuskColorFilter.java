@@ -5,14 +5,13 @@ import android.opengl.GLES30;
 import com.songwj.openvideo.opengl.filter.base.AbstractFboRectFilter;
 import com.songwj.openvideo.opengl.filter.base.AbstractRectFilter;
 import com.songwj.openvideo.opengl.filter.base.FilterChain;
-import com.songwj.openvideo.opengl.filter.base.FilterContext;
 
-public class ScreenFilter extends AbstractRectFilter {
+public class DuskColorFilter extends AbstractFboRectFilter {
 
-    public ScreenFilter() {
+    public DuskColorFilter() {
         super("attribute vec4 vPositionCoord;\n" + //NDK坐标点
                         "attribute vec2 vTextureCoord;\n" +
-                        "varying   vec2 aTextureCoord;\n" + //纹理坐标点变换后输出
+                        "varying vec2 aTextureCoord;\n" + //纹理坐标点变换后输出
                         " void main() {\n" +
                         "    gl_Position = vPositionCoord;\n" +
                         "    aTextureCoord = vTextureCoord;\n" +
@@ -22,14 +21,9 @@ public class ScreenFilter extends AbstractRectFilter {
                         "varying vec2 aTextureCoord;\n" +
                         "void main() {\n" +
                         "    vec4 rgba = texture2D(vTexture, aTextureCoord);\n" +
-                        "    gl_FragColor = rgba;\n" +
+                        // 滤镜效果
+                        "    gl_FragColor = vec4(rgba.r * 0.875, rgba.g * 0.62, rgba.b * 0.863, rgba.a);\n" +
                         "}");
-    }
-
-    @Override
-    public int onDrawFrame(int textureId, FilterChain filterChain) {
-        textureId = super.onDrawFrame(textureId, filterChain);
-        return filterChain.proceed(textureId);
     }
 
     @Override

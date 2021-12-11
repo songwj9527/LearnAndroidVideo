@@ -8,7 +8,7 @@ import com.songwj.openvideo.opengl.filter.base.AbstractRectFilter;
 import com.songwj.openvideo.opengl.filter.base.FilterChain;
 import com.songwj.openvideo.opengl.filter.base.FilterContext;
 
-public class CameraFilter extends AbstractRectFilter {
+public class CameraFilter extends AbstractFboRectFilter {
     private int vMatrixHandler = -1;
 
     public CameraFilter() {

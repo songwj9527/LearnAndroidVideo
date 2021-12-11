@@ -1,12 +1,15 @@
 package com.songwj.openvideo.opengl.renders;
 
 import android.graphics.SurfaceTexture;
+import android.opengl.EGLContext;
 import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 
 import com.songwj.openvideo.camera.Camera1Manager;
 import com.songwj.openvideo.opengl.filter.CameraFilter;
+import com.songwj.openvideo.opengl.filter.DuskColorFilter;
+import com.songwj.openvideo.opengl.filter.CubeFilter;
 import com.songwj.openvideo.opengl.filter.ScreenFilter;
 import com.songwj.openvideo.opengl.filter.base.AbstractRectFilter;
 import com.songwj.openvideo.opengl.filter.base.FilterChain;
@@ -25,12 +28,26 @@ public class Camera1FilterRender implements GLSurfaceView.Renderer, SurfaceTextu
     private int[] cameraTextrueId = new int[1];
     private SurfaceTexture cameraTexture = null;
 
+    private List<AbstractRectFilter> filterList = new ArrayList<>();
     private FilterChain filterChain;
 
     private float[] mvpMatrix = new float[16];
 
+    private OnPreparedListener onPreparedListener = null;
+
     public Camera1FilterRender(GLSurfaceView glSurfaceView) {
         this.glSurfaceView = glSurfaceView;
+        FilterContext filterContext = new FilterContext();
+        filterChain = new FilterChain(filterContext, 0, filterList);
+    }
+
+    public void addFilters(List<AbstractRectFilter> filters) {
+        filterList.clear();
+        filterList.addAll(filters);
+    }
+
+    public void addFilter(AbstractRectFilter filter) {
+        filterList.add(filter);
     }
 
     @Override
@@ -38,11 +55,11 @@ public class Camera1FilterRender implements GLSurfaceView.Renderer, SurfaceTextu
         Log.e(TAG, "onSurfaceCreated()");
         GLES30.glClearColor(0f, 0f, 0f, 0f);
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT | GLES30.GL_DEPTH_BUFFER_BIT);
-        //------开启混合，即半透明---------
-        // 开启很混合模式
-        GLES30.glEnable(GLES30.GL_BLEND);
-        // 配置混合算法
-        GLES30.glBlendFunc(GLES30.GL_SRC_ALPHA, GLES30.GL_ONE_MINUS_SRC_ALPHA);
+//        //------开启混合，即半透明---------
+//        // 开启很混合模式
+//        GLES30.glEnable(GLES30.GL_BLEND);
+//        // 配置混合算法
+//        GLES30.glBlendFunc(GLES30.GL_SRC_ALPHA, GLES30.GL_ONE_MINUS_SRC_ALPHA);
 
         GLES30.glGenTextures(1, cameraTextrueId, 0);
         cameraTexture = new SurfaceTexture(cameraTextrueId[0]);
@@ -50,11 +67,6 @@ public class Camera1FilterRender implements GLSurfaceView.Renderer, SurfaceTextu
         Camera1Manager.getInstance().updatePreviewTexture(cameraTexture);
         Camera1Manager.getInstance().resumePreview();
 
-        FilterContext filterContext = new FilterContext();
-        List<AbstractRectFilter> filterList = new ArrayList<>();
-        filterList.add(new CameraFilter());
-        filterList.add(new ScreenFilter());
-        filterChain = new FilterChain(filterContext, 0, filterList);
         filterChain.init();
     }
 
@@ -93,5 +105,9 @@ public class Camera1FilterRender implements GLSurfaceView.Renderer, SurfaceTextu
         if (glSurfaceView != null) {
             glSurfaceView.requestRender();
         }
+    }
+
+    public interface OnPreparedListener {
+        public void onPrepared(EGLContext eglContext);
     }
 }

@@ -13,7 +13,7 @@ abstract public class AbstractFboRectFilter extends AbstractRectFilter {
     protected int[] frameBuffer;
     protected int[] frameTextures;
 
-    synchronized private void createFboFrame(int width, int height) {
+    synchronized protected void createFboFrame(int width, int height) {
         if (frameTextures != null) {
             return;
         }

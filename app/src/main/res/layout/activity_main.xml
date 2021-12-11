@@ -168,6 +168,13 @@
                 android:text="OPENGL_CAMERA1_PREVIEW_GL_SURFACE_VIEW" />
 
             <Button
+                android:id="@+id/btn_camera1_preview_filter_gl_surface_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="OPENGL_CAMERA1_PREVIEW_FILTER_GL_SURFACE_VIEW" />
+
+            <Button
                 android:id="@+id/btn_camera1_gl_surface_view_record"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

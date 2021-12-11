@@ -126,6 +126,7 @@ abstract public class AbstractRectFilter {
             GLES30.glDisableVertexAttribArray(vTextureCoordHandler);
             GLES30.glDisableVertexAttribArray(vPositionCoordHandler);
             GLES30.glDeleteProgram(program);
+            program = -1;
         }
     }
 

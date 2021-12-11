@@ -60,6 +60,10 @@ public class Camera1EglRecorder implements MMuxer.IMuxerStateListener, AudioCapt
         this.eglContext = eglContext;
     }
 
+    public void setDataSource(String filePath) {
+        this.filePath = filePath;
+    }
+
     public Surface getSurface() {
         if (videoEncoder == null) {
             return null;
@@ -256,12 +260,8 @@ public class Camera1EglRecorder implements MMuxer.IMuxerStateListener, AudioCapt
                     "varying vec2 aTextureCoord;\n" +
                     "uniform sampler2D  vTexture;\n" + // samplerExternalOES: 图片， 采样器
                     "void main(){\n" +
-                    //  texture2D: vTexture采样器，采样  aCoord 这个像素点的RGBA值
-                    "    vec4 rgba = texture2D(vTexture, aTextureCoord);\n" + // rgba
-                    //    gl_FragColor = vec4(1.-rgba.r,1.-rgba.g,1.-rgba.b,rgba.a);
+                    "    vec4 rgba = texture2D(vTexture, aTextureCoord);\n" +
                     "    gl_FragColor = rgba;\n" +
-                    //    float c = (rgba.r*0.3+ rgba.g*0.59+rgba.b*0.11) /3.0;
-                    //    gl_FragColor = vec4(c, c, c, 1.0);
                     "}");
         }
 
