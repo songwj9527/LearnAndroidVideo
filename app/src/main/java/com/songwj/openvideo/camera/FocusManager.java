@@ -97,11 +97,23 @@ public class FocusManager {
     }
 
     public void focusSuccess() {
-        focusView.focusSuccess();
+        if (handler.hasMessages(MSG_HIDE_FOCUS)) {
+            handler.removeMessages(MSG_HIDE_FOCUS);
+            focusView.focusSuccess();
+            handler.sendEmptyMessageDelayed(MSG_HIDE_FOCUS, 1000);
+        } else {
+            focusView.focusSuccess();
+        }
     }
 
     public void focusFailed() {
-        focusView.focusFailed();
+        if (handler.hasMessages(MSG_HIDE_FOCUS)) {
+            handler.removeMessages(MSG_HIDE_FOCUS);
+            focusView.focusFailed();
+            handler.sendEmptyMessageDelayed(MSG_HIDE_FOCUS, 1000);
+        } else {
+            focusView.focusFailed();
+        }
     }
 
     public void hideFocusUI() {

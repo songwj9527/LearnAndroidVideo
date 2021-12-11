@@ -131,8 +131,8 @@ public class FocusView extends View {
     }
 
     public void resetToDefaultPosition() {
-        int x = previewWidth / 2 - radiusOuter;
-        int y = previewHeight / 2 - radiusOuter;
+        int y = previewWidth / 2 - radiusOuter;
+        int x = previewHeight / 2 - radiusOuter;
         this.setTranslationX(x);
         this.setTranslationY(y);
     }

@@ -378,7 +378,7 @@ public class Camera1Manager implements Camera.PreviewCallback  {
             List<Camera.Size> sizes = camera.getParameters().getSupportedPreviewSizes();
             Camera.Size temp = sizes.get(0);
             Log.e("getLargePreviewSize", "0 , width = "+temp.width+", height = "+temp.height);
-            for(int i = 1;i < sizes.size();i ++){
+            for(int i = 1; i < sizes.size(); i++){
                 Log.e("getLargePreviewSize", i+" , width = "+sizes.get(i).width+", height = "+sizes.get(i).height);
                 if(temp.width < sizes.get(i).width)
                     temp = sizes.get(i);
@@ -386,6 +386,19 @@ public class Camera1Manager implements Camera.PreviewCallback  {
             return temp;
         }
         return null;
+    }
+
+    public Camera.Size getLargestPropPreviewSize(List<Camera.Size> list, float th, int minWidth){
+        CameraSizeComparator sizeComparator = new CameraSizeComparator();
+        Collections.sort(list, sizeComparator);
+
+        Camera.Size result = list.get(0);
+        for(Camera.Size s :list){
+            if((s.width >= minWidth) && equalRate(s, th)){
+                result = s;
+            }
+        }
+        return result;
     }
 
     public Camera.Size getPropPreviewSize(List<Camera.Size> list, float th, int minWidth){

@@ -517,7 +517,6 @@ public abstract class Camera2Operator {
         public void onCaptureProgressed(@NonNull CameraCaptureSession session, @NonNull
                 CaptureRequest request, @NonNull CaptureResult partialResult) {
             super.onCaptureProgressed(session, request, partialResult);
-            Log.d(TAG, "onCaptureProgressed()");
             if (cameraDevice == null) {
                 return;
             }
@@ -531,7 +530,6 @@ public abstract class Camera2Operator {
         public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull
                 CaptureRequest request, @NonNull TotalCaptureResult result) {
             super.onCaptureCompleted(session, request, result);
-            Log.d(TAG, "onCaptureCompleted()");
             if (cameraDevice == null) {
                 return;
             }

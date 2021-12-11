@@ -79,9 +79,9 @@ class Camera2PreviewActivity : AppCompatActivity(), TextureView.SurfaceTextureLi
                     }
                     CaptureResult.CONTROL_AF_STATE_PASSIVE_SCAN -> {
                         if (isOpened) {
-                            runOnUiThread({
-                                focusManager?.autoFocus()
-                            })
+//                            runOnUiThread({
+//                                focusManager?.autoFocus()
+//                            })
                         }
                     }
                     CaptureResult.CONTROL_AF_STATE_PASSIVE_UNFOCUSED -> {
@@ -160,6 +160,12 @@ class Camera2PreviewActivity : AppCompatActivity(), TextureView.SurfaceTextureLi
         focus_view = FocusView(this)
         camera_container.addView(focus_view)
         camera_container.requestLayout()
+        if (orientation == 90 || orientation == 270) {
+            focus_view?.initFocusArea(camera_container.height, camera_container.width)
+        } else {
+            focus_view?.initFocusArea(camera_container.width, camera_container.height)
+        }
+
 
         focusManager = FocusManager(focus_view, Looper.getMainLooper())
         focusManager?.onPreviewChanged(width, height, cameraId, orientation, cameraRect)

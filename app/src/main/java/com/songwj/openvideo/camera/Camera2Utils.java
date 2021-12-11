@@ -121,7 +121,9 @@ public class Camera2Utils {
             return outputSizes[0];
         }
 
+        Log.d(TAG, "PreviewSize: " + Arrays.toString(outputSizes));
         Size bestSize = null;
+        float ratoi = (targetSize.getWidth() * 1.0f) / (targetSize.getHeight() * 1.0f);
         for (Size size : outputSizes) {
             if (size.getWidth() == targetSize.getWidth()
                     && size.getHeight() == targetSize.getHeight()) {
@@ -130,9 +132,7 @@ public class Camera2Utils {
             }
         }
         if (bestSize == null) {
-            float ratoi = (targetSize.getWidth() * 1.0f) / (targetSize.getHeight() * 1.0f);
             for (Size size : outputSizes) {
-                Log.d(TAG, "size: " + size.getWidth() + ", " + size.getHeight());
                 float currentRatoi = (size.getWidth() * 1.0f) / (size.getHeight() * 1.0f);
                 float currentAbs = Math.abs(currentRatoi - ratoi);
                 int currentWidthAbs = Math.abs(size.getWidth() - targetSize.getWidth());
@@ -149,8 +149,57 @@ public class Camera2Utils {
                         bestSize = size;
                     }
                 }
-                Log.d(TAG, "bestSize: " + bestSize.getWidth() + ", " + bestSize.getHeight());
             }
+        }
+        Log.d(TAG, "bestSize: " + bestSize.getWidth() + ", " + bestSize.getHeight());
+        return bestSize;
+    }
+
+    /**
+     * 获取匹配到的最佳预览尺寸
+     * @param characteristics
+     * @param targetSize
+     * @return
+     */
+    public static Size getBestLargePreviewSize(CameraCharacteristics characteristics, Size targetSize) {
+        if (characteristics == null) {
+            return targetSize;
+        }
+
+        // 管理摄像头支持的所有输出格式和尺寸
+        StreamConfigurationMap configurationMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+        if (configurationMap == null) {
+            return targetSize;
+        }
+
+        // 适配的尺寸数组
+        Size[] outputSizes = configurationMap.getOutputSizes(SurfaceTexture.class);
+        if (outputSizes == null || outputSizes.length == 0) {
+            return targetSize;
+        }
+
+        if (targetSize == null) {
+            return outputSizes[0];
+        }
+
+        Log.d(TAG, "PreviewSize: " + Arrays.toString(outputSizes));
+        Size bestSize = null;
+        float ratoi = (targetSize.getWidth() * 1.0f) / (targetSize.getHeight() * 1.0f);
+        for (Size size : outputSizes) {
+            float currentRatoi = (size.getWidth() * 1.0f) / (size.getHeight() * 1.0f);
+            float currentAbs = Math.abs(currentRatoi - ratoi);
+            if ((size.getWidth() >= targetSize.getWidth() || size.getHeight() >= targetSize.getHeight())
+                    && currentAbs <= 0.03f) {
+                if (bestSize == null) {
+                    bestSize = size;
+                }
+                else if (size.getWidth() > bestSize.getWidth() || size.getHeight() >= bestSize.getHeight()) {
+                    bestSize = size;
+                }
+            }
+        }
+        if (bestSize == null) {
+            bestSize = getBestPreviewSize(characteristics, targetSize);
         }
         return bestSize;
     }
