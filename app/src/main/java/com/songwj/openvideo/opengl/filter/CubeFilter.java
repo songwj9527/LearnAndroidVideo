@@ -1,5 +1,6 @@
 package com.songwj.openvideo.opengl.filter;
 
+import android.opengl.GLES20;
 import android.opengl.GLES30;
 import android.opengl.Matrix;
 
@@ -15,15 +16,15 @@ import com.songwj.openvideo.opengl.utils.TextureUtils;
 
 import java.nio.FloatBuffer;
 
-public class CubeFilter extends AbstractChainRectFilter {
+public class CubeFilter extends AbstractFboRectFilter {
 
     public CubeFilter() {
         super("uniform mat4 vMatrix;\n" +
-                        "attribute vec4 vPositionCoord;\n" + //NDK坐标点
+                        "attribute vec3 vPositionCoord;\n" + //NDK坐标点
                         "attribute vec2 vTextureCoord;\n" +
                         "varying   vec2 aTextureCoord;\n" + //纹理坐标点变换后输出
                         " void main() {\n" +
-                        "    gl_Position = vMatrix * vPositionCoord;\n" +
+                        "    gl_Position = vMatrix * vec4(vPositionCoord, 1.0);\n" +
                         "    aTextureCoord = vTextureCoord;\n" +
                         " }",
                 "precision mediump float;\n" +
@@ -34,44 +35,82 @@ public class CubeFilter extends AbstractChainRectFilter {
                         "}");
     }
 
-    private final float[] cubePositionCoods = new float[]{
-            -0.5f, -0.5f, -0.5f, 1.0f,
-            0.5f, -0.5f, -0.5f, 1.0f,
-            0.5f, 0.5f, -0.5f, 1.0f,
-            0.5f, 0.5f, -0.5f, 1.0f,
-            -0.5f, 0.5f, -0.5f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 1.0f,
-            -0.5f, -0.5f, 0.5f, 1.0f,
-            0.5f, -0.5f, 0.5f, 1.0f,
-            0.5f, 0.5f, 0.5f, 1.0f,
-            0.5f, 0.5f, 0.5f, 1.0f,
-            -0.5f, 0.5f, 0.5f, 1.0f,
-            -0.5f, -0.5f, 0.5f, 1.0f,
-            -0.5f, 0.5f, 0.5f, 1.0f,
-            -0.5f, 0.5f, -0.5f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 1.0f,
-            -0.5f, -0.5f, 0.5f, 1.0f,
-            -0.5f, 0.5f, 0.5f, 1.0f,
-            0.5f, 0.5f, 0.5f, 1.0f,
-            0.5f, 0.5f, -0.5f, 1.0f,
-            0.5f, -0.5f, -0.5f, 1.0f,
-            0.5f, -0.5f, -0.5f, 1.0f,
-            0.5f, -0.5f, 0.5f, 1.0f,
-            0.5f, 0.5f, 0.5f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 1.0f,
-            0.5f, -0.5f, -0.5f, 1.0f,
-            0.5f, -0.5f, 0.5f, 1.0f,
-            0.5f, -0.5f, 0.5f, 1.0f,
-            -0.5f, -0.5f, 0.5f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 1.0f,
-            -0.5f, 0.5f, -0.5f, 1.0f,
-            0.5f, 0.5f, -0.5f, 1.0f,
-            0.5f, 0.5f, 0.5f, 1.0f,
-            0.5f, 0.5f, 0.5f, 1.0f,
-            -0.5f, 0.5f, 0.5f, 1.0f,
-            -0.5f, 0.5f, -0.5f, 1.0f,
-    };
+//    private final float[] cubePositionCoods = new float[]{
+//            -0.5f, -0.5f, -0.5f, 1.0f,
+//            0.5f, -0.5f, -0.5f, 1.0f,
+//            0.5f, 0.5f, -0.5f, 1.0f,
+//            0.5f, 0.5f, -0.5f, 1.0f,
+//            -0.5f, 0.5f, -0.5f, 1.0f,
+//            -0.5f, -0.5f, -0.5f, 1.0f,
+//            -0.5f, -0.5f, 0.5f, 1.0f,
+//            0.5f, -0.5f, 0.5f, 1.0f,
+//            0.5f, 0.5f, 0.5f, 1.0f,
+//            0.5f, 0.5f, 0.5f, 1.0f,
+//            -0.5f, 0.5f, 0.5f, 1.0f,
+//            -0.5f, -0.5f, 0.5f, 1.0f,
+//            -0.5f, 0.5f, 0.5f, 1.0f,
+//            -0.5f, 0.5f, -0.5f, 1.0f,
+//            -0.5f, -0.5f, -0.5f, 1.0f,
+//            -0.5f, -0.5f, -0.5f, 1.0f,
+//            -0.5f, -0.5f, 0.5f, 1.0f,
+//            -0.5f, 0.5f, 0.5f, 1.0f,
+//            0.5f, 0.5f, 0.5f, 1.0f,
+//            0.5f, 0.5f, -0.5f, 1.0f,
+//            0.5f, -0.5f, -0.5f, 1.0f,
+//            0.5f, -0.5f, -0.5f, 1.0f,
+//            0.5f, -0.5f, 0.5f, 1.0f,
+//            0.5f, 0.5f, 0.5f, 1.0f,
+//            -0.5f, -0.5f, -0.5f, 1.0f,
+//            0.5f, -0.5f, -0.5f, 1.0f,
+//            0.5f, -0.5f, 0.5f, 1.0f,
+//            0.5f, -0.5f, 0.5f, 1.0f,
+//            -0.5f, -0.5f, 0.5f, 1.0f,
+//            -0.5f, -0.5f, -0.5f, 1.0f,
+//            -0.5f, 0.5f, -0.5f, 1.0f,
+//            0.5f, 0.5f, -0.5f, 1.0f,
+//            0.5f, 0.5f, 0.5f, 1.0f,
+//            0.5f, 0.5f, 0.5f, 1.0f,
+//            -0.5f, 0.5f, 0.5f, 1.0f,
+//            -0.5f, 0.5f, -0.5f, 1.0f,
+//    };
+private final float[] cubePositionCoods = new float[]{
+        -0.5f, -0.5f, -0.5f,
+        0.5f, -0.5f, -0.5f,
+        0.5f, 0.5f, -0.5f,
+        0.5f, 0.5f, -0.5f,
+        -0.5f, 0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, 0.5f,
+        0.5f, -0.5f, 0.5f,
+        0.5f, 0.5f, 0.5f,
+        0.5f, 0.5f, 0.5f,
+        -0.5f, 0.5f, 0.5f,
+        -0.5f, -0.5f, 0.5f,
+        -0.5f, 0.5f, 0.5f,
+        -0.5f, 0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, 0.5f,
+        -0.5f, 0.5f, 0.5f,
+        0.5f, 0.5f, 0.5f,
+        0.5f, 0.5f, -0.5f,
+        0.5f, -0.5f, -0.5f,
+        0.5f, -0.5f, -0.5f,
+        0.5f, -0.5f, 0.5f,
+        0.5f, 0.5f, 0.5f,
+        -0.5f, -0.5f, -0.5f,
+        0.5f, -0.5f, -0.5f,
+        0.5f, -0.5f, 0.5f,
+        0.5f, -0.5f, 0.5f,
+        -0.5f, -0.5f, 0.5f,
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, 0.5f, -0.5f,
+        0.5f, 0.5f, -0.5f,
+        0.5f, 0.5f, 0.5f,
+        0.5f, 0.5f, 0.5f,
+        -0.5f, 0.5f, 0.5f,
+        -0.5f, 0.5f, -0.5f,
+};
     //-------------- 立方体物体纹理坐标 ----------------------
     private final float[] cubeTextureCoords = new float[]{
             0.0f, 0.0f,
@@ -184,31 +223,30 @@ public class CubeFilter extends AbstractChainRectFilter {
     }
 
     @Override
-    public int proceed(int textureId, FilterChain filterChain) {
-//        createFboFrame(filterChain.getContext().width, filterChain.getContext().height);
-//        GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, frameBuffer[0]);
-//        super.onDrawFrame(textureId, filterChain);
-//        onDrawCube(textureId, filterChain);
-//        GLES30.glBindRenderbuffer(GLES30.GL_RENDERBUFFER, GLES30.GL_NONE);
-//        GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, GLES30.GL_NONE);
-//        //!! 返回的是FBO创建的纹理frameTextures[0]
-//        return filterChain.proceed(frameTextures[0]);
-        return filterChain.proceed(onDrawCube(textureId, filterChain));
-    }
-
-    @Override
     protected void activeTexture(int textureId) {
-
+        //激活指定纹理单元
+        GLES30.glActiveTexture(GLES30.GL_TEXTURE0);
+        //绑定纹理ID到纹理单元
+        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureId);
+        //将激活的纹理单元传递到着色器里面
+        GLES30.glUniform1i(vTextureHandler, 0);
+        //配置边缘过渡参数
+        GLES30.glTexParameterf(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, GLES30.GL_LINEAR);
+        GLES30.glTexParameterf(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, GLES30.GL_LINEAR);
+        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_S, GLES30.GL_CLAMP_TO_EDGE);
+        GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_WRAP_T, GLES30.GL_CLAMP_TO_EDGE);
     }
 
     @Override
     protected void beforeDraw(int textureId, FilterChain filterChain) {
-
+        FilterContext context = filterChain.getContext();
+        Matrix.setIdentityM(modelMatrix, 0);
+        GLES30.glUniformMatrix4fv(vMatrixHandler, 1, false, modelMatrix, 0);
     }
 
     @Override
     protected void afterDraw(int textureId, FilterChain filterChain) {
-//        onDrawCube(textureId, filterChain);
+        onDrawCube(textureId, filterChain);
     }
 
     @Override
@@ -223,19 +261,27 @@ public class CubeFilter extends AbstractChainRectFilter {
         }
         initMatrix(filterChain.getContext());
 
-        // 开启混合模式
-        GLES30.glEnable(GLES30.GL_BLEND);
-        GLES30.glBlendFunc(GLES30.GL_ONE, GLES30.GL_ONE_MINUS_SRC_ALPHA);
-
         GLES30.glUseProgram(program);
+        GLES30.glViewport(0, 0, filterChain.getContext().width, filterChain.getContext().height);
 
-        GLES30.glVertexAttribPointer(vPositionCoordHandler, 4, GLES30.GL_FLOAT,
+//        GLES30.glVertexAttribPointer(vPositionCoordHandler, 4, GLES30.GL_FLOAT,
+//                false, 0, cubeVertexBuffer);
+        GLES30.glVertexAttribPointer(vPositionCoordHandler, 3, GLES30.GL_FLOAT,
                 false, 0, cubeVertexBuffer);
         GLES30.glEnableVertexAttribArray(vPositionCoordHandler);
 
         GLES30.glVertexAttribPointer(vTextureCoordHandler, 2, GLES30.GL_FLOAT,
                 false, 0, cubeTextureBuffer);
         GLES30.glEnableVertexAttribArray(vTextureCoordHandler);
+
+//        FloatBuffer vertexBuffer = GLDataUtil.createFloatBuffer(cubeVertices);
+//        GLES30.glVertexAttribPointer(vPositionCoordHandler, 3, GLES30.GL_FLOAT,
+//                false, 5 * 4, vertexBuffer);
+//        GLES30.glEnableVertexAttribArray(vPositionCoordHandler);
+//        vertexBuffer.position(3);
+//        GLES30.glVertexAttribPointer(vTextureCoordHandler, 2, GLES30.GL_FLOAT,
+//                false, 5 * 4, vertexBuffer);
+//        GLES30.glEnableVertexAttribArray(vTextureCoordHandler);
 
         Matrix.setIdentityM(modelMatrix, 0);
         Matrix.translateM(modelMatrix, 0, 0.0f, 0.0f, -2f);
@@ -251,10 +297,9 @@ public class CubeFilter extends AbstractChainRectFilter {
         GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 36);
 
         GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, 0);
-//        GLES30.glUseProgram(0);
-
-        // 关闭混合模式
-        GLES30.glDisable(GLES30.GL_BLEND);
+        GLES30.glDisableVertexAttribArray(vPositionCoordHandler);
+        GLES30.glDisableVertexAttribArray(vTextureCoordHandler);
+        GLES30.glUseProgram(0);
 
         angle += 1;
         if(angle >= 360){
@@ -277,7 +322,7 @@ public class CubeFilter extends AbstractChainRectFilter {
     }
 
     private void releaseCube() {
-        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, 0);
+//        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, 0);
         GLES30.glDeleteTextures(1, cubeTextureIds, 0);
     }
 }

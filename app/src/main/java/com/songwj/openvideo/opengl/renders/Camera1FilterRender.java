@@ -58,11 +58,11 @@ public class Camera1FilterRender implements GLSurfaceView.Renderer, SurfaceTextu
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         GLES30.glClearColor(0f, 0f, 0f, 0f);
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT | GLES30.GL_DEPTH_BUFFER_BIT);
-//        //------开启混合，即半透明---------
-//        // 开启很混合模式
-//        GLES30.glEnable(GLES30.GL_BLEND);
-//        // 配置混合算法
-//        GLES30.glBlendFunc(GLES30.GL_SRC_ALPHA, GLES30.GL_ONE_MINUS_SRC_ALPHA);
+        //------开启混合，即半透明---------
+        // 开启很混合模式
+        GLES30.glEnable(GLES30.GL_BLEND);
+        // 配置混合算法
+        GLES30.glBlendFunc(GLES30.GL_SRC_ALPHA, GLES30.GL_ONE_MINUS_SRC_ALPHA);
 
         GLES30.glGenTextures(1, cameraTextrueId, 0);
         cameraTexture = new SurfaceTexture(cameraTextrueId[0]);

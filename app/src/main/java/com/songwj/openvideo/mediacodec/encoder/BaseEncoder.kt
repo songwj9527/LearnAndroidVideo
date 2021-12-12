@@ -27,7 +27,7 @@ abstract class BaseEncoder : Thread {
     // 待编码帧缓存
     private var mFrames = LinkedList<Frame>()
     // 待编码帧缓存最大帧个数（因为编码较慢，mFrames会不断堆积，容易造成内存溢出；这里如果待编码帧缓存个数超过最大个数，待编码帧缓存就出列一帧，并将该帧压入到codec中编码）
-    protected var mFramesMaxSize = 60
+    protected var mFramesMaxSize = 150
     // 待编码帧缓存的操作锁
     private var mFramesLock = Object()
 
