@@ -157,7 +157,7 @@ abstract class BaseEncoder : Thread {
     /**
      * 榨干编码输出数据
      */
-    var TRY_AGAIN_LATER_MAX_COUNT = 20
+    var TRY_AGAIN_LATER_MAX_COUNT = 100
     var TRY_AGAIN_LATER_COUNT = 0
     private fun drain() {
         var index = mCodec.dequeueOutputBuffer(mBufferInfo, 5000)
@@ -298,13 +298,14 @@ abstract class BaseEncoder : Thread {
         synchronized(mFramesLock) {
             if (!mStop) {
                 mStop = true
-//                if (!encodeManually()) {
-//                    mCodec.signalEndOfInputStream()
-//                }
-                val frame = Frame()
-                frame.buffer = null
-                frame.presentationTimeUs = 0L
-                mFrames.add(frame)
+                if (!encodeManually()) {
+                    mCodec.signalEndOfInputStream()
+                } else {
+                    val frame = Frame()
+                    frame.buffer = null
+                    frame.presentationTimeUs = 0L
+                    mFrames.add(frame)
+                }
             }
         }
         notifyGo()

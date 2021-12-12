@@ -1,6 +1,7 @@
 package com.songwj.openvideo
 
 import android.os.Bundle
+import android.os.Environment
 import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -13,7 +14,6 @@ import kotlinx.android.synthetic.main.activity_camera1_video_record_from_egl.*
 class Camera1VideoRecordFromEGLActivity : AppCompatActivity() {
     private var glSurfaceView: Camera1RecordGLSurfaceView? = null
     private var isPaused = false
-    private var isRecord = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera1_video_record_from_egl)
@@ -36,16 +36,16 @@ class Camera1VideoRecordFromEGLActivity : AppCompatActivity() {
             gl_container_view.addView(glSurfaceView, lp)
         }
 
+        btn_take_capture.setOnClickListener {
+            val filePath = Environment.getExternalStorageDirectory().absolutePath + "/picture_" + System.currentTimeMillis() + ".jpeg"
+            glSurfaceView?.takeCapture(filePath)
+        }
         btn_start.setOnClickListener {
-            if (!isRecord) {
-//                isRecord = camera1_preview_gl_surface_view.startRecord()
-            }
+            val filePath = Environment.getExternalStorageDirectory().absolutePath + "/video_" + System.currentTimeMillis() + ".mp4"
+            glSurfaceView?.startRecord(filePath)
         }
         btn_stop.setOnClickListener {
-            if (isRecord) {
-//                camera1_preview_gl_surface_view.stopRecord()
-                isRecord = false
-            }
+            glSurfaceView?.stopRecord()
         }
     }
 
@@ -64,10 +64,7 @@ class Camera1VideoRecordFromEGLActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        if (isRecord) {
-//            camera1_preview_gl_surface_view.stopRecord()
-            isRecord = false
-        }
+        glSurfaceView?.stopRecord()
         Camera1Manager.getInstance().release()
         super.onDestroy()
     }

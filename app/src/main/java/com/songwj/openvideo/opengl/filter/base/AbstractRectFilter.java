@@ -2,7 +2,6 @@ package com.songwj.openvideo.opengl.filter.base;
 
 import android.opengl.GLES30;
 import android.opengl.Matrix;
-import android.util.Log;
 
 import com.songwj.openvideo.opengl.utils.GLDataUtil;
 import com.songwj.openvideo.opengl.utils.ShaderUtils;
@@ -58,7 +57,6 @@ abstract public class AbstractRectFilter {
         //连接程序
         program = ShaderUtils.linkProgram(vertexShaderId, fragmentShaderId);
         if (program != -1) {
-            Log.e("AbstractRectFilter", "onCreated()");
             vPositionCoordHandler = GLES30.glGetAttribLocation(program, "vPositionCoord");
             vTextureCoordHandler = GLES30.glGetAttribLocation(program, "vTextureCoord");
             vTextureHandler = GLES30.glGetUniformLocation(program, "vTexture");
@@ -69,12 +67,6 @@ abstract public class AbstractRectFilter {
         if (program == -1) {
             return textureId;
         }
-        Log.e("AbstractRectFilter", "onDrawFrame(): "
-                + textureId
-                + ", "
-                + filterChain.getContext().width
-                + ", "
-                + filterChain.getContext().height);
         // 1- 设置视图的尺寸和位置
         GLES30.glUseProgram(program);
         GLES30.glViewport(0, 0, filterChain.getContext().width, filterChain.getContext().height);
@@ -88,7 +80,6 @@ abstract public class AbstractRectFilter {
 //        // 1: 图层ID  GL_TEXTURE1
 //        GLES30.glUniform1i(vTextureHandler, 0);
         activeTexture(textureId);
-
         doDraw(textureId, filterChain);
         return textureId;
     }

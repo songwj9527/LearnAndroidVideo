@@ -8,9 +8,10 @@ import android.view.SurfaceHolder;
 
 import com.songwj.openvideo.opengl.renders.Camera1FilterRender;
 
-public class Camera1FilterGLSurfaceView extends AspectRatioGLSurfaceView implements Camera1FilterRender.OnPreparedListener  {
+public class Camera1FilterGLSurfaceView extends AspectRatioGLSurfaceView implements Camera1FilterRender.OnRenderListener  {
     protected Camera1FilterRender render = null;
     protected EGLContext eglContext = null;
+    protected int width = 0, height = 0;
 
     public Camera1FilterGLSurfaceView(Context context) {
         super(context);
@@ -31,7 +32,18 @@ public class Camera1FilterGLSurfaceView extends AspectRatioGLSurfaceView impleme
     }
 
     @Override
-    public void onPrepared(EGLContext eglContext) {
+    public void onRenderCreated(EGLContext eglContext) {
         this.eglContext = eglContext;
+    }
+
+    @Override
+    public void onRenderChanged(int width, int height) {
+        this.width = width;
+        this.height = height;
+    }
+
+    @Override
+    public void onDrawFrame(int textureId, long timestamp) {
+
     }
 }

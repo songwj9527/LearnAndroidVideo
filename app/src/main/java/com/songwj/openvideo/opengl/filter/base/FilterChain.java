@@ -1,15 +1,13 @@
 package com.songwj.openvideo.opengl.filter.base;
 
-import android.util.Log;
-
 import java.util.List;
 
 public class FilterChain {
     private FilterContext context;
     private int index = 0;
-    private List<AbstractRectFilter> filters;
+    private List<AbstractChainRectFilter> filters;
 
-    public FilterChain(FilterContext context, int index, List<AbstractRectFilter> filters) {
+    public FilterChain(FilterContext context, int index, List<AbstractChainRectFilter> filters) {
         this.context = context;
         this.index = index;
         this.filters = filters;
@@ -28,8 +26,7 @@ public class FilterChain {
 
     public void init() {
         if (filters != null && filters.size() > 0) {
-            for (AbstractRectFilter filter : filters) {
-                Log.e("FilterChain", filter.getClass().getSimpleName() + ".onCreated()");
+            for (AbstractChainRectFilter filter : filters) {
                 filter.onCreated();
             }
         }
@@ -43,14 +40,13 @@ public class FilterChain {
             return textureId;
         }
         FilterChain nextFilterChain = new FilterChain(context, (index + 1), filters);
-        AbstractRectFilter abstractRectFilter = filters.get(index);
-        Log.e("FilterChain", abstractRectFilter.getClass().getSimpleName() + ".onDrawFrame()");
-        return abstractRectFilter.onDrawFrame(textureId, nextFilterChain);
+        AbstractChainRectFilter abstractRectFilter = filters.get(index);
+        return abstractRectFilter.proceed(textureId, nextFilterChain);
     }
 
     public void release() {
         if (filters != null && filters.size() > 0) {
-            for (AbstractRectFilter filter : filters) {
+            for (AbstractChainRectFilter filter : filters) {
                 filter.onDestroy();
             }
             filters.clear();

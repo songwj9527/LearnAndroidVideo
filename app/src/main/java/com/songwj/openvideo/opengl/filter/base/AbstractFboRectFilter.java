@@ -4,7 +4,7 @@ import android.opengl.GLES30;
 
 import com.songwj.openvideo.opengl.utils.TextureUtils;
 
-abstract public class AbstractFboRectFilter extends AbstractRectFilter {
+abstract public class AbstractFboRectFilter extends AbstractChainRectFilter {
 
     public AbstractFboRectFilter(String vertexShaderStr, String fragmentShaderStr) {
         super(vertexShaderStr, fragmentShaderStr);
@@ -56,7 +56,7 @@ abstract public class AbstractFboRectFilter extends AbstractRectFilter {
     }
 
     @Override
-    public int onDrawFrame(int textureId, FilterChain filterChain) {
+    public int proceed(int textureId, FilterChain filterChain) {
         createFboFrame(filterChain.getContext().width, filterChain.getContext().height);
         GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, frameBuffer[0]);
         super.onDrawFrame(textureId, filterChain);

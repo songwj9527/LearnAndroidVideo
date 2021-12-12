@@ -2,6 +2,7 @@ package com.songwj.openvideo.opengl.filter;
 
 import android.opengl.GLES30;
 
+import com.songwj.openvideo.opengl.filter.base.AbstractChainRectFilter;
 import com.songwj.openvideo.opengl.filter.base.AbstractFboRectFilter;
 import com.songwj.openvideo.opengl.filter.base.AbstractRectFilter;
 import com.songwj.openvideo.opengl.filter.base.FilterChain;

@@ -1,16 +1,19 @@
 package com.songwj.openvideo.opengl.renders;
 
 import android.graphics.SurfaceTexture;
+import android.opengl.EGL14;
 import android.opengl.EGLContext;
 import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 
 import com.songwj.openvideo.camera.Camera1Manager;
+import com.songwj.openvideo.opengl.Camera1FilterGLSurfaceView;
 import com.songwj.openvideo.opengl.filter.CameraFilter;
 import com.songwj.openvideo.opengl.filter.DuskColorFilter;
 import com.songwj.openvideo.opengl.filter.CubeFilter;
 import com.songwj.openvideo.opengl.filter.ScreenFilter;
+import com.songwj.openvideo.opengl.filter.base.AbstractChainRectFilter;
 import com.songwj.openvideo.opengl.filter.base.AbstractRectFilter;
 import com.songwj.openvideo.opengl.filter.base.FilterChain;
 import com.songwj.openvideo.opengl.filter.base.FilterContext;
@@ -24,35 +27,35 @@ import javax.microedition.khronos.opengles.GL10;
 public class Camera1FilterRender implements GLSurfaceView.Renderer, SurfaceTexture.OnFrameAvailableListener {
     private static final String TAG = "Camera1RecordRender";
 
-    private GLSurfaceView glSurfaceView;
+    private Camera1FilterGLSurfaceView glSurfaceView;
     private int[] cameraTextrueId = new int[1];
     private SurfaceTexture cameraTexture = null;
 
-    private List<AbstractRectFilter> filterList = new ArrayList<>();
+    private List<AbstractChainRectFilter> filterList = new ArrayList<>();
     private FilterChain filterChain;
 
     private float[] mvpMatrix = new float[16];
 
-    private OnPreparedListener onPreparedListener = null;
+    private OnRenderListener onRenderListener = null;
 
-    public Camera1FilterRender(GLSurfaceView glSurfaceView) {
+    public Camera1FilterRender(Camera1FilterGLSurfaceView glSurfaceView) {
         this.glSurfaceView = glSurfaceView;
+        this.onRenderListener = glSurfaceView;
         FilterContext filterContext = new FilterContext();
         filterChain = new FilterChain(filterContext, 0, filterList);
     }
 
-    public void addFilters(List<AbstractRectFilter> filters) {
+    public void addFilters(List<AbstractChainRectFilter> filters) {
         filterList.clear();
         filterList.addAll(filters);
     }
 
-    public void addFilter(AbstractRectFilter filter) {
+    public void addFilter(AbstractChainRectFilter filter) {
         filterList.add(filter);
     }
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        Log.e(TAG, "onSurfaceCreated()");
         GLES30.glClearColor(0f, 0f, 0f, 0f);
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT | GLES30.GL_DEPTH_BUFFER_BIT);
 //        //------开启混合，即半透明---------
@@ -68,19 +71,23 @@ public class Camera1FilterRender implements GLSurfaceView.Renderer, SurfaceTextu
         Camera1Manager.getInstance().resumePreview();
 
         filterChain.init();
+        if (onRenderListener != null) {
+            onRenderListener.onRenderCreated(EGL14.eglGetCurrentContext());
+        }
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        Log.e(TAG, "onSurfaceChanged()");
         if (filterChain != null) {
             filterChain.setSize(width, height);
+        }
+        if (onRenderListener != null) {
+            onRenderListener.onRenderChanged(width, height);
         }
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
-        Log.e(TAG, "onDrawFrame()");
         GLES30.glEnable(GLES30.GL_DEPTH_TEST);
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT | GLES30.GL_DEPTH_BUFFER_BIT);
 
@@ -89,7 +96,10 @@ public class Camera1FilterRender implements GLSurfaceView.Renderer, SurfaceTextu
 
         if (filterChain != null) {
             filterChain.setCameraMatrix(mvpMatrix, mvpMatrix.length);
-            filterChain.proceed(cameraTextrueId[0]);
+            int textureId = filterChain.proceed(cameraTextrueId[0]);
+            if (onRenderListener != null) {
+                onRenderListener.onDrawFrame(textureId, cameraTexture.getTimestamp());
+            }
         }
     }
 
@@ -98,6 +108,8 @@ public class Camera1FilterRender implements GLSurfaceView.Renderer, SurfaceTextu
             filterChain.release();
             filterChain = null;
         }
+        glSurfaceView = null;
+        onRenderListener = null;
     }
 
     @Override
@@ -107,7 +119,9 @@ public class Camera1FilterRender implements GLSurfaceView.Renderer, SurfaceTextu
         }
     }
 
-    public interface OnPreparedListener {
-        public void onPrepared(EGLContext eglContext);
+    public interface OnRenderListener {
+        public void onRenderCreated(EGLContext eglContext);
+        public void onRenderChanged(int width, int height);
+        public void onDrawFrame(int textureId, long timestamp);
     }
 }

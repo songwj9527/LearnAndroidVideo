@@ -1,11 +1,12 @@
 package com.songwj.openvideo.opengl.filter;
 
-import android.opengl.GLES20;
 import android.opengl.GLES30;
 import android.opengl.Matrix;
 
 import com.songwj.openvideo.MyApplication;
 import com.songwj.openvideo.R;
+import com.songwj.openvideo.opengl.filter.base.AbstractChainRectFilter;
+import com.songwj.openvideo.opengl.filter.base.AbstractFboRectFilter;
 import com.songwj.openvideo.opengl.filter.base.AbstractRectFilter;
 import com.songwj.openvideo.opengl.filter.base.FilterChain;
 import com.songwj.openvideo.opengl.filter.base.FilterContext;
@@ -14,15 +15,15 @@ import com.songwj.openvideo.opengl.utils.TextureUtils;
 
 import java.nio.FloatBuffer;
 
-public class CubeFilter extends AbstractRectFilter {
+public class CubeFilter extends AbstractChainRectFilter {
 
     public CubeFilter() {
         super("uniform mat4 vMatrix;\n" +
-                        "attribute vec3 vPositionCoord;\n" + //NDK坐标点
+                        "attribute vec4 vPositionCoord;\n" + //NDK坐标点
                         "attribute vec2 vTextureCoord;\n" +
                         "varying   vec2 aTextureCoord;\n" + //纹理坐标点变换后输出
                         " void main() {\n" +
-                        "    gl_Position = vMatrix * vec4(vPositionCoord, 1.0);\n" +
+                        "    gl_Position = vMatrix * vPositionCoord;\n" +
                         "    aTextureCoord = vTextureCoord;\n" +
                         " }",
                 "precision mediump float;\n" +
@@ -34,42 +35,42 @@ public class CubeFilter extends AbstractRectFilter {
     }
 
     private final float[] cubePositionCoods = new float[]{
-            -0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f, -0.5f,
-            0.5f, 0.5f, -0.5f,
-            0.5f, 0.5f, -0.5f,
-            -0.5f, 0.5f, -0.5f,
-            -0.5f, -0.5f, -0.5f,
-            -0.5f, -0.5f, 0.5f,
-            0.5f, -0.5f, 0.5f,
-            0.5f, 0.5f, 0.5f,
-            0.5f, 0.5f, 0.5f,
-            -0.5f, 0.5f, 0.5f,
-            -0.5f, -0.5f, 0.5f,
-            -0.5f, 0.5f, 0.5f,
-            -0.5f, 0.5f, -0.5f,
-            -0.5f, -0.5f, -0.5f,
-            -0.5f, -0.5f, -0.5f,
-            -0.5f, -0.5f, 0.5f,
-            -0.5f, 0.5f, 0.5f,
-            0.5f, 0.5f, 0.5f,
-            0.5f, 0.5f, -0.5f,
-            0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f, 0.5f,
-            0.5f, 0.5f, 0.5f,
-            -0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f, 0.5f,
-            0.5f, -0.5f, 0.5f,
-            -0.5f, -0.5f, 0.5f,
-            -0.5f, -0.5f, -0.5f,
-            -0.5f, 0.5f, -0.5f,
-            0.5f, 0.5f, -0.5f,
-            0.5f, 0.5f, 0.5f,
-            0.5f, 0.5f, 0.5f,
-            -0.5f, 0.5f, 0.5f,
-            -0.5f, 0.5f, -0.5f,
+            -0.5f, -0.5f, -0.5f, 1.0f,
+            0.5f, -0.5f, -0.5f, 1.0f,
+            0.5f, 0.5f, -0.5f, 1.0f,
+            0.5f, 0.5f, -0.5f, 1.0f,
+            -0.5f, 0.5f, -0.5f, 1.0f,
+            -0.5f, -0.5f, -0.5f, 1.0f,
+            -0.5f, -0.5f, 0.5f, 1.0f,
+            0.5f, -0.5f, 0.5f, 1.0f,
+            0.5f, 0.5f, 0.5f, 1.0f,
+            0.5f, 0.5f, 0.5f, 1.0f,
+            -0.5f, 0.5f, 0.5f, 1.0f,
+            -0.5f, -0.5f, 0.5f, 1.0f,
+            -0.5f, 0.5f, 0.5f, 1.0f,
+            -0.5f, 0.5f, -0.5f, 1.0f,
+            -0.5f, -0.5f, -0.5f, 1.0f,
+            -0.5f, -0.5f, -0.5f, 1.0f,
+            -0.5f, -0.5f, 0.5f, 1.0f,
+            -0.5f, 0.5f, 0.5f, 1.0f,
+            0.5f, 0.5f, 0.5f, 1.0f,
+            0.5f, 0.5f, -0.5f, 1.0f,
+            0.5f, -0.5f, -0.5f, 1.0f,
+            0.5f, -0.5f, -0.5f, 1.0f,
+            0.5f, -0.5f, 0.5f, 1.0f,
+            0.5f, 0.5f, 0.5f, 1.0f,
+            -0.5f, -0.5f, -0.5f, 1.0f,
+            0.5f, -0.5f, -0.5f, 1.0f,
+            0.5f, -0.5f, 0.5f, 1.0f,
+            0.5f, -0.5f, 0.5f, 1.0f,
+            -0.5f, -0.5f, 0.5f, 1.0f,
+            -0.5f, -0.5f, -0.5f, 1.0f,
+            -0.5f, 0.5f, -0.5f, 1.0f,
+            0.5f, 0.5f, -0.5f, 1.0f,
+            0.5f, 0.5f, 0.5f, 1.0f,
+            0.5f, 0.5f, 0.5f, 1.0f,
+            -0.5f, 0.5f, 0.5f, 1.0f,
+            -0.5f, 0.5f, -0.5f, 1.0f,
     };
     //-------------- 立方体物体纹理坐标 ----------------------
     private final float[] cubeTextureCoords = new float[]{
@@ -183,9 +184,16 @@ public class CubeFilter extends AbstractRectFilter {
     }
 
     @Override
-    public int onDrawFrame(int textureId, FilterChain filterChain) {
-        onDrawCube(textureId, filterChain);
-        return filterChain.proceed(textureId);
+    public int proceed(int textureId, FilterChain filterChain) {
+//        createFboFrame(filterChain.getContext().width, filterChain.getContext().height);
+//        GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, frameBuffer[0]);
+//        super.onDrawFrame(textureId, filterChain);
+//        onDrawCube(textureId, filterChain);
+//        GLES30.glBindRenderbuffer(GLES30.GL_RENDERBUFFER, GLES30.GL_NONE);
+//        GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, GLES30.GL_NONE);
+//        //!! 返回的是FBO创建的纹理frameTextures[0]
+//        return filterChain.proceed(frameTextures[0]);
+        return filterChain.proceed(onDrawCube(textureId, filterChain));
     }
 
     @Override
@@ -200,7 +208,7 @@ public class CubeFilter extends AbstractRectFilter {
 
     @Override
     protected void afterDraw(int textureId, FilterChain filterChain) {
-
+//        onDrawCube(textureId, filterChain);
     }
 
     @Override
@@ -220,14 +228,14 @@ public class CubeFilter extends AbstractRectFilter {
         GLES30.glBlendFunc(GLES30.GL_ONE, GLES30.GL_ONE_MINUS_SRC_ALPHA);
 
         GLES30.glUseProgram(program);
-        GLES30.glViewport(0, 0, filterChain.getContext().width, filterChain.getContext().height);
-        GLES30.glEnableVertexAttribArray(vPositionCoordHandler);
-        GLES30.glEnableVertexAttribArray(vTextureCoordHandler);
 
-        GLES30.glVertexAttribPointer(vPositionCoordHandler, 3, GLES30.GL_FLOAT,
+        GLES30.glVertexAttribPointer(vPositionCoordHandler, 4, GLES30.GL_FLOAT,
                 false, 0, cubeVertexBuffer);
+        GLES30.glEnableVertexAttribArray(vPositionCoordHandler);
+
         GLES30.glVertexAttribPointer(vTextureCoordHandler, 2, GLES30.GL_FLOAT,
                 false, 0, cubeTextureBuffer);
+        GLES30.glEnableVertexAttribArray(vTextureCoordHandler);
 
         Matrix.setIdentityM(modelMatrix, 0);
         Matrix.translateM(modelMatrix, 0, 0.0f, 0.0f, -2f);
@@ -242,14 +250,11 @@ public class CubeFilter extends AbstractRectFilter {
         GLES30.glUniform1i(vTextureHandler, 0);
         GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 36);
 
-        GLES30.glDisableVertexAttribArray(vPositionCoordHandler);
-        GLES30.glDisableVertexAttribArray(vTextureCoordHandler);
-
-        GLES30.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
-        GLES30.glUseProgram(0);
+        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, 0);
+//        GLES30.glUseProgram(0);
 
         // 关闭混合模式
-        GLES30.glDisable(GLES20.GL_BLEND);
+        GLES30.glDisable(GLES30.GL_BLEND);
 
         angle += 1;
         if(angle >= 360){

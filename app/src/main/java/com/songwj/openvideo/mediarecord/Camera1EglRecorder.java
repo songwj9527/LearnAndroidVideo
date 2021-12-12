@@ -17,7 +17,7 @@ import com.songwj.openvideo.mediacodec.encoder.AudioEncoder;
 import com.songwj.openvideo.mediacodec.encoder.VideoEncoder;
 import com.songwj.openvideo.mediacodec.muxer.MMuxer;
 import com.songwj.openvideo.opengl.egl.EGLSurfaceHolder;
-import com.songwj.openvideo.opengl.filter.base.AbstractRectFilter;
+import com.songwj.openvideo.opengl.filter.base.AbstractChainRectFilter;
 import com.songwj.openvideo.opengl.filter.base.FilterChain;
 import com.songwj.openvideo.opengl.filter.base.FilterContext;
 
@@ -60,6 +60,12 @@ public class Camera1EglRecorder implements MMuxer.IMuxerStateListener, AudioCapt
         this.eglContext = eglContext;
     }
 
+    public Camera1EglRecorder(int videoWidth, int videoHeight, EGLContext eglContext) {
+        this.videoWidth = videoWidth;
+        this.videoHeight = videoHeight;
+        this.eglContext = eglContext;
+    }
+
     public void setDataSource(String filePath) {
         this.filePath = filePath;
     }
@@ -71,12 +77,12 @@ public class Camera1EglRecorder implements MMuxer.IMuxerStateListener, AudioCapt
         return videoEncoder.getSurface();
     }
 
-    synchronized public void start() {
+    synchronized public boolean start() {
         if (TextUtils.isEmpty(filePath)) {
-            return;
+            return false;
         }
         if (isStarting || isStarted) {
-            return;
+            return false;
         }
         isStarting = true;
         Log.e("MediaRecorder", "filePath: " + filePath + "\n"
@@ -116,7 +122,7 @@ public class Camera1EglRecorder implements MMuxer.IMuxerStateListener, AudioCapt
 
         if (mmuxer == null) {
             isStarting = false;
-            return;
+            return false;
         }
         handlerThread = new HandlerThread("codec-gl");
         handlerThread.start();
@@ -129,7 +135,7 @@ public class Camera1EglRecorder implements MMuxer.IMuxerStateListener, AudioCapt
                 eglSurfaceHolder.createEGLSurface(videoEncoder.getSurface(), videoWidth, videoHeight);
 
                 RecordRender recordRender = new RecordRender();
-                List<AbstractRectFilter> filterList = new ArrayList<>();
+                List<AbstractChainRectFilter> filterList = new ArrayList<>();
                 filterList.add(recordRender);
 
                 FilterContext filterContext = new FilterContext();
@@ -144,6 +150,7 @@ public class Camera1EglRecorder implements MMuxer.IMuxerStateListener, AudioCapt
                 isStarting = false;
             }
         });
+        return true;
     }
 
     synchronized public void stop() {
@@ -246,7 +253,7 @@ public class Camera1EglRecorder implements MMuxer.IMuxerStateListener, AudioCapt
         }
     }
 
-    class RecordRender extends AbstractRectFilter {
+    class RecordRender extends AbstractChainRectFilter {
         public RecordRender() {
             super("attribute vec4 vPositionCoord;\n" + // 顶点坐标
                     "attribute vec2 vTextureCoord;\n" + //纹理坐标

@@ -2,12 +2,13 @@ package com.songwj.openvideo.opengl.filter;
 
 import android.opengl.GLES30;
 
+import com.songwj.openvideo.opengl.filter.base.AbstractChainRectFilter;
 import com.songwj.openvideo.opengl.filter.base.AbstractFboRectFilter;
 import com.songwj.openvideo.opengl.filter.base.AbstractRectFilter;
 import com.songwj.openvideo.opengl.filter.base.FilterChain;
 import com.songwj.openvideo.opengl.filter.base.FilterContext;
 
-public class ScreenFilter extends AbstractRectFilter {
+public class ScreenFilter extends AbstractChainRectFilter {
 
     public ScreenFilter() {
         super("attribute vec4 vPositionCoord;\n" + //NDK坐标点
@@ -24,12 +25,6 @@ public class ScreenFilter extends AbstractRectFilter {
                         "    vec4 rgba = texture2D(vTexture, aTextureCoord);\n" +
                         "    gl_FragColor = rgba;\n" +
                         "}");
-    }
-
-    @Override
-    public int onDrawFrame(int textureId, FilterChain filterChain) {
-        textureId = super.onDrawFrame(textureId, filterChain);
-        return filterChain.proceed(textureId);
     }
 
     @Override
