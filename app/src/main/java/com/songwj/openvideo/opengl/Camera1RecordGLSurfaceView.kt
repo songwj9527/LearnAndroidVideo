@@ -78,6 +78,13 @@ class Camera1RecordGLSurfaceView : Camera1FilterGLSurfaceView {
                     colors[i] = c and -0xff0100 or (c and 0x00ff0000 shr 16) or (c and 0x000000ff shl 16) //交换B和R，得到ARGB
                 }
                 //上下翻转
+//                var matrix = android.graphics.Matrix()
+//                // 缩放 当sy为-1时向上翻转 当sx为-1时向左翻转 sx、sy都为-1时相当于旋转180°
+//                matrix.postScale(1f, -1f);
+//                // 因为向上翻转了所以y要向下平移一个bitmap的高度
+//                matrix.postTranslate(0f, bitmap.height.toFloat())
+//                bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+                //上下翻转
                 for (y in 0 until height / 2) {
                     for (x in 0 until width) {
                         val temp: Int = colors[(height - y - 1) * width + x]
