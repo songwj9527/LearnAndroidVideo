@@ -217,7 +217,7 @@ public class Camera2Manager {
                 width = size.getHeight();
                 height = size.getWidth();
             }
-            // 反转镜像(小米8手机CameraCharacteristics.LENS_FACING_BACK对应的是前置摄像头，正常应该判断LENS_FACING_FRONT)
+            // 反转镜像(小米手机CameraCharacteristics.LENS_FACING_BACK对应的是前置摄像头，正常应该判断LENS_FACING_FRONT)
             if (cameraId == CameraCharacteristics.LENS_FACING_BACK) {
                 CameraFrameUtils.nv21Reversed(dest, nv21, width, height);
                 dest = nv21;
