@@ -103,7 +103,7 @@ public abstract class Camera2Operator {
     protected CameraCaptureSession previewSession = null;
     protected int latestAfState = -1;
 
-    protected int imageFormat = ImageFormat.YUV_420_888; // ImageFormat.NV21;
+    protected int imageFormat = ImageFormat.YUV_420_888; // ImageFormat.JPEG;// ImageFormat.YUV_420_888;
     protected ImageReader imageReader = null;
 
     public Camera2Operator() {
@@ -222,8 +222,9 @@ public abstract class Camera2Operator {
 
                         int[] outFormats = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP).getOutputFormats();
                         String[][] outFormatsStr = Camera2Utils.getOutputFormat(outFormats);
-                        for (String[] format : outFormatsStr) {
-                            Log.d(TAG, format[0] + " : " + format[1] + "\n");
+                        Log.d(TAG, "OutFormats: \n");
+                        for (int i = 0; i < outFormatsStr[0].length; i++) {
+                            Log.d(TAG, "    [" + outFormatsStr[0][i] +": " + outFormatsStr[1][i] + "]");
                         }
                         createImageReader();
 
@@ -241,6 +242,7 @@ public abstract class Camera2Operator {
     }
 
     private void createImageReader() {
+        Log.d(TAG, "createImageReader(): " + imageFormat);
         releaseImageReader();
         imageReader = ImageReader.newInstance(
                 previewSize.getWidth(),
@@ -384,7 +386,7 @@ public abstract class Camera2Operator {
         }
     }
 
-    private void releasePreviewSession() {
+    protected void releasePreviewSession() {
         if (previewSession != null) {
             previewSession.close();
             previewSession = null;
@@ -393,7 +395,7 @@ public abstract class Camera2Operator {
         }
     }
 
-    private void releaseDevice() {
+    protected void releaseDevice() {
         if (cameraDevice != null) {
             cameraDevice.close();
             cameraDevice = null;
@@ -439,7 +441,7 @@ public abstract class Camera2Operator {
         }
     };
 
-    private void createPreviewSession() {
+    protected void createPreviewSession() {
         // 设置预览的宽高
         if (cameraDevice != null
                 && surfaceTexture != null
@@ -512,7 +514,7 @@ public abstract class Camera2Operator {
         sendRepeatingRequest(request, previewCaptureCallback, cameraHandler);
     }
 
-    private CameraCaptureSession.CaptureCallback previewCaptureCallback = new CameraCaptureSession.CaptureCallback() {
+    protected CameraCaptureSession.CaptureCallback previewCaptureCallback = new CameraCaptureSession.CaptureCallback() {
         @Override
         public void onCaptureProgressed(@NonNull CameraCaptureSession session, @NonNull
                 CaptureRequest request, @NonNull CaptureResult partialResult) {
@@ -560,6 +562,16 @@ public abstract class Camera2Operator {
 
     abstract protected void processPreCapture(CaptureResult result);
 
+    protected void resetTriggerState() {
+        state = STATE_DEVICE_PREVIEW;
+//        sendPreviewRequest();
+        CaptureRequest.Builder builder = getPreviewBuilder();
+        builder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_IDLE);
+        builder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER, CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_IDLE);
+        sendRepeatingRequest(builder.build(), previewCaptureCallback, cameraHandler);
+        sendCaptureRequest(builder.build(), previewCaptureCallback, cameraHandler);
+    }
+
     protected void sendRepeatingRequest(CaptureRequest request,
                                       CameraCaptureSession.CaptureCallback callback,
                                       Handler handler) {
@@ -581,23 +593,7 @@ public abstract class Camera2Operator {
         }
     }
 
-    protected CaptureRequest.Builder getPreviewBuilder() {
-        // 创建预览需要的CaptureRequest.Builder
-        if (previewBuilder == null) {
-            try {
-                previewBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-                if (surface != null) {
-                    previewBuilder.addTarget(surface);
-                }
-                if (imageReader != null) {
-                    previewBuilder.addTarget(imageReader.getSurface());
-                }
-            } catch (CameraAccessException | IllegalStateException e) {
-                e.printStackTrace();
-            }
-        }
-        return previewBuilder;
-    }
+    abstract protected CaptureRequest.Builder getPreviewBuilder();
 
     protected CaptureRequest getPreviewRequest(CaptureRequest.Builder builder) {
         // 为相机预览设置连续对焦。
@@ -756,7 +752,7 @@ public abstract class Camera2Operator {
         public void onImageAvailable(ImageReader reader) {
             Image image = reader.acquireLatestImage();
             if (image != null) {
-//                Log.d(TAG,"onImageAvailable(): " + imageReader.getWidth() + ", " + imageReader.getHeight());
+                Log.d(TAG,"onImageAvailable(): " + imageReader.getWidth() + ", " + imageReader.getHeight());
                 if (outputListener != null) {
                     Image.Plane[] planes = image.getPlanes();
                     if (planes != null) {
@@ -811,7 +807,7 @@ public abstract class Camera2Operator {
 
     protected OnImageAvailableOutputListener outputListener = null;
     public interface OnImageAvailableOutputListener {
-        public void onImageAvailable(byte[] yuv, Size size);
+        public void onImageAvailable(byte[] image, Size size);
     }
 
 
@@ -826,12 +822,13 @@ public abstract class Camera2Operator {
     }
 
     public interface TakePictureCallback {
-        public void onTakePictureStarte(boolean success);
-        public void onTakePictureStoped(String filePath, int width, int height);
+        public void onFailure();
+        public void onSuccess();
     }
 
     public interface RecordVideoCallback {
-        public void onRecordStarted(boolean success);
-        public void onRecordStopped(String filePath, int width, int height);
+        public void onStarted();
+        public void onError();
+        public void onStoped();
     }
 }

@@ -16,6 +16,9 @@ import com.songwj.openvideo.opengl.utils.TextureUtils;
 
 import java.nio.FloatBuffer;
 
+/**
+ * 因为fbo的原因，cube无法完全显示出来
+ */
 public class CubeFilter extends AbstractFboRectFilter {
 
     public CubeFilter() {

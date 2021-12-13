@@ -187,6 +187,18 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:text="CAMERA2_PREVIEW" />
+            <Button
+                android:id="@+id/btn_camera2_take_picture"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="CAMERA2_TAKE_PICTURE" />
+            <Button
+                android:id="@+id/btn_camera2_video_record"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="CAMERA2_VIDEO_RECORD" />
 
         </LinearLayout>
 

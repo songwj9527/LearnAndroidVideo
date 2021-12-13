@@ -7,29 +7,28 @@ import android.hardware.camera2.params.MeteringRectangle
 import android.os.Bundle
 import android.os.Environment
 import android.os.Looper
-import android.util.Log
 import android.view.Gravity
 import android.view.TextureView
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.songwj.openvideo.camera.*
-import kotlinx.android.synthetic.main.activity_camera2_take_picture.*
+import kotlinx.android.synthetic.main.activity_camera2_video_record.*
 
-class Camera2TakePictureActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
+class Camera2VideoRecordActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
     var texture_view: GestureTextureRenderView? = null
     var focus_view: FocusView? = null
     var focusManager: FocusManager? = null
     var isOpened = false
     var isPaused = false
-    var takePicture = false
+    var isRecording = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_camera2_take_picture)
+        setContentView(R.layout.activity_camera2_video_record)
         Camera2Manager.getInstance().releaseCamera()
 
-        Camera2Manager.getInstance().switchMode(Camera2Manager.Mode.TAKE_PICTURE)
+        Camera2Manager.getInstance().switchMode(Camera2Manager.Mode.VIDEO_RECORD)
         Camera2Manager.getInstance().setRequestCallback(object : Camera2Operator.RequestCallback {
             override fun onOpened(
                 cameraId: Int,
@@ -38,7 +37,6 @@ class Camera2TakePictureActivity : AppCompatActivity(), TextureView.SurfaceTextu
                 width: Int,
                 height: Int
             ) {
-                Log.e("Camera2PreviewActivity", "onOpened(): $width, $height, $cameraId, $sensorOrientation")
                 if (isOpened) {
                     runOnUiThread({
                         attachTextureView(width, height, cameraId, sensorOrientation, sensorRect)
@@ -51,7 +49,6 @@ class Camera2TakePictureActivity : AppCompatActivity(), TextureView.SurfaceTextu
                 if (!isOpened) {
                     return
                 }
-                Log.e("Camera2PreviewActivity", "onAFStateChanged(): $state")
                 when (state) {
                     CaptureResult.CONTROL_AF_STATE_ACTIVE_SCAN -> {
                         if (isOpened) {
@@ -109,7 +106,7 @@ class Camera2TakePictureActivity : AppCompatActivity(), TextureView.SurfaceTextu
         isOpened = Camera2Manager.getInstance().openCamera()
 
         btn_switch_camera.setOnClickListener {
-            if (isOpened && !takePicture) {
+            if (isOpened && !isRecording) {
                 isOpened = false
                 focusManager?.setListener(null)
                 focusManager?.removeDelayMessage()
@@ -120,22 +117,30 @@ class Camera2TakePictureActivity : AppCompatActivity(), TextureView.SurfaceTextu
             }
         }
 
-        btn_take_capture.setOnClickListener {
-            if (takePicture) {
+        btn_start.setOnClickListener {
+            if (isRecording) {
                 return@setOnClickListener
             }
-            takePicture = true
-            val jpegFilePath = Environment.getExternalStorageDirectory().absolutePath + "/capture_" + System.currentTimeMillis() + ".jpg"
-            Camera2Manager.getInstance().takePicture(jpegFilePath, object : Camera2Operator.TakePictureCallback {
-                override fun onFailure() {
-                    takePicture = false
+            isRecording = true
+            val videoFilePath = Environment.getExternalStorageDirectory().absolutePath + "/video_" + System.currentTimeMillis() + ".mp4"
+            Camera2Manager.getInstance().startRecord(videoFilePath, object : Camera2Operator.RecordVideoCallback {
+                override fun onStarted() {
+
                 }
 
-                override fun onSuccess() {
-                    takePicture = false
+                override fun onError() {
+                    isRecording = false
+                }
+
+                override fun onStoped() {
+                    isRecording = false
                 }
 
             })
+        }
+
+        btn_stop.setOnClickListener {
+
         }
     }
 
@@ -143,7 +148,8 @@ class Camera2TakePictureActivity : AppCompatActivity(), TextureView.SurfaceTextu
                                   height: Int,
                                   cameraId: Int,
                                   orientation: Int,
-                                  cameraRect: Rect) {
+                                  cameraRect: Rect
+    ) {
         camera_container.removeAllViews()
         texture_view = GestureTextureRenderView(this)
         if (orientation == 90 || orientation == 270) {
@@ -214,7 +220,6 @@ class Camera2TakePictureActivity : AppCompatActivity(), TextureView.SurfaceTextu
     }
 
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
-        Log.e("Camera2PreviewActivity", "onSurfaceTextureAvailable()")
         Camera2Manager.getInstance().setSurfaceTexture(surface)
     }
 

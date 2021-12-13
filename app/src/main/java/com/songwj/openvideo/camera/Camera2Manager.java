@@ -167,6 +167,38 @@ public class Camera2Manager {
         return 0;
     }
 
+    synchronized public void takePicture(String filePath, Camera2Operator.TakePictureCallback callback) {
+        if (TextUtils.isEmpty(filePath)
+                || operator == null
+                || mode != Mode.TAKE_PICTURE) {
+            return;
+        }
+        if (operator instanceof Camera2PictureOperator) {
+            ((Camera2PictureOperator) operator).setTakePictureCallback(callback);
+            ((Camera2PictureOperator) operator).takePicture(filePath);
+        }
+    }
+
+    synchronized public void startRecord(String filePath, Camera2Operator.RecordVideoCallback callback) {
+        if (TextUtils.isEmpty(filePath)
+                || operator == null
+                || mode != Mode.VIDEO_RECORD
+                || !(operator instanceof Camera2VideoOperator)) {
+            return;
+        }
+        ((Camera2VideoOperator) operator).setRecordVideoCallback(callback);
+        ((Camera2VideoOperator) operator).startRecord(filePath);
+    }
+
+    synchronized public void stopRecord() {
+        if (operator == null
+                || mode != Mode.VIDEO_RECORD
+                || !(operator instanceof Camera2VideoOperator)) {
+            return;
+        }
+        ((Camera2VideoOperator) operator).stopRecord();
+    }
+
     synchronized public void takePictureYUV420(String capturePath, byte[] y, byte[] u, byte[] v, int stride, Size size, int cameraId, int cameraOrientation) {
         if (TextUtils.isEmpty(capturePath)
                 || y == null

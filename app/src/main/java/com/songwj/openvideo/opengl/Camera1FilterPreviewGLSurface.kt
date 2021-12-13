@@ -14,7 +14,7 @@ class Camera1FilterPreviewGLSurface : Camera1FilterGLSurfaceView {
         render = Camera1FilterRender(this)
         render.addFilter(CameraFilter())
         render.addFilter(DuskColorFilter())
-        render.addFilter(CubeFilter())
+//        render.addFilter(CubeFilter())
         render.addFilter(ScreenFilter())
         setRenderer(render)
         renderMode = RENDERMODE_WHEN_DIRTY
@@ -25,7 +25,7 @@ class Camera1FilterPreviewGLSurface : Camera1FilterGLSurfaceView {
         render = Camera1FilterRender(this)
         render.addFilter(CameraFilter())
         render.addFilter(DuskColorFilter())
-        render.addFilter(CubeFilter())
+//        render.addFilter(CubeFilter())
         render.addFilter(ScreenFilter())
         setRenderer(render)
         renderMode = RENDERMODE_WHEN_DIRTY

@@ -42,6 +42,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
         btn_camera1_preview_filter_gl_surface_view.setOnClickListener(this)
         btn_camera1_gl_surface_view_record.setOnClickListener(this)
         btn_camera2_preview.setOnClickListener(this)
+        btn_camera2_take_picture.setOnClickListener(this)
+        btn_camera2_video_record.setOnClickListener(this)
 
         handlerPermission()
     }
@@ -146,6 +148,12 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
             }
             else if (id == R.id.btn_camera2_preview) {
                 startActivity(Intent(this, Camera2PreviewActivity::class.java))
+            }
+            else if (id == R.id.btn_camera2_take_picture) {
+                startActivity(Intent(this, Camera2TakePictureActivity::class.java))
+            }
+            else if (id == R.id.btn_camera2_video_record) {
+                startActivity(Intent(this, Camera2VideoRecordActivity::class.java))
             }
         }
     }

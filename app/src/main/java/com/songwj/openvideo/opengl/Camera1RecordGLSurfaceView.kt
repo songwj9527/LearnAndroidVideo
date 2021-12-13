@@ -10,10 +10,7 @@ import android.util.AttributeSet
 import android.view.SurfaceHolder
 import com.songwj.openvideo.camera.Camera1Manager
 import com.songwj.openvideo.mediarecord.Camera1EglRecorder
-import com.songwj.openvideo.opengl.filter.CameraFilter
-import com.songwj.openvideo.opengl.filter.CubeFilter
-import com.songwj.openvideo.opengl.filter.DuskColorFilter
-import com.songwj.openvideo.opengl.filter.ScreenFilter
+import com.songwj.openvideo.opengl.filter.*
 import com.songwj.openvideo.opengl.renders.Camera1FilterRender
 import java.io.File
 import java.io.FileOutputStream
@@ -27,7 +24,7 @@ class Camera1RecordGLSurfaceView : Camera1FilterGLSurfaceView {
         render = Camera1FilterRender(this)
         render.addFilter(CameraFilter())
         render.addFilter(DuskColorFilter())
-        render.addFilter(CubeFilter())
+//        render.addFilter(CubeFilter())
         render.addFilter(ScreenFilter())
         setRenderer(render)
         renderMode = RENDERMODE_WHEN_DIRTY
@@ -38,7 +35,7 @@ class Camera1RecordGLSurfaceView : Camera1FilterGLSurfaceView {
         render = Camera1FilterRender(this)
         render.addFilter(CameraFilter())
         render.addFilter(DuskColorFilter())
-        render.addFilter(CubeFilter())
+//        render.addFilter(CubeFilter())
         render.addFilter(ScreenFilter())
         setRenderer(render)
         renderMode = RENDERMODE_WHEN_DIRTY
