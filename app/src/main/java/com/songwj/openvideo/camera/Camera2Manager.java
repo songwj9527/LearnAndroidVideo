@@ -153,18 +153,25 @@ public class Camera2Manager {
         operator.setRequestCallback(callback);
     }
 
-    synchronized public Size getPreviewSize() {
+    synchronized public int getCameraId() {
         if (operator != null) {
-            return operator.getPreviewSize();
+            return operator.getCameraId();
         }
-        return null;
+        return CameraCharacteristics.LENS_FACING_BACK;
     }
 
     synchronized public int getCameraOrientation() {
         if (operator != null) {
             return operator.getCameraOrientation();
         }
-        return 0;
+        return 90;
+    }
+
+    synchronized public Size getPreviewSize() {
+        if (operator != null) {
+            return operator.getPreviewSize();
+        }
+        return null;
     }
 
     synchronized public void takePicture(String filePath, Camera2Operator.TakePictureCallback callback) {
@@ -227,13 +234,13 @@ public class Camera2Manager {
     public static class CaptureYUV420Runnable implements Runnable {
         private int cameraId;
         private int cameraOrientation;
-        private byte[] nv21;
+        private byte[] yuv;
         private Size size;
         private String capturePath;
 
-        public CaptureYUV420Runnable(String capturePath, byte[] nv21, Size size, int cameraId, int cameraOrientation) {
+        public CaptureYUV420Runnable(String capturePath, byte[] yuv, Size size, int cameraId, int cameraOrientation) {
             this.capturePath = capturePath;
-            this.nv21 = nv21;
+            this.yuv = yuv;
             this.size = size;
             this.cameraId = cameraId;
             this.cameraOrientation = cameraOrientation;
@@ -242,7 +249,12 @@ public class Camera2Manager {
         public void run() {
             int width = size.getWidth();
             int height = size.getHeight();
+            byte[] nv21 = new byte[width * height * 3 / 2];
             byte[] dest = new byte[width * height * 3 / 2];
+
+            // 将YUV420转换成NV21
+            CameraFrameUtils.yuv420ToNv21(yuv, nv21, width, height);
+
             // 默认摄像头图像传感器的坐标系（图像）有旋转角度的，所以想要旋转相应角度，才是屏幕正常显示的坐标（图像）
             CameraFrameUtils.nv21Rotate(nv21, dest, width, height, cameraOrientation);
             if (cameraOrientation == 270 || cameraOrientation == 90) {

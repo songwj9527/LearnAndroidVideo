@@ -85,19 +85,20 @@ abstract class BaseEncoder : Thread {
     }
 
     fun dequeueFrame(frame: Frame?) {
+        var first: Frame? = null
         frame?.let {
             synchronized(mFramesLock) {
                 if (!mStop) {
                     mFrames.add(it)
                     // （因为编码较慢，mFrames会不断堆积，容易造成内存溢出；这里如果待编码帧缓存个数超过最大个数，待编码帧缓存就出列一帧，并将该帧压入到codec中编码）
                     if (mFramesMaxSize != 0 && mFrames.size > mFramesMaxSize) {
-                        var first =  mFrames.removeFirst()
-                        first?.let {
-                            dequeueInputBuffer(it.buffer, it.presentationTimeUs)
-                        }
+                        first =  mFrames.removeFirst()
                     }
                 }
             }
+        }
+        first?.let {
+            dequeueInputBuffer(it.buffer, it.presentationTimeUs)
         }
     }
 
@@ -294,7 +295,7 @@ abstract class BaseEncoder : Thread {
      * 通知结束编码
      */
     fun stopEncode() {
-        Log.e(TAG, "stopEncode()(: 结束编码")
+        Log.e(TAG, "stopEncode(): 结束编码")
         synchronized(mFramesLock) {
             if (!mStop) {
                 mStop = true
@@ -308,7 +309,7 @@ abstract class BaseEncoder : Thread {
                 }
             }
         }
-        notifyGo()
+//        notifyGo()
     }
 
     /**

@@ -1,11 +1,7 @@
 package com.songwj.openvideo.mediarecord;
 
-import android.graphics.Bitmap;
 import android.opengl.EGLContext;
-import android.opengl.GLES11Ext;
 import android.opengl.GLES30;
-import android.opengl.GLUtils;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.text.TextUtils;
@@ -21,15 +17,10 @@ import com.songwj.openvideo.opengl.filter.base.AbstractChainRectFilter;
 import com.songwj.openvideo.opengl.filter.base.FilterChain;
 import com.songwj.openvideo.opengl.filter.base.FilterContext;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Camera1EglRecorder implements MMuxer.IMuxerStateListener, AudioCapture.OnAudioCaptureListener {
+public class Camera2EglRecorder implements MMuxer.IMuxerStateListener, AudioCapture.OnAudioCaptureListener {
     private String filePath = "";
     private int videoWidth = 0;
     private int videoHeight = 0;
@@ -53,14 +44,14 @@ public class Camera1EglRecorder implements MMuxer.IMuxerStateListener, AudioCapt
     private volatile boolean isStarting = false;
     private volatile boolean isStarted = false;
 
-    public Camera1EglRecorder(String filePath, int videoWidth, int videoHeight, EGLContext eglContext) {
+    public Camera2EglRecorder(String filePath, int videoWidth, int videoHeight, EGLContext eglContext) {
         this.filePath = filePath;
         this.videoWidth = videoWidth;
         this.videoHeight = videoHeight;
         this.eglContext = eglContext;
     }
 
-    public Camera1EglRecorder(int videoWidth, int videoHeight, EGLContext eglContext) {
+    public Camera2EglRecorder(int videoWidth, int videoHeight, EGLContext eglContext) {
         this.videoWidth = videoWidth;
         this.videoHeight = videoHeight;
         this.eglContext = eglContext;
@@ -85,7 +76,7 @@ public class Camera1EglRecorder implements MMuxer.IMuxerStateListener, AudioCapt
             return false;
         }
         isStarting = true;
-        Log.e("MediaRecorder", "filePath: " + filePath + "\n"
+        Log.e("Camera2EglRecorder", "filePath: " + filePath + "\n"
                 + "videoWidth: " + videoWidth + ", videoHeight: " + videoHeight);
 
         try {
@@ -158,15 +149,15 @@ public class Camera1EglRecorder implements MMuxer.IMuxerStateListener, AudioCapt
             if (mmuxer != null) {
                 mmuxer.stopMuxerPrepare();
             }
+            if (videoEncoder != null) {
+                videoEncoder.stopEncode();
+            }
             if (audioEncoder != null) {
                 audioEncoder.stopEncode();
             }
             if (audioCapture != null) {
                 audioCapture.stop();
                 audioCapture.setOnAudioCaptureListener(null);
-            }
-            if (videoEncoder != null) {
-                videoEncoder.stopEncode();
             }
             videoEncoder = null;
             audioCapture = null;
@@ -207,18 +198,15 @@ public class Camera1EglRecorder implements MMuxer.IMuxerStateListener, AudioCapt
     @Override
     public void onMuxerFinish() {
         if (isStarted) {
-            if (videoEncoder != null) {
-                videoEncoder.stopEncode();
-                videoEncoder = null;
-            }
-            if (audioCapture != null) {
-                audioCapture.setOnAudioCaptureListener(null);
-                audioCapture.stop();
-                audioCapture = null;
-            }
             if (audioEncoder != null) {
                 audioEncoder.stopEncode();
-                audioEncoder = null;
+            }
+            if (audioCapture != null) {
+                audioCapture.stop();
+                audioCapture.setOnAudioCaptureListener(null);
+            }
+            if (videoEncoder != null) {
+                videoEncoder.stopEncode();
             }
             if (mmuxer != null) {
                 mmuxer = null;
@@ -231,7 +219,7 @@ public class Camera1EglRecorder implements MMuxer.IMuxerStateListener, AudioCapt
     public void onAudioFrameUpdate(byte[] data, int dataSize) {
 //        if (isStarted && isPrepared) {
         if (isStarted) {
-            Log.i("MediaRecorder", "onAudioFrameUpdate()");
+            Log.i("Camera2EglRecorder", "onAudioFrameUpdate()");
             if (audioEncoder != null) {
                 audioEncoder.dequeueFrame(data, dataSize);
             }

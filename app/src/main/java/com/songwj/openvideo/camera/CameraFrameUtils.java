@@ -59,6 +59,50 @@ public class CameraFrameUtils {
         }
     }
 
+    /**
+     * yuv转成nv21
+     * @param y
+     * @param u
+     * @param v
+     * @param nv21
+     * @param stride
+     * @param height
+     */
+    public static void yuvToNv21(byte[] y, byte[] u, byte[] v, byte[] nv21, int stride, int height) {
+        System.arraycopy(y, 0, nv21, 0, y.length);
+        // 注意，若length值为 y.length * 3 / 2 会有数组越界的风险，需使用真实数据长度计算
+        int length = y.length + u.length / 2 + v.length / 2;
+        int uIndex = 0, vIndex = 0;
+        for (int i = stride * height; i < length; i += 2) {
+            nv21[i] = v[vIndex];
+            nv21[i + 1] = u[uIndex];
+            vIndex += 2;
+            uIndex += 2;
+        }
+    }
+
+    /**
+     * yuv转成nv21
+     * @param yuv
+     * @param nv21
+     * @param width
+     * @param height
+     */
+    public static void yuv420ToNv21(byte[] yuv, byte[] nv21, int width, int height) {
+        // yuv格式为：Y， width * height
+        //          UV， width * height / 2
+        //          VU， width * height / 2
+        System.arraycopy(yuv, 0, nv21, 0, width * height);
+        int offset = width * height;
+        int length = (yuv.length - offset) / 2;
+        int uOffset = offset;
+        int vOffset = offset + length;
+        for (int i = 0; i < length; i += 2) {
+            nv21[offset + i] = yuv[vOffset + i]; // v
+            nv21[offset + i + 1] = yuv[uOffset + i]; // u
+        }
+    }
+
     public static byte[] nv21toNV12(byte[] nv21) {
         int size = nv21.length;
         byte[] nv12 = new byte[size];
@@ -84,22 +128,6 @@ public class CameraFrameUtils {
             i += 2;
         }
         return nv12;
-    }
-
-    /**
-     * yuv转成nv21
-     */
-    public static void yuvToNv21(byte[] y, byte[] u, byte[] v, byte[] nv21, int stride, int height) {
-        System.arraycopy(y, 0, nv21, 0, y.length);
-        // 注意，若length值为 y.length * 3 / 2 会有数组越界的风险，需使用真实数据长度计算
-        int length = y.length + u.length / 2 + v.length / 2;
-        int uIndex = 0, vIndex = 0;
-        for (int i = stride * height; i < length; i += 2) {
-            nv21[i] = v[vIndex];
-            nv21[i + 1] = u[uIndex];
-            vIndex += 2;
-            uIndex += 2;
-        }
     }
 
     public static byte[] nv21Rotate(byte[] data, byte[] output, int width, int height, int rotation) {

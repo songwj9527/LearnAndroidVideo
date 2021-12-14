@@ -44,6 +44,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
         btn_camera2_preview.setOnClickListener(this)
         btn_camera2_take_picture.setOnClickListener(this)
         btn_camera2_video_record.setOnClickListener(this)
+        btn_camera2_output.setOnClickListener(this)
 
         handlerPermission()
     }
@@ -154,6 +155,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
             }
             else if (id == R.id.btn_camera2_video_record) {
                 startActivity(Intent(this, Camera2VideoRecordActivity::class.java))
+            }
+            else if (id == R.id.btn_camera2_output) {
+                startActivity(Intent(this, Camera2OutputActivity::class.java))
             }
         }
     }

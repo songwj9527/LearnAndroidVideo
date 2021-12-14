@@ -20,6 +20,11 @@
         android:layout_gravity="bottom"
         android:gravity="center"
         android:layout_marginBottom="30dp">
+        <Button
+            android:id="@+id/btn_take_capture"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="拍照" />
 
         <Button
             android:id="@+id/btn_start"

@@ -752,7 +752,7 @@ public abstract class Camera2Operator {
         public void onImageAvailable(ImageReader reader) {
             Image image = reader.acquireLatestImage();
             if (image != null) {
-                Log.d(TAG,"onImageAvailable(): " + imageReader.getWidth() + ", " + imageReader.getHeight());
+//                Log.d(TAG,"onImageAvailable(): " + imageReader.getWidth() + ", " + imageReader.getHeight());
                 if (outputListener != null) {
                     Image.Plane[] planes = image.getPlanes();
                     if (planes != null) {
@@ -766,10 +766,29 @@ public abstract class Camera2Operator {
 //                            if (v == null) {
 //                                v = new byte[(planes[2].getBuffer().limit() - planes[2].getBuffer().position())];
 //                            }
+//                            if (planes[0].buffer.remaining() == y.length) {
+//                                //分别填到 yuv
+//                                planes[0].buffer[y];
+//                                planes[1].buffer[u];
+//                                planes[2].buffer[v];
+//                            }
+//                            int rowStride = planes[0].getRowStride();
+
+//                            Log.d(TAG,"onImageAvailable(): " + imageReader.getWidth() + ", " + imageReader.getHeight());
+//                            Log.d(TAG,"Stride: " + planes[0].getRowStride());
+//                            int yLen = (planes[0].getBuffer().limit() - planes[0].getBuffer().position());
+//                            int uvLen = (planes[1].getBuffer().limit() - planes[1].getBuffer().position());
+//                            int vuLen = (planes[2].getBuffer().limit() - planes[1].getBuffer().position());
+//                            Log.d(TAG,"Y: " + yLen);
+//                            Log.d(TAG,"U: " + uvLen);
+//                            Log.d(TAG,"V: " + vuLen);
+//                            Log.d(TAG,"Total: " + (yLen + uvLen + vuLen));
+
                             int totalSize = 0;
                             for (Image.Plane plane : planes) {
                                 totalSize += plane.getBuffer().remaining();
                             }
+//                            Log.d(TAG,"totalSize: " + totalSize);
                             ByteBuffer totalBuffer = ByteBuffer.allocate(totalSize);
                             for (Image.Plane plane : image.getPlanes()) {
                                 totalBuffer.put(plane.getBuffer());

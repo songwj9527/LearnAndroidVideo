@@ -38,7 +38,7 @@ public class Camera2Recorder implements MMuxer.IMuxerStateListener, AudioCapture
         if (isStarted) {
             return true;
         }
-        Log.e("MediaRecorder", "filePath: " + filePath + "\n"
+        Log.e("Camera2Recorder", "filePath: " + filePath + "\n"
                 + "videoWidth: " + videoWidth + ", videoHeight: " + videoHeight);
         try {
             mmuxer = new MMuxer(filePath);
@@ -80,15 +80,15 @@ public class Camera2Recorder implements MMuxer.IMuxerStateListener, AudioCapture
             if (mmuxer != null) {
                 mmuxer.stopMuxerPrepare();
             }
-            if (videoEncoder != null) {
-                videoEncoder.stopEncode();
-            }
             if (audioEncoder != null) {
                 audioEncoder.stopEncode();
             }
             if (audioCapture != null) {
                 audioCapture.stop();
                 audioCapture.setOnAudioCaptureListener(null);
+            }
+            if (videoEncoder != null) {
+                videoEncoder.stopEncode();
             }
             videoEncoder = null;
             audioCapture = null;
@@ -136,7 +136,7 @@ public class Camera2Recorder implements MMuxer.IMuxerStateListener, AudioCapture
     public void onAudioFrameUpdate(byte[] data, int dataSize) {
 //        if (isStarted && isPrepared) {
         if (isStarted) {
-            Log.i("MediaRecorder", "onAudioFrameUpdate()");
+            Log.i("Camera2Recorder", "onAudioFrameUpdate()");
             if (audioEncoder != null) {
                 audioEncoder.dequeueFrame(data, dataSize);
             }
@@ -146,7 +146,7 @@ public class Camera2Recorder implements MMuxer.IMuxerStateListener, AudioCapture
     public void onVideoFrameUpdate(byte[] data) {
 //        if (isStarted && isPrepared) {
         if (isStarted) {
-            Log.i("MediaRecorder", "onVideoFrameUpdate()");
+            Log.i("Camera2Recorder", "onVideoFrameUpdate()");
             if (videoEncoder != null) {
                 videoEncoder.dequeueFrame(data, computePresentationTime(frameIndex++, 30));
             }
