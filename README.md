@@ -14,6 +14,6 @@ native层的mediacodec视频播放。
 
 第三部分
 
-1）普通视频录制；
-2）OpenGL ES录制；
+1）camera1、camera2拍照和视频录制；
+2）（camera1、camera2）+ OpenGL ES拍照和视频录制；
 3）推流实现（未完待续）。
