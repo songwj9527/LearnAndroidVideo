@@ -88,7 +88,8 @@ public class Camera2VideoOperator extends Camera2Operator {
     }
 
     public void startRecord(String filePath) {
-        if (TextUtils.isEmpty(filePath) || !filePath.endsWith(".mp4") || !filePath.endsWith(".MP4")) {
+        if (TextUtils.isEmpty(filePath) || (!filePath.endsWith(".mp4") && !filePath.endsWith(".MP4"))) {
+            Log.e(TAG, "startRecord(): " + filePath + "为空或者格式错误");
             if (recordVideoCallback != null) {
                 recordVideoCallback.onError();
             }
@@ -97,12 +98,18 @@ public class Camera2VideoOperator extends Camera2Operator {
         synchronized (stateLock) {
             if (state >= STATE_DEVICE_OPENED) {
                 createRecorderAndSession(filePath, cameraOrientation);
+            } else {
+                Log.e(TAG, "startRecord(): state < STATE_DEVICE_OPENED");
+                if (recordVideoCallback != null) {
+                    recordVideoCallback.onError();
+                }
             }
         }
     }
 
     private void createRecorderAndSession(String filePath, int deviceRotation) {
         if (!createMediaRecorder(filePath, deviceRotation)) {
+            Log.e(TAG, "startRecord(): createMediaRecorder 失败");
             if (recordVideoCallback != null) {
                 recordVideoCallback.onError();
             }
@@ -121,6 +128,12 @@ public class Camera2VideoOperator extends Camera2Operator {
                 cameraDevice.createCaptureSession(Arrays.asList(surface, mediaRecorder.getSurface()), videoSessionStateCb, cameraHandler);
             } catch (CameraAccessException | IllegalStateException e) {
                 e.printStackTrace();
+                Log.e(TAG, "create capture session:" + e.getMessage());
+                mediaRecorder.reset();
+                isRecording = false;
+                if (recordVideoCallback != null) {
+                    recordVideoCallback.onError();
+                }
             }
         }
     }
@@ -144,8 +157,8 @@ public class Camera2VideoOperator extends Camera2Operator {
         mediaRecorder.setVideoSize(previewSize.getWidth(), previewSize.getHeight());
         mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        int rotation = Camera2Utils.getJpgRotation(characteristics, deviceRotation);
-        mediaRecorder.setOrientationHint(rotation);
+//        int rotation = Camera2Utils.getJpgRotation(characteristics, deviceRotation);
+        mediaRecorder.setOrientationHint(deviceRotation);
         try {
             mediaRecorder.prepare();
             ret = true;
@@ -154,7 +167,7 @@ public class Camera2VideoOperator extends Camera2Operator {
             Log.e(TAG, "error prepare video record:" + e.getMessage());
             mediaRecorder.reset();
         }
-        return false;
+        return ret;
     }
 
     public void stopRecord() {
@@ -169,7 +182,7 @@ public class Camera2VideoOperator extends Camera2Operator {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    Log.e(TAG, e.getMessage());
+                    Log.e(TAG, "media recorder stop: " + e.getMessage());
                     mediaRecorder.reset();
                     if (currentRecordFile.exists() && currentRecordFile.delete()) {
                         Log.w(TAG, "video file delete success");
@@ -189,7 +202,7 @@ public class Camera2VideoOperator extends Camera2Operator {
     private CameraCaptureSession.StateCallback videoSessionStateCb = new CameraCaptureSession.StateCallback() {
         @Override
         public void onConfigured(@NonNull CameraCaptureSession session) {
-            Log.d(TAG, " session onConfigured id:" + session.getDevice().getId());
+            Log.d(TAG, "videoSessionStateCb: " + session.getDevice().getId());
             synchronized (stateLock) {
                 if (isRecording) {
                     previewSession = session;
@@ -219,7 +232,7 @@ public class Camera2VideoOperator extends Camera2Operator {
 
         @Override
         public void onConfigureFailed(@NonNull CameraCaptureSession session) {
-            Log.d(TAG, "create session fail id:" + session.getDevice().getId());
+            Log.d(TAG, "videoSessionStateCb fail id:" + session.getDevice().getId());
         }
     };
 

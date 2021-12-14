@@ -7,6 +7,7 @@ import android.hardware.camera2.params.MeteringRectangle
 import android.os.Bundle
 import android.os.Environment
 import android.os.Looper
+import android.util.Log
 import android.view.Gravity
 import android.view.TextureView
 import android.view.ViewGroup
@@ -125,22 +126,26 @@ class Camera2VideoRecordActivity : AppCompatActivity(), TextureView.SurfaceTextu
             val videoFilePath = Environment.getExternalStorageDirectory().absolutePath + "/video_" + System.currentTimeMillis() + ".mp4"
             Camera2Manager.getInstance().startRecord(videoFilePath, object : Camera2Operator.RecordVideoCallback {
                 override fun onStarted() {
-
+                    Log.e("Camera2VideoRecord", "VideoRecord: onStarted()")
                 }
 
                 override fun onError() {
                     isRecording = false
+                    Log.e("Camera2VideoRecord", "VideoRecord: onError()")
                 }
 
                 override fun onStoped() {
                     isRecording = false
+                    Log.e("Camera2VideoRecord", "VideoRecord: onStoped()")
                 }
 
             })
         }
 
         btn_stop.setOnClickListener {
-
+            if (isRecording) {
+                Camera2Manager.getInstance().stopRecord()
+            }
         }
     }
 
