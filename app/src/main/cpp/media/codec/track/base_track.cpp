@@ -104,6 +104,7 @@ bool BaseTrack::InitCodec(JNIEnv *env) {
     media_status_t status = AMediaCodec_configure(m_codec, m_extractor->GetMediaFormat(), NULL, NULL, 0);
     LOGI(TAG, "AMediaCodec_configure %d", status)
     status = AMediaCodec_start(m_codec);
+    m_extractor->SeekTo(0);
     LOGI(TAG, "AMediaCodec_start %d", status)
     return true;
 }
