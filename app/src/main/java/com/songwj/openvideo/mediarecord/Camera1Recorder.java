@@ -25,13 +25,13 @@ public class Camera1Recorder implements MMuxer.IMuxerStateListener, AudioCapture
     private MMuxer mmuxer = null;
 
     private VideoEncoder videoEncoder = null;
-    private boolean isVideoEncoderPrepared = false;
+    private volatile boolean isVideoEncoderPrepared = false;
 
     private AudioEncoder audioEncoder = null;
-    private boolean isAudioEncoderPrepared = false;
+    private volatile boolean isAudioEncoderPrepared = false;
     private AudioCapture audioCapture = null;
 
-    private boolean isPrepared = false;
+    private volatile boolean isPrepared = false;
     private volatile boolean isStarted = false;
 
     private long startTimestamp = 0L;

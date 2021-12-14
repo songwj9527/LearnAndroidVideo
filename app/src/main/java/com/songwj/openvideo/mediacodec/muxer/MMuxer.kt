@@ -24,15 +24,20 @@ class MMuxer(filePath: String) {
     private var mVideoTrackIndex = -1
     private var mAudioTrackIndex = -1
 
+    @Volatile
     private var mIsAudioTrackAdd = false
+    @Volatile
     private var mIsVideoTrackAdd = false
 
+    @Volatile
     private var mIsAudioEnd = false
+    @Volatile
     private var mIsVideoEnd = false
 
     private var mVideoTrackTimeUs = 0L
     private var mAudioTrackTimeUs = 0L
 
+    @Volatile
     private var mIsStart = false
 
     private var mStateListener: IMuxerStateListener?  = null

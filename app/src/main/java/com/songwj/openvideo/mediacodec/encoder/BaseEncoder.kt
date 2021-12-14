@@ -45,9 +45,11 @@ abstract class BaseEncoder : Thread {
     private var mLock = Object()
 
     // 是否编码结束
+    @Volatile
     private var mIsEOS = false
 
     // 是否主动停止编码
+    @Volatile
     private var mStop = false
 
     // 编码状态监听器

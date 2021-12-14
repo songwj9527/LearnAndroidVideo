@@ -205,6 +205,18 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:text="CAMERA2_OUTPUT" />
+            <Button
+                android:id="@+id/btn_camera2_preview_filter_gl_surface_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="OPENGL_CAMERA2_PREVIEW_FILTER_GL_SURFACE_VIEW" />
+            <Button
+                android:id="@+id/btn_camera2_gl_surface_view_record"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="OPENGL_CAMERA2_GL_SURFACE_VIEW_RECORD" />
 
         </LinearLayout>
 

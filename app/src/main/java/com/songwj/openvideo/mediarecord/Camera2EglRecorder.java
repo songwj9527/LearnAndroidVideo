@@ -28,7 +28,7 @@ public class Camera2EglRecorder implements MMuxer.IMuxerStateListener, AudioCapt
     private MMuxer mmuxer = null;
 
     private VideoEncoder videoEncoder = null;
-    private boolean isVideoEncoderPrepared = false;
+    private volatile boolean isVideoEncoderPrepared = false;
     private HandlerThread handlerThread = null;
     private Handler handler = null;
     private EGLContext eglContext = null;
@@ -37,10 +37,10 @@ public class Camera2EglRecorder implements MMuxer.IMuxerStateListener, AudioCapt
     private FilterChain filterChain = null;
 
     private AudioEncoder audioEncoder = null;
-    private boolean isAudioEncoderPrepared = false;
+    private volatile boolean isAudioEncoderPrepared = false;
     private AudioCapture audioCapture = null;
 
-    private boolean isPrepared = false;
+    private volatile boolean isPrepared = false;
     private volatile boolean isStarting = false;
     private volatile boolean isStarted = false;
 

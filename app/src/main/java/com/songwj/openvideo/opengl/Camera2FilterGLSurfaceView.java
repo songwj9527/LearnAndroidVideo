@@ -6,24 +6,24 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
-import com.songwj.openvideo.opengl.renders.Camera1FilterRender;
+import com.songwj.openvideo.opengl.renders.Camera2FilterRender;
 
-public class Camera1FilterGLSurfaceView extends AspectRatioGLSurfaceView implements Camera1FilterRender.OnRenderListener  {
-    protected Camera1FilterRender render = null;
+public class Camera2FilterGLSurfaceView extends AspectRatioGestureGLSurfaceView implements Camera2FilterRender.OnRenderListener  {
+    protected Camera2FilterRender render = null;
     protected EGLContext eglContext = null;
     protected int width = 0, height = 0;
 
-    public Camera1FilterGLSurfaceView(Context context) {
+    public Camera2FilterGLSurfaceView(Context context) {
         super(context);
     }
 
-    public Camera1FilterGLSurfaceView(Context context, AttributeSet attrs) {
+    public Camera2FilterGLSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        Log.e("Camera1FilterGLSurfaceView", "surfaceDestroyed()");
+        Log.e("Camera2FilterGLSurfaceView", "surfaceDestroyed()");
         if (render != null) {
             render.onSurfaceDestroy();
             render = null;

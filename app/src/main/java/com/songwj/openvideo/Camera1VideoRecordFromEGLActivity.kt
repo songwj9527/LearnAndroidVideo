@@ -13,13 +13,16 @@ import kotlinx.android.synthetic.main.activity_camera1_video_record_from_egl.*
 
 class Camera1VideoRecordFromEGLActivity : AppCompatActivity() {
     private var glSurfaceView: Camera1RecordGLSurfaceView? = null
+    private var isOpened = false
     private var isPaused = false
+    private var isRecording = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera1_video_record_from_egl)
         Camera1Manager.getInstance().release()
         Camera1Manager.getInstance().bindActivity(this)
-        if (Camera1Manager.getInstance().openCamera()) {
+        isOpened = Camera1Manager.getInstance().openCamera()
+        if (isOpened) {
             glSurfaceView = Camera1RecordGLSurfaceView(this)
             glSurfaceView?.setRatioMode(AspectRatioGLSurfaceView.AspectRatioMode.EQUAL_PROPORTION_FIT_PARENT)
             val cameraOrientation = Camera1Manager.getInstance().cameraOrientation
@@ -36,16 +39,28 @@ class Camera1VideoRecordFromEGLActivity : AppCompatActivity() {
             gl_container_view.addView(glSurfaceView, lp)
         }
 
+        btn_switch_camera.setOnClickListener {
+            if (isOpened && !isRecording) {
+                Camera1Manager.getInstance().switchCamera()
+            }
+        }
         btn_take_capture.setOnClickListener {
-            val filePath = Environment.getExternalStorageDirectory().absolutePath + "/picture_" + System.currentTimeMillis() + ".jpeg"
-            glSurfaceView?.takeCapture(filePath)
+            if (isOpened) {
+                val filePath = Environment.getExternalStorageDirectory().absolutePath + "/picture_" + System.currentTimeMillis() + ".jpeg"
+                glSurfaceView?.takeCapture(filePath)
+            }
         }
         btn_start.setOnClickListener {
-            val filePath = Environment.getExternalStorageDirectory().absolutePath + "/video_" + System.currentTimeMillis() + ".mp4"
-            glSurfaceView?.startRecord(filePath)
+            if (isOpened) {
+                val filePath = Environment.getExternalStorageDirectory().absolutePath + "/video_" + System.currentTimeMillis() + ".mp4"
+                isRecording = glSurfaceView?.startRecord(filePath) == true
+            }
         }
         btn_stop.setOnClickListener {
-            glSurfaceView?.stopRecord()
+            if (isOpened && isRecording) {
+                glSurfaceView?.stopRecord()
+                isRecording = false
+            }
         }
     }
 

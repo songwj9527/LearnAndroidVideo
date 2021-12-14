@@ -150,6 +150,14 @@
             android:name=".Camera2OutputActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait" />
+        <activity
+            android:name=".Camera2PreviewGLSurfaceFilterActivity"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".Camera2RecordGLSurfaceFIlterActivity"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

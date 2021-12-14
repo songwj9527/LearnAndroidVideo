@@ -8,20 +8,20 @@ import android.os.Message
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.SurfaceHolder
-import com.songwj.openvideo.camera.Camera1Manager
-import com.songwj.openvideo.mediarecord.Camera1EglRecorder
+import com.songwj.openvideo.camera.Camera2Manager
+import com.songwj.openvideo.mediarecord.Camera2EglRecorder
 import com.songwj.openvideo.opengl.filter.*
-import com.songwj.openvideo.opengl.renders.Camera1FilterRender
+import com.songwj.openvideo.opengl.renders.Camera2FilterRender
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class Camera1RecordGLSurfaceView : Camera1FilterGLSurfaceView {
+class Camera2RecordGLSurfaceView : Camera2FilterGLSurfaceView {
     constructor(context: Context?) : super(context) {
         setEGLContextClientVersion(3)
-        render = Camera1FilterRender(this)
+        render = Camera2FilterRender(this)
         render.addFilter(CameraFilter())
         render.addFilter(DuskColorFilter())
         render.addFilter(SoulFilter())
@@ -33,7 +33,7 @@ class Camera1RecordGLSurfaceView : Camera1FilterGLSurfaceView {
 
     constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs) {
         setEGLContextClientVersion(3)
-        render = Camera1FilterRender(this)
+        render = Camera2FilterRender(this)
         render.addFilter(CameraFilter())
         render.addFilter(DuskColorFilter())
         render.addFilter(SoulFilter())
@@ -150,7 +150,7 @@ class Camera1RecordGLSurfaceView : Camera1FilterGLSurfaceView {
         }
     }
 
-    private var recorder: Camera1EglRecorder? = null
+    private var recorder: Camera2EglRecorder? = null
 
     @Volatile
     private var isRecording = false
@@ -163,13 +163,17 @@ class Camera1RecordGLSurfaceView : Camera1FilterGLSurfaceView {
                 return true
             }
             if (recorder == null) {
-                val cameraOrientation = Camera1Manager.getInstance().cameraOrientation
-                val cameraSize = Camera1Manager.getInstance().cameraSize
-                val width =
-                    if (cameraOrientation == 90 || cameraOrientation == 270) cameraSize.height else cameraSize.width
-                val height =
-                    if (cameraOrientation == 90 || cameraOrientation == 270) cameraSize.width else cameraSize.height
-                recorder = Camera1EglRecorder(videoFilePath, width, height, eglContext)
+                val cameraOrientation = Camera2Manager.getInstance().cameraOrientation
+                val previewSize = Camera2Manager.getInstance().previewSize
+                val width = if (cameraOrientation == 90 || cameraOrientation == 270)
+                        previewSize.height
+                    else
+                        previewSize.width
+                val height = if (cameraOrientation == 90 || cameraOrientation == 270)
+                        previewSize.width
+                    else
+                        previewSize.height
+                recorder = Camera2EglRecorder(videoFilePath, width, height, eglContext)
             } else {
                 recorder!!.setDataSource(videoFilePath)
             }

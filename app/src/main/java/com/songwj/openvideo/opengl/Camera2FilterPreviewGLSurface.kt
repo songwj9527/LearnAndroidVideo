@@ -3,12 +3,12 @@ package com.songwj.openvideo.opengl
 import android.content.Context
 import android.util.AttributeSet
 import com.songwj.openvideo.opengl.filter.*
-import com.songwj.openvideo.opengl.renders.Camera1FilterRender
+import com.songwj.openvideo.opengl.renders.Camera2FilterRender
 
-class Camera1FilterPreviewGLSurface : Camera1FilterGLSurfaceView {
+class Camera2FilterPreviewGLSurface : Camera2FilterGLSurfaceView {
     constructor(context: Context?) : super(context) {
         setEGLContextClientVersion(3)
-        render = Camera1FilterRender(this)
+        render = Camera2FilterRender(this)
         render.addFilter(CameraFilter())
         render.addFilter(DuskColorFilter())
         render.addFilter(SoulFilter())
@@ -20,7 +20,7 @@ class Camera1FilterPreviewGLSurface : Camera1FilterGLSurfaceView {
 
     constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs) {
         setEGLContextClientVersion(3)
-        render = Camera1FilterRender(this)
+        render = Camera2FilterRender(this)
         render.addFilter(CameraFilter())
         render.addFilter(DuskColorFilter())
         render.addFilter(SoulFilter())
