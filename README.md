@@ -7,9 +7,9 @@
 在“ChenLittlePing”的【Android 音视频开发打怪升级】系列文章（链接：“https://github.com/ChenLittlePing/LearningVideo” ）的基础上，并添加了自己的理解和功能（如seekTo功能）。
 
 
-第二部分（未完待续）
+第二部分（未完待续，具体原因是AMediaExtractor_setDataSource无法正常打开视频, 目前未找到解决方法）
 
-native层的硬解mediacodec的使用。
+native层的mediacodec视频播放。
 
 
 第三部分
