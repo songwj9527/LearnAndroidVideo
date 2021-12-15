@@ -1,5 +1,6 @@
 package com.songwj.openvideo
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
@@ -10,7 +11,6 @@ import androidx.camera.core.*
 import androidx.camera.view.PreviewView
 import com.songwj.openvideo.camera.CameraXManager
 import kotlinx.android.synthetic.main.activity_camera_x_preview.*
-
 
 class CameraXPreviewActivity : AppCompatActivity(),
     CameraXManager.OnPreparedListener,
@@ -92,9 +92,13 @@ class CameraXPreviewActivity : AppCompatActivity(),
         CameraXManager.getInstance().setPreviewView(camerax_preview)
     }
 
+    @SuppressLint("UnsafeOptInUsageError")
     override fun onImageAnalyze(image: ImageProxy?) {
         image?.let {
 //            Log.e("CameraXPreviewActivity", "onImageAnalyze(): ${it.format} >> ${it.width}, ${it.height}")
+            it.image?.let {
+
+            }
         }
     }
 
