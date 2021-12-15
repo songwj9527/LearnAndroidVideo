@@ -34,7 +34,6 @@ class Camera2PreviewActivity : AppCompatActivity(), TextureView.SurfaceTextureLi
                 width: Int,
                 height: Int
             ) {
-                Log.e("Camera2PreviewActivity", "onOpened(): $width, $height, $cameraId, $sensorOrientation")
                 if (isOpened) {
                     runOnUiThread({
                         attachTextureView(width, height, cameraId, sensorOrientation, sensorRect)
@@ -47,7 +46,6 @@ class Camera2PreviewActivity : AppCompatActivity(), TextureView.SurfaceTextureLi
                 if (!isOpened) {
                     return
                 }
-                Log.e("Camera2PreviewActivity", "onAFStateChanged(): $state")
                 when (state) {
                     CaptureResult.CONTROL_AF_STATE_ACTIVE_SCAN -> {
                         if (isOpened) {
@@ -213,7 +211,6 @@ class Camera2PreviewActivity : AppCompatActivity(), TextureView.SurfaceTextureLi
     }
 
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
-        Log.e("Camera2PreviewActivity", "onSurfaceTextureAvailable()")
         Camera2Manager.getInstance().setSurfaceTexture(surface)
     }
 
