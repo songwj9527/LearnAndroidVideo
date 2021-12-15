@@ -3,8 +3,8 @@
 
 
 # 视频播放器
-  1.MediaCodec解码 + TextureView窗口播放；
-  # 2）添加MediaCodec解码 + OpenGL渲染播放（FBO灵魂抖动等效果）；
+  1. MediaCodec解码 + TextureView窗口播放；
+  2. 添加MediaCodec解码 + OpenGL渲染播放（FBO灵魂抖动等效果）；
   # 3）添加MediaCodec解码 + EGL渲染 + TextureView窗口播放（FBO灵魂抖动等效果）；
   # 4）Native FFMpeg解码 + TextureView渲染播放；
   # 5）Native FFMpeg解码 + Native EGL渲染 + TextureView窗口播放；
