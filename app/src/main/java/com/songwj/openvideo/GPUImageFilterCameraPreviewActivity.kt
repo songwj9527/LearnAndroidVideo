@@ -5,7 +5,6 @@ import android.hardware.camera2.CaptureResult
 import android.hardware.camera2.params.MeteringRectangle
 import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.os.Looper
 import android.util.Size
 import android.view.View
@@ -18,6 +17,13 @@ import jp.co.cyberagent.android.gpuimage.filter.GPUImageFilter
 import jp.co.cyberagent.android.gpuimage.util.Rotation
 import kotlinx.android.synthetic.main.activity_gupimage_filter_camera_preview.*
 
+/**
+ * 这里相机使用camera2
+ * 因为GPUImageView没有返回SurfaceTexture所以无法直接渲染，
+ * 只能通过onImageAvailable获取相机YUV数据，
+ * 并将其传给GPUImage进行滤镜渲染
+ * （如果想直接绑定相机可以自定义一下GPUImageView，或者使用camera1）
+ */
 class GPUImageFilterCameraPreviewActivity : AppCompatActivity(),
     Camera2Operator.RequestCallback,
     Camera2Operator.OnImageAvailableOutputListener,
