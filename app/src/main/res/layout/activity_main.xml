@@ -223,6 +223,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:text="CAMERAX_PREVIEW" />
+            <Button
+                android:id="@+id/btn_gpuimage_camera2_preview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="GPUIMAGE_CAMERA2_PREVIEW" />
 
         </LinearLayout>
 

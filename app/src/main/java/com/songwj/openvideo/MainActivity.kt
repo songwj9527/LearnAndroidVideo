@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
         btn_camera2_preview_filter_gl_surface_view.setOnClickListener(this)
         btn_camera2_gl_surface_view_record.setOnClickListener(this)
         btn_camerax_preview.setOnClickListener(this)
+        btn_gpuimage_camera2_preview.setOnClickListener(this)
 
         handlerPermission()
     }
@@ -170,6 +171,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClick
             }
             else if (id == R.id.btn_camerax_preview) {
                 startActivity(Intent(this, CameraXPreviewActivity::class.java))
+            }
+            else if (id == R.id.btn_gpuimage_camera2_preview) {
+                startActivity(Intent(this, GPUImageFilterCameraPreviewActivity::class.java))
             }
         }
     }

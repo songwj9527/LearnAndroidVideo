@@ -162,6 +162,10 @@
             android:name=".CameraXPreviewActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait" />
+        <activity
+            android:name=".GPUImageFilterCameraPreviewActivity"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>
