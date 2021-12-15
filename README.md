@@ -5,17 +5,17 @@
 # 视频播放器
   1. MediaCodec解码 + TextureView窗口播放；
   2. 添加MediaCodec解码 + OpenGL渲染播放（FBO灵魂抖动等效果）；
-  # 3）添加MediaCodec解码 + EGL渲染 + TextureView窗口播放（FBO灵魂抖动等效果）；
-  # 4）Native FFMpeg解码 + TextureView渲染播放；
-  # 5）Native FFMpeg解码 + Native EGL渲染 + TextureView窗口播放；
-  # 6）Native MediaCodec解码 + TextureView窗口播放（未完待续，具体原因是AMediaExtractor_setDataSource无法正常打开视频, 目前未找到解决方法）.
+  3. 添加MediaCodec解码 + EGL渲染 + TextureView窗口播放（FBO灵魂抖动等效果）；
+  4. Native FFMpeg解码 + TextureView渲染播放；
+  5. Native FFMpeg解码 + Native EGL渲染 + TextureView窗口播放；
+  6. Native MediaCodec解码 + TextureView窗口播放（未完待续，具体原因是AMediaExtractor_setDataSource无法正常打开视频, 目前未找到解决方法）.
 
 
 # 相机
-  # 1）camera1预览、拍照和视频录制；
-  # 2）camera1 + OpenGL 预览、拍照和视频录制；
-  # 3）camera2预览、拍照和视频录制；
-  # 4）camera2 + OpenGL 预览、拍照和视频录制；
-  # 5）camerax预览、拍照；
-  # 6）GUPImage滤镜 + 相机 预览、拍照和视频录制(未完待续）；
-  # 7）推流实现（未完待续）。
+  1. camera1预览、拍照和视频录制；
+  2. camera1 + OpenGL 预览、拍照和视频录制；
+  3. camera2预览、拍照和视频录制；
+  4. camera2 + OpenGL 预览、拍照和视频录制；
+  5. camerax预览、拍照；
+  6. GUPImage滤镜 + 相机 预览、拍照和视频录制(未完待续）；
+  7. 推流实现（未完待续）。
