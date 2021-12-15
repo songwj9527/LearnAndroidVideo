@@ -48,7 +48,8 @@ public class Camera2PictureOperator extends Camera2Operator {
 //                    // 因为向上翻转了所以y要向下平移一个bitmap的高度
 //                    matrix.postTranslate(0f, bitmap.getHeight());
                     // 反转镜像(小米手机CameraCharacteristics.LENS_FACING_BACK对应的是前置摄像头，正常应该判断LENS_FACING_FRONT)
-                    if (cameraId == CameraCharacteristics.LENS_FACING_BACK) {
+//                    if (cameraId == CameraCharacteristics.LENS_FACING_BACK) {
+                    if (isFrontCamera()) {
                         matrix.postScale(-1f, 1f);
                         matrix.postTranslate(0f, bitmap.getWidth());
                     }

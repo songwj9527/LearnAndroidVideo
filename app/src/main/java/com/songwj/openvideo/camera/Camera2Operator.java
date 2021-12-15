@@ -116,6 +116,11 @@ public abstract class Camera2Operator {
         return cameraId;
     }
 
+    public boolean isFrontCamera() {
+        // 小米手机CameraCharacteristics.LENS_FACING_BACK对应的是前置摄像头，正常应该判断LENS_FACING_FRONT
+        return cameraId == CameraCharacteristics.LENS_FACING_BACK;
+    }
+
     public Size getPreviewSize() {
         if (previewSize == null) {
             CameraManager cameraManager = (CameraManager) MyApplication.Companion.getInstance().getSystemService(Context.CAMERA_SERVICE);
@@ -334,8 +339,8 @@ public abstract class Camera2Operator {
     public void closeCamera() {
         synchronized (stateLock) {
             if (state != STATE_IDLE) {
-                releasePreviewSession();
                 releaseImageReader();
+                releasePreviewSession();
                 releaseDevice();
 
                 characteristics = null;
@@ -464,7 +469,7 @@ public abstract class Camera2Operator {
         }
     }
 
-    private CameraCaptureSession.StateCallback previewSessionStateCallback = new CameraCaptureSession.StateCallback() {
+    protected CameraCaptureSession.StateCallback previewSessionStateCallback = new CameraCaptureSession.StateCallback() {
 
         @Override
         public void onConfigured(@NonNull CameraCaptureSession session) {
