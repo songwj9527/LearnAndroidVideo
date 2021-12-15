@@ -36,13 +36,4 @@ public class Camera1PreviewGLSurfaceView extends GLSurfaceView implements Surfac
     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
         requestRender();
     }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        super.surfaceDestroyed(holder);
-        if (render != null) {
-            render.release();
-            render = null;
-        }
-    }
 }

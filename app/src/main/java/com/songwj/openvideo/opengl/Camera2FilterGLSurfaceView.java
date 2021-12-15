@@ -22,16 +22,6 @@ public class Camera2FilterGLSurfaceView extends AspectRatioGestureGLSurfaceView 
     }
 
     @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        Log.e("Camera2FilterGLSurfaceView", "surfaceDestroyed()");
-        if (render != null) {
-            render.onSurfaceDestroy();
-            render = null;
-        }
-        super.surfaceDestroyed(holder);
-    }
-
-    @Override
     public void onRenderCreated(EGLContext eglContext) {
         this.eglContext = eglContext;
     }
@@ -45,5 +35,12 @@ public class Camera2FilterGLSurfaceView extends AspectRatioGestureGLSurfaceView 
     @Override
     public void onDrawFrame(int textureId, long timestamp) {
 
+    }
+
+    public void onRenderDestroy() {
+        if (render != null) {
+            render.onSurfaceDestroy();
+            render = null;
+        }
     }
 }

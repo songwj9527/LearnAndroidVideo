@@ -133,10 +133,8 @@ class GPUImageFilterCameraPreviewActivity : AppCompatActivity(),
         width: Int,
         height: Int
     ) {
-        if (isOpened) {
-            runOnUiThread {
-                attachGPUImageView(width, height, cameraId, sensorOrientation, sensorRect)
-            }
+        runOnUiThread {
+            attachGPUImageView(width, height, cameraId, sensorOrientation, sensorRect)
         }
     }
 

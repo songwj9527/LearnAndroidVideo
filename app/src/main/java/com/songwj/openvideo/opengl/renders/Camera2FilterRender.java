@@ -99,12 +99,13 @@ public class Camera2FilterRender implements GLSurfaceView.Renderer, SurfaceTextu
     }
 
     public void onSurfaceDestroy() {
-        if (filterChain != null) {
-            filterChain.release();
-//            filterChain = null;
-        }
+        FilterChain temp = filterChain;
+        filterChain = null;
         glSurfaceView = null;
         onRenderListener = null;
+        if (temp != null) {
+            temp.release();
+        }
     }
 
     @Override

@@ -34,10 +34,8 @@ class Camera2PreviewGLSurfaceFilterActivity : AppCompatActivity() {
                 width: Int,
                 height: Int
             ) {
-                if (isOpened) {
-                    runOnUiThread({
-                        attachPreviewGLSurface(width, height, cameraId, sensorOrientation, sensorRect)
-                    })
+                runOnUiThread {
+                    attachPreviewGLSurface(width, height, cameraId, sensorOrientation, sensorRect)
                 }
             }
 
@@ -49,51 +47,51 @@ class Camera2PreviewGLSurfaceFilterActivity : AppCompatActivity() {
                 when (state) {
                     CaptureResult.CONTROL_AF_STATE_ACTIVE_SCAN -> {
                         if (isOpened) {
-                            runOnUiThread({
+                            runOnUiThread{
                                 focusManager?.startFocus()
-                            })
+                            }
                         }
                     }
                     CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED -> {
                         if (isOpened) {
-                            runOnUiThread({
+                            runOnUiThread {
                                 focusManager?.focusSuccess()
-                            })
+                            }
                         }
                     }
                     CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED -> {
                         if (isOpened) {
-                            runOnUiThread({
+                            runOnUiThread {
                                 focusManager?.focusFailed()
-                            })
+                            }
                         }
                     }
                     CaptureResult.CONTROL_AF_STATE_PASSIVE_FOCUSED -> {
                         if (isOpened) {
-                            runOnUiThread({
+                            runOnUiThread {
                                 focusManager?.focusSuccess()
-                            })
+                            }
                         }
                     }
                     CaptureResult.CONTROL_AF_STATE_PASSIVE_SCAN -> {
                         if (isOpened) {
-//                            runOnUiThread({
+//                            runOnUiThread {
 //                                focusManager?.autoFocus()
-//                            })
+//                            }
                         }
                     }
                     CaptureResult.CONTROL_AF_STATE_PASSIVE_UNFOCUSED -> {
                         if (isOpened) {
-                            runOnUiThread({
+                            runOnUiThread {
                                 focusManager?.focusFailed()
-                            })
+                            }
                         }
                     }
                     CaptureResult.CONTROL_AF_STATE_INACTIVE -> {
                         if (isOpened) {
-                            runOnUiThread({
+                            runOnUiThread {
                                 focusManager?.hideFocusUI()
-                            })
+                            }
                         }
                     }
                 }
@@ -209,5 +207,6 @@ class Camera2PreviewGLSurfaceFilterActivity : AppCompatActivity() {
         focusManager?.setListener(null)
         focusManager?.removeDelayMessage()
         focusManager = null
+        glSurfaceView?.onRenderDestroy()
     }
 }

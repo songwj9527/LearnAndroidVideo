@@ -52,6 +52,7 @@ class Camera1PreviewGLSurfaceFilterActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         Camera1Manager.getInstance().release()
+        glSurfaceView?.onRenderDestroy()
         super.onDestroy()
     }
 }
