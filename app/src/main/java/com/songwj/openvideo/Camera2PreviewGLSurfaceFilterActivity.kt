@@ -110,6 +110,7 @@ class Camera2PreviewGLSurfaceFilterActivity : AppCompatActivity() {
                 focusManager = null
                 glSurfaceView = null
                 Camera2Manager.getInstance().setSurfaceTexture(null)
+//                glSurfaceView?.onRenderDestroy()
                 isOpened = Camera2Manager.getInstance().swichCamera()
             }
         }

@@ -106,7 +106,7 @@ public class Camera1FilterRender implements GLSurfaceView.Renderer, SurfaceTextu
     public void onSurfaceDestroy() {
         if (filterChain != null) {
             filterChain.release();
-            filterChain = null;
+//            filterChain = null;
         }
         glSurfaceView = null;
         onRenderListener = null;

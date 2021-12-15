@@ -63,7 +63,9 @@ public class Camera2FilterRender implements GLSurfaceView.Renderer, SurfaceTextu
         cameraTexture.setOnFrameAvailableListener(this);
         Camera2Manager.getInstance().setSurfaceTexture(cameraTexture);
 
-        filterChain.init();
+        if (filterChain != null) {
+            filterChain.init();
+        }
         if (onRenderListener != null) {
             onRenderListener.onRenderCreated(EGL14.eglGetCurrentContext());
         }
@@ -99,7 +101,7 @@ public class Camera2FilterRender implements GLSurfaceView.Renderer, SurfaceTextu
     public void onSurfaceDestroy() {
         if (filterChain != null) {
             filterChain.release();
-            filterChain = null;
+//            filterChain = null;
         }
         glSurfaceView = null;
         onRenderListener = null;

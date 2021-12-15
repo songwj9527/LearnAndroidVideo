@@ -106,7 +106,14 @@ class Camera2RecordGLSurfaceFIlterActivity : AppCompatActivity() {
 
         btn_switch_camera.setOnClickListener {
             if (isOpened && !isRecording) {
-                Camera2Manager.getInstance().swichCamera()
+                isOpened = false
+                focusManager?.setListener(null)
+                focusManager?.removeDelayMessage()
+                focusManager = null
+                glSurfaceView = null
+                Camera2Manager.getInstance().setSurfaceTexture(null)
+//                glSurfaceView?.onRenderDestroy()
+                isOpened = Camera2Manager.getInstance().swichCamera()
             }
         }
         btn_take_capture.setOnClickListener {
