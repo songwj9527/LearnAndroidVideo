@@ -128,6 +128,20 @@ add_library(
         ${CMAKE_SOURCE_DIR}/media/render/audio/opensl_render.h
         ${CMAKE_SOURCE_DIR}/media/render/audio/opensl_render.cpp
 
+        # 重构后的ffmpeg播放器
+        ${CMAKE_SOURCE_DIR}/media/ffmpeg/default_player.h
+        ${CMAKE_SOURCE_DIR}/media/ffmpeg/default_player.cpp
+        ${CMAKE_SOURCE_DIR}/media/ffmpeg/decoder/i_decoder_callback.h
+        ${CMAKE_SOURCE_DIR}/media/ffmpeg/decoder/base_decoder.h
+        ${CMAKE_SOURCE_DIR}/media/ffmpeg/decoder/base_decoder.cpp
+        ${CMAKE_SOURCE_DIR}/media/ffmpeg/decoder/video_decoder.h
+        ${CMAKE_SOURCE_DIR}/media/ffmpeg/decoder/video_decoder.cpp
+        ${CMAKE_SOURCE_DIR}/media/ffmpeg/decoder/audio_decoder.h
+        ${CMAKE_SOURCE_DIR}/media/ffmpeg/decoder/audio_decoder.cpp
+        ${CMAKE_SOURCE_DIR}/media/ffmpeg/render/i_render_callback.h
+        ${CMAKE_SOURCE_DIR}/media/ffmpeg/render/base_render.h
+        ${CMAKE_SOURCE_DIR}/media/ffmpeg/render/base_render.cpp
+
         # OpenGL EGL核心
         ${CMAKE_SOURCE_DIR}/media/opengl/egl/egl_core.h
         ${CMAKE_SOURCE_DIR}/media/opengl/egl/egl_core.cpp
@@ -171,9 +185,6 @@ add_library(
         ${CMAKE_SOURCE_DIR}/media/codec/track/base_video_track.cpp
         ${CMAKE_SOURCE_DIR}/media/codec/track/default_video_track.h
         ${CMAKE_SOURCE_DIR}/media/codec/track/default_video_track.cpp
-
-        # MediaCodec音视频解码器
-        # MediaCodec音视频渲染器
 
         # MediaCodec音视频播放器
         ${CMAKE_SOURCE_DIR}/media/player/codec_player/codec_player.h
