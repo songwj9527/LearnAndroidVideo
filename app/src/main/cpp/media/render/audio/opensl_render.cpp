@@ -98,6 +98,7 @@ void OpenSLRender::RunPrepare(std::shared_ptr<OpenSLRender> that) {
             break;
         }
     }
+    av_usleep(50*1000);
     LOGE(that->TAG, "%s", "thread done.");
     //解除线程和jvm关联
     that->m_jvm_for_thread->DetachCurrentThread();
@@ -352,11 +353,13 @@ void OpenSLRender::render() {
     }
 
     if (decoder != NULL) {
-        bool isComplete = false;
+        bool isComplete = decoder->isCompleted();
 //        pthread_mutex_lock(&m_state_mutex);
-        if (decoder->isCompleted() && m_render_frame_queue.empty() && m_state != COMPLETED) {
+        if (isComplete && m_render_frame_queue.empty() && m_state != COMPLETED) {
             m_state = COMPLETED;
             isComplete = true;
+        } else {
+            isComplete = false;
         }
 //        pthread_mutex_unlock(&m_state_mutex);
         if (isComplete) {

@@ -7,14 +7,16 @@
 Player::Player(JNIEnv *jniEnv, jobject object) {
     this->jniEnv = jniEnv;
     this->jplayer = jniEnv->NewWeakGlobalRef(object);
+
+    // 初始化播放状态线程锁变量
+    pthread_mutex_init(&state_mutex, NULL);
 }
 
 Player::~Player() {
-    // 此处不需要 delete 成员指针
-    // 在BaseDecoder中的线程已经使用智能指针，会自动释放
-    LOGE(TAG, "%s", "~Player");
     releaseSourceURL();
     releaseJPlayer();
+    pthread_mutex_destroy(&state_mutex);
+    LOGE(TAG, "%s", "~Player");
 }
 
 /**
@@ -61,7 +63,9 @@ void Player::releaseSourceURL() {
  * @param url
  */
 void Player::setDataSource(jstring url) {
+    pthread_mutex_lock(&state_mutex);
     if (jniEnv == NULL) {
+        pthread_mutex_unlock(&state_mutex);
         return;
     }
     releaseSourceURL();
@@ -69,15 +73,18 @@ void Player::setDataSource(jstring url) {
     const char *urlChar = jniEnv->GetStringUTFChars(url, NULL);
     if (urlChar == NULL) {
         sourceURL = NULL;
+        pthread_mutex_unlock(&state_mutex);
         onError(jniEnv, JAVA_PATH_2_C_CHARS_FAILED, "传入的url转chars失败");
         return;
     }
     if (strlen(urlChar) == 0) {
         sourceURL = NULL;
+        pthread_mutex_unlock(&state_mutex);
         onError(jniEnv, MEDIA_SOURCE_URL_ERROR, "传入的url为空");
         return;
     }
     sourceURL = urlChar;
+    pthread_mutex_unlock(&state_mutex);
     LOGE(TAG, "setDataSource(): %s", sourceURL);
 }
 

@@ -39,6 +39,8 @@ protected:
     jobject     jsurface = NULL;
     // 播放状态
     volatile State state = IDLE;
+    // 播放状态线程锁变量
+    pthread_mutex_t state_mutex;
 
     /**
      * 释放source url相关资源

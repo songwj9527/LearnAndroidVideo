@@ -7,32 +7,34 @@
 CodecPlayer::CodecPlayer(JNIEnv *jniEnv, jobject object) : Player(jniEnv, object){}
 
 CodecPlayer::~CodecPlayer() {
-    LOGE(TAG, "%s", "~CodecPlayer");
     release();
+    LOGE(TAG, "%s", "~CodecPlayer");
 }
 
 void CodecPlayer::setSurface(jobject surface) {
-    if (state == STOPPED) {
-        return;
-    }
-    if (jsurface != NULL) {
-        if (!jniEnv->IsSameObject(jsurface, NULL)) {
-            jniEnv->DeleteGlobalRef(jsurface);
+    pthread_mutex_lock(&state_mutex);
+    if (state != STOPPED) {
+        if (jsurface != NULL) {
+            if (!jniEnv->IsSameObject(jsurface, NULL)) {
+                jniEnv->DeleteGlobalRef(jsurface);
+            }
+            jsurface = NULL;
         }
-        jsurface = NULL;
-    }
-    if (surface != NULL) {
-        jsurface = jniEnv->NewGlobalRef(surface);
-        LOGE(TAG, "%s%s", "setSurface() ", jsurface == NULL ? "NULL" : "OK");
-    }
-    if (is_audio_prepared && is_video_prepared) {
-        if (video_track != NULL) {
-            video_track->SetSurface(jniEnv, jsurface);
+        if (surface != NULL) {
+            jsurface = jniEnv->NewGlobalRef(surface);
+            LOGE(TAG, "%s%s", "setSurface() ", jsurface == NULL ? "NULL" : "OK");
+        }
+        if (is_audio_prepared && is_video_prepared) {
+            if (video_track != NULL) {
+                video_track->SetSurface(jniEnv, jsurface);
+            }
         }
     }
+    pthread_mutex_unlock(&state_mutex);
 }
 
 void CodecPlayer::start() {
+    pthread_mutex_lock(&state_mutex);
     if (is_audio_prepared && is_video_prepared) {
         if (state != STOPPED) {
             reset();
@@ -45,9 +47,11 @@ void CodecPlayer::start() {
             }
         }
     }
+    pthread_mutex_unlock(&state_mutex);
 }
 
 void CodecPlayer::pause() {
+    pthread_mutex_lock(&state_mutex);
     if (is_audio_prepared && is_video_prepared) {
         if (state == RUNNING) {
             state = PAUSED;
@@ -59,9 +63,11 @@ void CodecPlayer::pause() {
             }
         }
     }
+    pthread_mutex_unlock(&state_mutex);
 }
 
 void CodecPlayer::resume() {
+    pthread_mutex_lock(&state_mutex);
     if (is_audio_prepared && is_video_prepared) {
         if (state == PAUSED) {
             state = RUNNING;
@@ -73,9 +79,11 @@ void CodecPlayer::resume() {
             }
         }
     }
+    pthread_mutex_unlock(&state_mutex);
 }
 
 void CodecPlayer::stop() {
+    pthread_mutex_lock(&state_mutex);
     if (state != STOPPED) {
         state = STOPPED;
     }
@@ -94,6 +102,7 @@ void CodecPlayer::stop() {
     is_video_completed = false;
     is_audio_seek_completed = false;
     is_video_seek_completed = false;
+    pthread_mutex_unlock(&state_mutex);
 }
 
 void CodecPlayer::reset() {
@@ -117,30 +126,41 @@ void CodecPlayer::release() {
 }
 
 jlong CodecPlayer::getDuration() {
+    jlong duratioon = 0L;
+    pthread_mutex_lock(&state_mutex);
     if (is_audio_prepared && is_video_prepared) {
         if (video_track != NULL) {
-            return video_track->GetDuration();
+            duratioon = video_track->GetDuration();
         }
         if (audio_track != NULL) {
-            return audio_track->GetDuration();
+            if (duratioon < audio_track->GetDuration()) {
+                duratioon = audio_track->GetDuration();
+            }
         }
     }
-    return 0L;
+    pthread_mutex_unlock(&state_mutex);
+    return duratioon;
 }
 
 jlong CodecPlayer::getCurrentTimestamp() {
+    jlong timestamp = 0L;
+    pthread_mutex_lock(&state_mutex);
     if (is_audio_prepared && is_video_prepared) {
         if (video_track != NULL) {
-            return video_track->GetCurrentTimestamp();
+            timestamp = video_track->GetCurrentTimestamp();
         }
         if (audio_track != NULL) {
-            return audio_track->GetCurrentTimestamp();
+            if (timestamp < audio_track->GetCurrentTimestamp()) {
+                timestamp = audio_track->GetCurrentTimestamp();
+            }
         }
     }
-    return 0L;
+    pthread_mutex_unlock(&state_mutex);
+    return timestamp;
 }
 
 void CodecPlayer::seekTo(jlong position) {
+    pthread_mutex_lock(&state_mutex);
     if (is_audio_prepared && is_video_prepared) {
         sync_clock = position;
         if (audio_track != NULL) {
@@ -150,35 +170,46 @@ void CodecPlayer::seekTo(jlong position) {
             video_track->SeekTo(position);
         }
     }
+    pthread_mutex_unlock(&state_mutex);
 }
 
 jint CodecPlayer::getMaxVolumeLevel() {
+    jint volumeLevel = 0;
+    pthread_mutex_lock(&state_mutex);
     if (is_audio_prepared) {
         if (audio_track != NULL) {
-            return audio_track->GetMaxVolumeLevel();
+            volumeLevel = audio_track->GetMaxVolumeLevel();
         }
     }
-    return 0;
+    pthread_mutex_unlock(&state_mutex);
+    return volumeLevel;
 }
 
 jint CodecPlayer::getVolumeLevel() {
+    jint volumeLevel = 0;
+    pthread_mutex_lock(&state_mutex);
     if (is_audio_prepared) {
         if (audio_track != NULL) {
-            return audio_track->GetVolumeLevel();
+            volumeLevel = audio_track->GetVolumeLevel();
         }
     }
-    return 0;
+    pthread_mutex_unlock(&state_mutex);
+    return volumeLevel;
 }
 
 void CodecPlayer::setVolumeLevel(jint volume) {
+    pthread_mutex_lock(&state_mutex);
     if (is_audio_prepared) {
         if (audio_track != NULL) {
             audio_track->SetVolumeLevel(volume);
         }
     }
+    pthread_mutex_unlock(&state_mutex);
 }
 
 void CodecPlayer::OnTrackPrepared(JNIEnv *env, int track_type) {
+    bool prepared = false;
+    pthread_mutex_lock(&state_mutex);
     if (track_type == MODULE_CODE_AUDIO) {
         is_audio_prepared = true;
     }
@@ -187,11 +218,17 @@ void CodecPlayer::OnTrackPrepared(JNIEnv *env, int track_type) {
     }
     if (is_audio_prepared && is_video_prepared && state == IDLE) {
         state = PREPARED;
+        prepared = true;
+    }
+    pthread_mutex_unlock(&state_mutex);
+    if (prepared) {
         onPostEventToJava(env, CALLBACK_PREPARED, 0, 0, NULL);
     }
 }
 
 void CodecPlayer::OnTrackCompleted(JNIEnv *env, int track_type) {
+    bool completed = false;
+    pthread_mutex_lock(&state_mutex);
     if (track_type == MODULE_CODE_AUDIO) {
         is_audio_completed = true;
     }
@@ -203,19 +240,23 @@ void CodecPlayer::OnTrackCompleted(JNIEnv *env, int track_type) {
             if (is_audio_completed && is_video_completed) {
                 state = COMPLETED;
                 sync_clock = getDuration();
-                onPostEventToJava(env, CALLBACK_COMPLETED, 0, 0, NULL);
+                completed = true;
             }
         }
         else if (audio_track != NULL && is_audio_completed) {
             state = COMPLETED;
             sync_clock = getDuration();
-            onPostEventToJava(env, CALLBACK_COMPLETED, 0, 0, NULL);
+            completed = true;
         }
         else if (video_track != NULL && is_video_completed) {
             state = COMPLETED;
             sync_clock = getDuration();
-            onPostEventToJava(env, CALLBACK_COMPLETED, 0, 0, NULL);
+            completed = true;
         }
+    }
+    pthread_mutex_unlock(&state_mutex);
+    if (completed) {
+        onPostEventToJava(env, CALLBACK_COMPLETED, 0, 0, NULL);
     }
 }
 
@@ -224,6 +265,8 @@ void CodecPlayer::OnTrackSeekingProgress(JNIEnv *env, int track_type, int progre
 }
 
 void CodecPlayer::OnTrackSeekCompleted(JNIEnv *env, int track_type) {
+    bool completed = false;
+    pthread_mutex_lock(&state_mutex);
     if (track_type == MODULE_CODE_AUDIO) {
         is_audio_seek_completed = true;
     }
@@ -233,15 +276,19 @@ void CodecPlayer::OnTrackSeekCompleted(JNIEnv *env, int track_type) {
     if (is_audio_prepared && is_video_prepared) {
         if (audio_track != NULL && video_track != NULL) {
             if (is_audio_seek_completed && is_video_seek_completed) {
-                onPostEventToJava(jniEnv, CALLBACK_SEEK_COMPLETED, 0, 0, NULL);
+                completed = true;
             }
         }
         else if (audio_track != NULL && is_audio_seek_completed) {
-            onPostEventToJava(jniEnv, CALLBACK_SEEK_COMPLETED, 0, 0, NULL);
+            completed = true;
         }
         else if (video_track != NULL && is_video_seek_completed) {
-            onPostEventToJava(jniEnv, CALLBACK_SEEK_COMPLETED, 0, 0, NULL);
+            completed = true;
         }
+    }
+    pthread_mutex_unlock(&state_mutex);
+    if (completed) {
+        onPostEventToJava(jniEnv, CALLBACK_SEEK_COMPLETED, 0, 0, NULL);
     }
 }
 
@@ -256,6 +303,8 @@ void CodecPlayer::OnTrackVideoInfo(JNIEnv *env, int video_width, int video_heigh
 }
 
 void CodecPlayer::OnTrackError(JNIEnv *env, int track_type, int error_code, const char *error_msg) {
+    bool completed = false;
+    pthread_mutex_lock(&state_mutex);
     if (track_type == MODULE_CODE_AUDIO) {
         if (!is_audio_prepared) {
             is_audio_prepared = true;
@@ -276,7 +325,11 @@ void CodecPlayer::OnTrackError(JNIEnv *env, int track_type, int error_code, cons
     if (is_audio_prepared && is_video_prepared && state == IDLE) {
         if (audio_track != NULL || video_track != NULL) {
             state = PREPARED;
-            onPostEventToJava(env, CALLBACK_PREPARED, 0, 0, NULL);
+            completed = true;
         }
+    }
+    pthread_mutex_unlock(&state_mutex);
+    if (completed) {
+        onPostEventToJava(env, CALLBACK_PREPARED, 0, 0, NULL);
     }
 }

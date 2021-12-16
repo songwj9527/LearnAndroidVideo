@@ -17,22 +17,17 @@ BaseDecoder::BaseDecoder(JNIEnv *env, FFmpegPlayer *mediaPlayer, const char *url
 }
 
 BaseDecoder::~BaseDecoder() {
-    LOGE(TAG, "%s", "~BaseDecoder 0");
     mediaPlayer = NULL;
     render = NULL;
 
-    LOGE(TAG, "%s", "~BaseDecoder 1");
-    /**
-     * 释放ffmpeg相关资源
-     */
+    // 释放ffmpeg相关资源
     doneDecode();
-    LOGE(TAG, "%s", "~BaseDecoder 2");
-    /**
-     * 释放锁
-     */
+
+    // 释放锁
     pthread_cond_destroy(&m_cond);
     pthread_mutex_destroy(&m_mutex);
-    LOGE(TAG, "%s", "~BaseDecoder 3");
+
+    LOGE(TAG, "%s", "~BaseDecoder");
 }
 
 /**
@@ -224,10 +219,7 @@ void BaseDecoder::loopDecode(JNIEnv *env) {
     pthread_mutex_unlock(&m_mutex);
     onPrepared(env);
     if (render != NULL) {
-        LOGE(TAG, "loopDecode: %s", "render.prepareSync()");
         render->prepareSync(env, mediaPlayer, this);
-    } else {
-        LOGE(TAG, "loopDecode: %s", "render NULL");
     }
     while (isRunning()) {
         bool isDecodeQueueEmpty = false, isRenderQueueMax = false;

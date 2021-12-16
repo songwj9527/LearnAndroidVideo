@@ -15,26 +15,6 @@ extern "C" {
 #include <libavcodec/jni.h>
 }
 
-#include <signal.h>
-
-#define SIGNALS_LEN 7
-const int signal_array[] = {SIGILL, SIGABRT, SIGBUS, SIGFPE, SIGSEGV, SIGSTKFLT, SIGSYS};
-void signal_handle(int code, siginfo_t *si, void *context) {
-
-}
-
-void init() {
-    struct sigaction old_signal_handlers[SIGNALS_LEN];
-
-    struct sigaction handler;
-    handler.sa_sigaction = signal_handle;
-    handler.sa_flags = SA_SIGINFO;
-
-    for (int i = 0; i < SIGNALS_LEN; ++i) {
-        sigaction(signal_array[i], &handler, & old_signal_handlers[i]);
-    }
-}
-
 JNIEXPORT jstring JNICALL ffmpegInfo(JNIEnv *env, jobject obj) {
     char info[40000] = {0};
     AVCodec *c_temp = av_codec_next(NULL);
@@ -370,7 +350,7 @@ JNIEXPORT void JNICALL nativeRelease(JNIEnv *env, jobject obj, jint player) {
         return;
     }
     mediaPlayer->release();
-    av_usleep(50000);
+    av_usleep(100000);
     delete mediaPlayer;
 }
 

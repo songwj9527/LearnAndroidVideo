@@ -26,9 +26,11 @@ void MediaPlayer::prepareSync() {
         return;
     }
     reset();
+    pthread_mutex_lock(&state_mutex);
     videoRender = new DefaultVideoRender(false);
     videoDecoder = new VideoDecoder(jniEnv, this, sourceURL, videoRender, false);
     openSlRender = new OpenSLRender(false);
     audioDecoder = new AudioDecoder(jniEnv, this, sourceURL, openSlRender, false);
+    pthread_mutex_unlock(&state_mutex);
     LOGE(TAG, "%s", "prepareSync()");
 }
