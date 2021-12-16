@@ -21,9 +21,7 @@ void DefaultCodecPlayer::prepareSync() {
         onError(jniEnv, MEDIA_SOURCE_URL_ERROR, "传入的url为空");
         return;
     }
-    pthread_mutex_lock(&state_mutex);
     audio_track = new AudioTrack(jniEnv, sourceURL, this);
     video_track = new DefaultVideoTrack(jniEnv, sourceURL, this);
-    pthread_mutex_unlock(&state_mutex);
     LOGE(TAG, "%s", "prepareSync()");
 }

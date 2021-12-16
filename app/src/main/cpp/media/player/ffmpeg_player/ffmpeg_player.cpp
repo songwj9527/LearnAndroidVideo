@@ -22,7 +22,6 @@ FFmpegPlayer::~FFmpegPlayer() {
  */
 void FFmpegPlayer::setSurface(jobject surface) {
     LOGE(TAG, "%s", "setSurface()");
-    pthread_mutex_lock(&state_mutex);
     if (state != STOPPED) {
         if (jsurface != NULL) {
             if (!jniEnv->IsSameObject(jsurface, NULL)) {
@@ -38,7 +37,6 @@ void FFmpegPlayer::setSurface(jobject surface) {
             videoRender->setSurface(jniEnv, jsurface);
         }
     }
-    pthread_mutex_unlock(&state_mutex);
 }
 
 /**
@@ -60,7 +58,6 @@ double FFmpegPlayer::getSyncClock() {
  * 开始播放
  */
 void FFmpegPlayer::start() {
-    pthread_mutex_lock(&state_mutex);
     if (videoDecoderPrepared && videoRenderPrepared && audioDecoderPrepared && audioRenderPrepared) {
 //    if (audioDecoderPrepared && audioRenderPrepared) {
 //    if (videoDecoderPrepared && videoRenderPrepared) {
@@ -81,7 +78,6 @@ void FFmpegPlayer::start() {
             }
         }
     }
-    pthread_mutex_unlock(&state_mutex);
 }
 
 /**
@@ -89,7 +85,6 @@ void FFmpegPlayer::start() {
  */
 void FFmpegPlayer::resume() {
     LOGE(TAG, "%s", "resume() 0 ");
-    pthread_mutex_lock(&state_mutex);
     if (videoDecoderPrepared && videoRenderPrepared && audioDecoderPrepared && audioRenderPrepared) {
 //    if (audioDecoderPrepared && audioRenderPrepared) {
 //    if (videoDecoderPrepared && videoRenderPrepared) {
@@ -111,7 +106,6 @@ void FFmpegPlayer::resume() {
             }
         }
     }
-    pthread_mutex_unlock(&state_mutex);
 }
 
 /**
@@ -119,7 +113,6 @@ void FFmpegPlayer::resume() {
  */
 void FFmpegPlayer::pause() {
     LOGE(TAG, "%s", "pause()");
-    pthread_mutex_lock(&state_mutex);
     if (videoDecoderPrepared && videoRenderPrepared && audioDecoderPrepared && audioRenderPrepared) {
 //    if (audioDecoderPrepared && audioRenderPrepared) {
 //    if (videoDecoderPrepared && videoRenderPrepared) {
@@ -139,7 +132,6 @@ void FFmpegPlayer::pause() {
             }
         }
     }
-    pthread_mutex_unlock(&state_mutex);
 }
 
 /**
@@ -147,7 +139,6 @@ void FFmpegPlayer::pause() {
  */
 void FFmpegPlayer::stop() {
     LOGE(TAG, "%s", "stop()");
-    pthread_mutex_lock(&state_mutex);
     if (videoDecoderPrepared && videoRenderPrepared && audioDecoderPrepared && audioRenderPrepared) {
 //    if (audioDecoderPrepared && audioRenderPrepared) {
 //    if (videoDecoderPrepared && videoRenderPrepared) {
@@ -155,42 +146,9 @@ void FFmpegPlayer::stop() {
             state = STOPPED;
         }
     }
-    if (videoRender != NULL) {
-        videoRender->stop();
-    }
-    if (openSlRender != NULL) {
-        // 这里可能会奔溃，具体原因还没找到
-        openSlRender->stop();
-//        delete openSlRender;
-    }
-    if (videoDecoder != NULL) {
-        videoDecoder->stop();
-    }
-    if (audioDecoder != NULL) {
-        audioDecoder->stop();
-    }
-    videoDecoder = NULL;
-    audioDecoder = NULL;
-    videoRender = NULL;
-    openSlRender = NULL;
-    pthread_mutex_unlock(&state_mutex);
-}
-
-/**
- * 重置播放器
- */
-void FFmpegPlayer::reset() {
-    pthread_mutex_lock(&state_mutex);
-    if (state != STOPPED) {
-        state = STOPPED;
-    }
     if (videoDecoder != NULL) {
         videoDecoder->stop();
         videoDecoder = NULL;
-    }
-    if (audioDecoder != NULL) {
-        audioDecoder->stop();
-        audioDecoder = NULL;
     }
     if (videoRender != NULL) {
         videoRender->release();
@@ -202,6 +160,37 @@ void FFmpegPlayer::reset() {
 //        delete openSlRender;
         openSlRender = NULL;
     }
+    if (audioDecoder != NULL) {
+        audioDecoder->stop();
+        audioDecoder = NULL;
+    }
+}
+
+/**
+ * 重置播放器
+ */
+void FFmpegPlayer::reset() {
+    if (state != STOPPED) {
+        state = STOPPED;
+    }
+    if (videoDecoder != NULL) {
+        videoDecoder->stop();
+        videoDecoder = NULL;
+    }
+    if (videoRender != NULL) {
+        videoRender->release();
+        videoRender = NULL;
+    }
+    if (openSlRender != NULL) {
+        // 这里可能会奔溃，具体原因还没找到
+        openSlRender->release();
+//        delete openSlRender;
+        openSlRender = NULL;
+    }
+    if (audioDecoder != NULL) {
+        audioDecoder->stop();
+        audioDecoder = NULL;
+    }
     videoDecoderPrepared = false;
     videoRenderPrepared = false;
     audioDecoderPrepared = false;
@@ -211,7 +200,6 @@ void FFmpegPlayer::reset() {
     audioDecoderCompleted = false;
     audioRenderCompleted = false;
     state = IDLE;
-    pthread_mutex_unlock(&state_mutex);
 }
 
 /**
@@ -219,28 +207,27 @@ void FFmpegPlayer::reset() {
  */
 void FFmpegPlayer::release() {
     LOGE(TAG, "%s", "release()");
-    pthread_mutex_lock(&state_mutex);
     if (state != STOPPED) {
         state = STOPPED;
     }
+    if (videoDecoder != NULL) {
+        videoDecoder->stop();
+        videoDecoder = NULL;
+    }
     if (videoRender != NULL) {
         videoRender->release();
+        videoRender = NULL;
     }
     if (openSlRender != NULL) {
         // 这里可能会奔溃，具体原因还没找到
         openSlRender->release();
 //        delete openSlRender;
-    }
-    if (videoDecoder != NULL) {
-        videoDecoder->stop();
+        openSlRender = NULL;
     }
     if (audioDecoder != NULL) {
         audioDecoder->stop();
+        audioDecoder = NULL;
     }
-    videoRender = NULL;
-    videoDecoder = NULL;
-    openSlRender = NULL;
-    audioDecoder = NULL;
     videoDecoderPrepared = false;
     videoRenderPrepared = false;
     audioDecoderPrepared = false;
@@ -254,7 +241,6 @@ void FFmpegPlayer::release() {
     // 释放source url相关资源
     releaseSourceURL();
     LOGE(TAG, "%s", "release() 2");
-    pthread_mutex_unlock(&state_mutex);
 }
 
 /**
@@ -264,7 +250,6 @@ void FFmpegPlayer::release() {
 jlong FFmpegPlayer::getDuration() {
     LOGE(TAG, "%s", "getDuration() 0");
     jlong ret = 0;
-    pthread_mutex_lock(&state_mutex);
     if (videoDecoderPrepared && videoRenderPrepared && audioDecoderPrepared && audioRenderPrepared) {
 //    if (audioDecoderPrepared && audioRenderPrepared) {
 //    if (videoDecoderPrepared && videoRenderPrepared) {
@@ -277,7 +262,6 @@ jlong FFmpegPlayer::getDuration() {
             }
         }
     }
-    pthread_mutex_unlock(&state_mutex);
     LOGE(TAG, "getDuration() %lld", ret);
     return ret;
 }
@@ -288,7 +272,6 @@ jlong FFmpegPlayer::getDuration() {
  */
 jlong FFmpegPlayer::getCurrentTimestamp() {
     jlong timestamp = 0L;
-    pthread_mutex_lock(&state_mutex);
     if (videoDecoderPrepared && videoRenderPrepared && audioDecoderPrepared && audioRenderPrepared) {
 //    if (audioDecoderPrepared && audioRenderPrepared) {
 //    if (videoDecoderPrepared && videoRenderPrepared) {
@@ -299,7 +282,6 @@ jlong FFmpegPlayer::getCurrentTimestamp() {
             timestamp =  (jlong) (sync_clock * 1000);
         }
     }
-    pthread_mutex_unlock(&state_mutex);
     return timestamp;
 }
 
@@ -308,7 +290,6 @@ jlong FFmpegPlayer::getCurrentTimestamp() {
  * @param position
  */
 void FFmpegPlayer::seekTo(jlong position) {
-    pthread_mutex_lock(&state_mutex);
     if (videoDecoderPrepared && videoRenderPrepared && audioDecoderPrepared && audioRenderPrepared) {
 //    if (audioDecoderPrepared && audioRenderPrepared) {
 //    if (videoDecoderPrepared && videoRenderPrepared) {
@@ -327,7 +308,6 @@ void FFmpegPlayer::seekTo(jlong position) {
             audioDecoder->seekTo(position);
         }
     }
-    pthread_mutex_unlock(&state_mutex);
 //    onPostEventToJava(jniEnv, CALLBACK_SEEK_COMPLETED, 0, 0, NULL);
 }
 
@@ -338,13 +318,11 @@ void FFmpegPlayer::seekTo(jlong position) {
 jint FFmpegPlayer::getMaxVolumeLevel() {
 //    if (videoDecoderPrepared && videoRenderPrepared && audioDecoderPrepared && audioRenderPrepared) {
     jint volumeLevel = 0;
-    pthread_mutex_lock(&state_mutex);
     if (audioDecoderPrepared && audioRenderPrepared) {
         if (openSlRender != NULL) {
             volumeLevel = openSlRender->getMaxVolumeLevel();
         }
     }
-    pthread_mutex_unlock(&state_mutex);
     return volumeLevel;
 }
 
@@ -355,13 +333,11 @@ jint FFmpegPlayer::getMaxVolumeLevel() {
 jint FFmpegPlayer::getVolumeLevel() {
 //    if (videoDecoderPrepared && videoRenderPrepared && audioDecoderPrepared && audioRenderPrepared) {
     jint volumeLevel = 0;
-    pthread_mutex_lock(&state_mutex);
     if (audioDecoderPrepared && audioRenderPrepared) {
         if (openSlRender != NULL) {
             volumeLevel = openSlRender->getVolumeLevel();
         }
     }
-    pthread_mutex_unlock(&state_mutex);
     return volumeLevel;
 }
 
@@ -371,13 +347,11 @@ jint FFmpegPlayer::getVolumeLevel() {
  */
 void FFmpegPlayer::setVolumeLevel(jint volume) {
 //    if (videoDecoderPrepared && videoRenderPrepared && audioDecoderPrepared && audioRenderPrepared) {
-    pthread_mutex_lock(&state_mutex);
     if (audioDecoderPrepared && audioRenderPrepared) {
         if (openSlRender != NULL) {
             openSlRender->setVolumeLevel(volume);
         }
     }
-    pthread_mutex_unlock(&state_mutex);
 }
 
 void FFmpegPlayer::onDecoderInfo(JNIEnv *env, int decoder, int videoWidth, int videoHeight, int videoRotation) {
@@ -392,14 +366,12 @@ void FFmpegPlayer::onDecoderInfo(JNIEnv *env, int decoder, int videoWidth, int v
 
 void FFmpegPlayer::onDecoderPrepared(JNIEnv *env, int decoder) {
     LOGE(TAG, "onDecoderPrepared: %d", decoder);
-    pthread_mutex_lock(&state_mutex);
     if (decoder == MODULE_CODE_VIDEO) {
         videoDecoderPrepared = true;
     }
     else if (decoder == MODULE_CODE_AUDIO) {
         audioDecoderPrepared = true;
     }
-    pthread_mutex_unlock(&state_mutex);
 }
 
 void FFmpegPlayer::onDecoderBufferUpdate(JNIEnv *env, int decoder, int progress) {}
@@ -407,7 +379,6 @@ void FFmpegPlayer::onDecoderBufferUpdate(JNIEnv *env, int decoder, int progress)
 void FFmpegPlayer::onDecoderCompleted(JNIEnv *env, int decoder) {
     LOGE(TAG, "onDecoderCompleted: %d", decoder);
     bool completed = false;
-    pthread_mutex_lock(&state_mutex);
     if (decoder == MODULE_CODE_VIDEO) {
         videoDecoderCompleted = true;
     }
@@ -420,7 +391,6 @@ void FFmpegPlayer::onDecoderCompleted(JNIEnv *env, int decoder) {
         state = COMPLETED;
         completed = true;
     }
-    pthread_mutex_unlock(&state_mutex);
     if (completed) {
         onPostEventToJava(env, CALLBACK_COMPLETED, 0, 0, NULL);
     }
@@ -434,7 +404,6 @@ void FFmpegPlayer::onDecoderCompleted(JNIEnv *env, int decoder) {
 void FFmpegPlayer::onDecoderSeekCompleted(JNIEnv *jniEnv, int decoder) {
     LOGE(TAG, "onDecoderSeekCompleted: %d", decoder);
     bool completed = false;
-    pthread_mutex_lock(&state_mutex);
     if (decoder == MODULE_CODE_VIDEO) {
         videoDecoderSeekCompleted = true;
     }
@@ -450,7 +419,6 @@ void FFmpegPlayer::onDecoderSeekCompleted(JNIEnv *jniEnv, int decoder) {
         }
         completed = true;
     }
-    pthread_mutex_unlock(&state_mutex);
     if (completed) {
         onPostEventToJava(jniEnv, CALLBACK_SEEK_COMPLETED, 0, 0, NULL);
     }
@@ -460,7 +428,6 @@ void FFmpegPlayer::onDecoderError(JNIEnv *env, int decoder, int code, const char
     LOGE(TAG, "onDecoderError: %d, %d, %s", decoder, code, msg);
     onError(env, code, msg);
     if (decoder == MODULE_CODE_VIDEO) {
-        pthread_mutex_lock(&state_mutex);
         if (videoDecoder != NULL) {
             videoDecoder->stop();
             videoDecoder = NULL;
@@ -469,10 +436,8 @@ void FFmpegPlayer::onDecoderError(JNIEnv *env, int decoder, int code, const char
             videoRender->stop();
             videoRender = NULL;
         }
-        pthread_mutex_unlock(&state_mutex);
     }
     else if (decoder == MODULE_CODE_AUDIO) {
-        pthread_mutex_lock(&state_mutex);
         if (audioDecoder != NULL) {
             audioDecoder->stop();
             audioDecoder = NULL;
@@ -485,14 +450,12 @@ void FFmpegPlayer::onDecoderError(JNIEnv *env, int decoder, int code, const char
 //            delete openSlRender;
             openSlRender = NULL;
         }
-        pthread_mutex_unlock(&state_mutex);
     }
 }
 
 void FFmpegPlayer::onRenderPrepared(JNIEnv *env, int render) {
     LOGE(TAG, "onRenderPrepared(): %d", render);
     bool prepared = false;
-    pthread_mutex_lock(&state_mutex);
     if (render == MODULE_CODE_VIDEO) {
         videoRenderPrepared = true;
         if (videoRender != NULL) {
@@ -508,7 +471,6 @@ void FFmpegPlayer::onRenderPrepared(JNIEnv *env, int render) {
         state = PREPARED;
         prepared = true;
     }
-    pthread_mutex_unlock(&state_mutex);
     if (prepared) {
         onPostEventToJava(env, CALLBACK_PREPARED, 0, 0, NULL);
     }
@@ -517,7 +479,6 @@ void FFmpegPlayer::onRenderPrepared(JNIEnv *env, int render) {
 void FFmpegPlayer::onRenderCompleted(JNIEnv *env, int render) {
     LOGE(TAG, "onRenderCompleted: %d", render);
     bool completed = false;
-    pthread_mutex_lock(&state_mutex);
     if (render == MODULE_CODE_VIDEO) {
         videoRenderCompleted = true;
     }
@@ -531,7 +492,6 @@ void FFmpegPlayer::onRenderCompleted(JNIEnv *env, int render) {
         sync_clock = getDuration();
         completed = true;
     }
-    pthread_mutex_unlock(&state_mutex);
     if (completed) {
         onPostEventToJava(env, CALLBACK_COMPLETED, 0, 0, NULL);
     }
@@ -541,7 +501,6 @@ void FFmpegPlayer::onRenderError(JNIEnv *env, int render, int code, const char *
     LOGE(TAG, "onRenderError: %d, %d, %s", render, code, msg);
     onError(env, code, msg);
     if (render == MODULE_CODE_VIDEO) {
-        pthread_mutex_lock(&state_mutex);
         if (videoDecoder != NULL) {
             videoDecoder->stop();
             videoDecoder = NULL;
@@ -550,10 +509,8 @@ void FFmpegPlayer::onRenderError(JNIEnv *env, int render, int code, const char *
             videoRender->stop();
             videoRender = NULL;
         }
-        pthread_mutex_unlock(&state_mutex);
     }
     else if (render == MODULE_CODE_AUDIO) {
-        pthread_mutex_lock(&state_mutex);
         if (audioDecoder != NULL) {
             audioDecoder->stop();
             audioDecoder = NULL;
@@ -566,6 +523,5 @@ void FFmpegPlayer::onRenderError(JNIEnv *env, int render, int code, const char *
 //            delete openSlRender;
             openSlRender = NULL;
         }
-        pthread_mutex_unlock(&state_mutex);
     }
 }
