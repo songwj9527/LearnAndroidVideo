@@ -67,17 +67,17 @@ void FFmpegPlayer::start() {
         if (state != RUNNING && state != STOPPED) {
             state = RUNNING;
             LOGE(TAG, "%s", "start()");
-            if (videoDecoder != NULL) {
-                videoDecoder->start();
-            }
-            if (audioDecoder != NULL) {
-                audioDecoder->start();
-            }
             if (videoRender != NULL) {
                 videoRender->start();
             }
             if (openSlRender != NULL) {
                 openSlRender->start();
+            }
+            if (videoDecoder != NULL) {
+                videoDecoder->start();
+            }
+            if (audioDecoder != NULL) {
+                audioDecoder->start();
             }
         }
     }

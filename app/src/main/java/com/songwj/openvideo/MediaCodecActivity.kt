@@ -104,7 +104,9 @@ class MediaCodecActivity : AppCompatActivity(),
         setContentView(R.layout.activity_media_codec)
 
         // https://fg-im.oss-cn-hangzhou.aliyuncs.com/develop/2021/09/18/16319561101667686608883e84d8f24620c26c1c48d8ae600a243a8.mp4
-        videoPath = "https://fg-im.oss-cn-hangzhou.aliyuncs.com/develop/2021/09/18/16319561101667686608883e84d8f24620c26c1c48d8ae600a243a8.mp4"
+        // https://fg-im.oss-cn-hangzhou.aliyuncs.com/develop/2020/04/08/15863342135663238314273demo.mov
+        // https://fg-im.oss-cn-hangzhou.aliyuncs.com/develop/2020/04/08/15863400286359235045891VID_20200327_155101.mp4
+        videoPath = "https://fg-im.oss-cn-hangzhou.aliyuncs.com/develop/2020/04/08/15863342135663238314273demo.mov"
 //        var inPath = intent.getStringExtra("file_path")
 //        videoPath = if(TextUtils.isEmpty(inPath)) {
 //            Environment.getExternalStorageDirectory().absolutePath + "/" + videoName
