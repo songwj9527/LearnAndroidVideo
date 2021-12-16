@@ -3,6 +3,11 @@ package com.songwj.openvideo.mediacodec;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Surface;
+
+import com.danikula.videocache.CacheListener;
+import com.danikula.videocache.HttpProxyCacheServer;
+import com.songwj.openvideo.MyApplication;
+import com.songwj.openvideo.cache.HttpProxyCacheManager;
 import com.songwj.openvideo.mediacodec.decoder.AudioDecoder;
 import com.songwj.openvideo.mediacodec.decoder.BaseDecoder;
 import com.songwj.openvideo.mediacodec.decoder.IDecoderStateListener;
@@ -15,7 +20,7 @@ import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MediaCodecPlayer {
+public class MediaCodecPlayer implements CacheListener {
     private static final String TAG = "MediaCodecPlayer";
 
     public enum PlayMode {
@@ -54,26 +59,69 @@ public class MediaCodecPlayer {
     private OnErrorListener onErrorListener;
     private OnFrameListener onFrameListener;
 
-    private String filePath;
     private ExecutorService threadPool;
     private VideoDecoder videoDecoder = null;
     private Surface surface = null;
     private AudioDecoder audioDecoder = null;
     private boolean videoInited = false, videoOK = false, audioInited = false, audioOK = false;
 
+    private HttpProxyCacheServer proxy = null; // 缓存代理
+    private File cacheFile = null;
+    private boolean isCacheFile = false; // 是否是缓存的文件
+    private String currentUrl; // 播放地址
+    private String originUrl; //原来的url
+    private int currentBufferPoint = 0; // 当前缓冲百分比
+
     public MediaCodecPlayer() {
         threadPool = Executors.newFixedThreadPool(8);
+        proxy = HttpProxyCacheManager.getInstance().getProxy(MyApplication.Companion.getInstance());
+        cacheFile = new File(HttpProxyCacheManager.getInstance().getCacheDirectory(MyApplication.Companion.getInstance()));
     }
 
-    synchronized public void setDataSource(String filePath) {
-        if (TextUtils.isEmpty(filePath) || !new File(filePath).exists()) {
+    synchronized public void setDataSource(String url) {
+        if (!TextUtils.isEmpty(currentUrl) && !currentUrl.contains("127.0.0.1")) {
+            if (cacheFile != null
+                    || !cacheFile.getAbsolutePath().equals(HttpProxyCacheManager.getInstance().getCacheDirectory(MyApplication.Companion.getInstance()))) {
+                if (proxy != null) {
+                    proxy.shutdown();
+                }
+                proxy = HttpProxyCacheManager.getInstance().getProxy(MyApplication.Companion.getInstance());
+            }
+            if (proxy != null) {
+                proxy.unregisterCacheListener(this, currentUrl);
+            }
+        }
+        if (TextUtils.isEmpty(url)) {
             if (onErrorListener != null) {
-                onErrorListener.onError(this, 0, "" + filePath + ": 文件不存在");
+                onErrorListener.onError(this, 0, "" + url + ": 文件不存在");
             }
             return;
         }
-
-        this.filePath = filePath;
+        originUrl = url;
+        boolean cachePlay = url.startsWith("http");
+        // 初始化缓存
+        if (cachePlay && !url.contains("127.0.0.1")) {
+            if (proxy == null) {
+                proxy = HttpProxyCacheManager.getInstance().getProxy(MyApplication.Companion.getInstance());
+            }
+            //此处转换了url，然后再赋值给mUrl。
+            url = proxy.getProxyUrl(url).replace("file://", "");
+            isCacheFile = (!url.startsWith("http"));
+            //注册上缓冲监听
+            if (!isCacheFile) {
+                proxy.registerCacheListener(this, originUrl);
+            }
+        }
+        if (!cachePlay) {
+            if (TextUtils.isEmpty(url) || !new File(url).exists()) {
+                if (onErrorListener != null) {
+                    onErrorListener.onError(this, 0, "" + url + ": 文件不存在");
+                }
+                return;
+            }
+        }
+        currentUrl = url;
+        Log.e(TAG, "PlayUrl: " + currentUrl);
 
         state = State.IDLE;
         preState = State.IDLE;
@@ -97,7 +145,7 @@ public class MediaCodecPlayer {
 
         if (playMode != PlayMode.ONLY_AUDIO) {
             Log.e(">>>>>>", "PlayMode: " + playMode.name());
-            videoDecoder = new VideoDecoder(filePath, surface);
+            videoDecoder = new VideoDecoder(currentUrl, surface);
             videoDecoder.setStateListener(new IDecoderStateListener() {
 
                 @Override
@@ -248,7 +296,7 @@ public class MediaCodecPlayer {
         }
 
         if (playMode != PlayMode.ONLY_VIDEO) {
-            audioDecoder = new AudioDecoder(filePath);
+            audioDecoder = new AudioDecoder(currentUrl);
             audioDecoder.setStateListener(new IDecoderStateListener() {
 
                 @Override
@@ -388,9 +436,21 @@ public class MediaCodecPlayer {
         }
     }
 
-    synchronized public void setDataSource(String filePath, PlayMode playMode) {
+    /**
+     * 缓存监听
+     * @param cacheFile
+     * @param url
+     * @param percentsAvailable
+     */
+    @Override
+    public void onCacheAvailable(File cacheFile, String url, int percentsAvailable) {
+        Log.d(TAG, "onCacheAvailable(): "+percentsAvailable);
+        currentBufferPoint = percentsAvailable;
+    }
+
+    synchronized public void setDataSource(String url, PlayMode playMode) {
         this.playMode = playMode;
-        setDataSource(filePath);
+        setDataSource(url);
     }
 
     synchronized public void setDisplay(Surface surface) {
@@ -587,14 +647,36 @@ public class MediaCodecPlayer {
             preState = State.IDLE;
         }
 
-        if (TextUtils.isEmpty(filePath) || !new File(filePath).exists()) {
+        if (TextUtils.isEmpty(currentUrl)) {
             if (onErrorListener != null) {
-                onErrorListener.onError(this, 0, "" + filePath + ": 文件不存在");
+                onErrorListener.onError(this, 0, "" + currentUrl + ": 文件不存在");
             }
             return;
         }
-
-        videoDecoder = new VideoDecoder(filePath, surface);
+        boolean cachePlay = currentUrl.startsWith("http");
+        // 初始化缓存
+        if (cachePlay && !currentUrl.contains("127.0.0.1")) {
+            if (proxy == null) {
+                proxy = HttpProxyCacheManager.getInstance().getProxy(MyApplication.Companion.getInstance());
+            }
+            //此处转换了url，然后再赋值给mUrl。
+            currentUrl = proxy.getProxyUrl(currentUrl).replace("file://", "");
+            isCacheFile = (!currentUrl.startsWith("http"));
+            //注册上缓冲监听
+            if (!isCacheFile) {
+                proxy.registerCacheListener(this, originUrl);
+            }
+        }
+        if (!cachePlay) {
+            if (!new File(currentUrl).exists()) {
+                if (onErrorListener != null) {
+                    onErrorListener.onError(this, 0, "" + currentUrl + ": 文件不存在");
+                }
+                return;
+            }
+        }
+        currentBufferPoint = 0;
+        videoDecoder = new VideoDecoder(currentUrl, surface);
         videoDecoder.setStateListener(new IDecoderStateListener() {
 
             @Override
@@ -755,7 +837,7 @@ public class MediaCodecPlayer {
                 }
             }
         });
-        audioDecoder = new AudioDecoder(filePath);
+        audioDecoder = new AudioDecoder(currentUrl);
         audioDecoder.setStateListener(new IDecoderStateListener() {
 
             @Override
@@ -933,14 +1015,36 @@ public class MediaCodecPlayer {
             preState = State.IDLE;
         }
 
-        if (TextUtils.isEmpty(filePath) || !new File(filePath).exists()) {
+        if (TextUtils.isEmpty(currentUrl)) {
             if (onErrorListener != null) {
-                onErrorListener.onError(this, 0, "" + filePath + ": 文件不存在");
+                onErrorListener.onError(this, 0, "" + currentUrl + ": 文件不存在");
             }
             return;
         }
-
-        videoDecoder = new VideoDecoder(filePath, surface);
+        boolean cachePlay = currentUrl.startsWith("http");
+        // 初始化缓存
+        if (cachePlay && !currentUrl.contains("127.0.0.1")) {
+            if (proxy == null) {
+                proxy = HttpProxyCacheManager.getInstance().getProxy(MyApplication.Companion.getInstance());
+            }
+            //此处转换了url，然后再赋值给mUrl。
+            currentUrl = proxy.getProxyUrl(currentUrl).replace("file://", "");
+            isCacheFile = (!currentUrl.startsWith("http"));
+            //注册上缓冲监听
+            if (!isCacheFile) {
+                proxy.registerCacheListener(this, originUrl);
+            }
+        }
+        if (!cachePlay) {
+            if (!new File(currentUrl).exists()) {
+                if (onErrorListener != null) {
+                    onErrorListener.onError(this, 0, "" + currentUrl + ": 文件不存在");
+                }
+                return;
+            }
+        }
+        currentBufferPoint = 0;
+        videoDecoder = new VideoDecoder(currentUrl, surface);
         videoDecoder.setStateListener(new IDecoderStateListener() {
 
             @Override
@@ -1118,7 +1222,7 @@ public class MediaCodecPlayer {
                 }
             }
         });
-        audioDecoder = new AudioDecoder(filePath);
+        audioDecoder = new AudioDecoder(currentUrl);
         audioDecoder.setStateListener(new IDecoderStateListener() {
 
             @Override
@@ -1297,6 +1401,7 @@ public class MediaCodecPlayer {
             audioDecoder.release();
             audioDecoder = null;
         }
+        currentBufferPoint = 0;
     }
 
     synchronized public State getState() {

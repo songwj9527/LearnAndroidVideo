@@ -103,12 +103,14 @@ class MediaCodecActivity : AppCompatActivity(),
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_media_codec)
 
-        var inPath = intent.getStringExtra("file_path")
-        videoPath = if(TextUtils.isEmpty(inPath)) {
-            Environment.getExternalStorageDirectory().absolutePath + "/" + videoName
-        } else {
-            inPath
-        }
+        // https://fg-im.oss-cn-hangzhou.aliyuncs.com/develop/2021/09/18/16319561101667686608883e84d8f24620c26c1c48d8ae600a243a8.mp4
+        videoPath = "https://fg-im.oss-cn-hangzhou.aliyuncs.com/develop/2021/09/18/16319561101667686608883e84d8f24620c26c1c48d8ae600a243a8.mp4"
+//        var inPath = intent.getStringExtra("file_path")
+//        videoPath = if(TextUtils.isEmpty(inPath)) {
+//            Environment.getExternalStorageDirectory().absolutePath + "/" + videoName
+//        } else {
+//            inPath
+//        }
 
         progress_seekbar.setOnSeekBarChangeListener(this)
         start.setOnClickListener(this)

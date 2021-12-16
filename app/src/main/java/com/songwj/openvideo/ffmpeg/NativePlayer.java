@@ -7,10 +7,19 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.Surface;
 
+import com.danikula.videocache.CacheListener;
+import com.danikula.videocache.HttpProxyCacheServer;
+import com.danikula.videocache.file.Md5FileNameGenerator;
+import com.songwj.openvideo.MyApplication;
+import com.songwj.openvideo.cache.CommonUtil;
+import com.songwj.openvideo.cache.HttpProxyCacheManager;
+import com.songwj.openvideo.cache.StorageUtils;
+
+import java.io.File;
 import java.lang.ref.WeakReference;
 import java.math.BigInteger;
 
-public class NativePlayer {
+public class NativePlayer implements CacheListener {
     public enum PlayerType {
         DEFAULT_PLAYER,
         OPENGL_PLAYER,
@@ -63,8 +72,12 @@ public class NativePlayer {
         } else {
             eventHandler = null;
         }
+
+        proxy = HttpProxyCacheManager.getInstance().getProxy(MyApplication.Companion.getInstance());
+        cacheFile = new File(HttpProxyCacheManager.getInstance().getCacheDirectory(MyApplication.Companion.getInstance()));
     }
 
+    private static final String TAG = "NativePlayer";
     private PlayerType playerType;
     private Integer nativePlayer;
     private EventHandler eventHandler;
@@ -75,6 +88,13 @@ public class NativePlayer {
     private OnBufferingUpdateListener onBufferingUpdateListener;
     private OnCompletedListener onCompletedListener;
     private OnErrorListener onErrorListener;
+
+    private HttpProxyCacheServer proxy = null; // 缓存代理
+    private File cacheFile = null;
+    private boolean isCacheFile = false; // 是否是缓存的文件
+    private String currentUrl; // 播放地址
+    private String originUrl; //原来的url
+    private int currentBufferPoint = 0; // 当前缓冲百分比
 
     /**
      * 设置视频源
@@ -101,8 +121,83 @@ public class NativePlayer {
             }
             return;
         }
-        nativeSetDataSource(nativePlayer, url);
+        if (!TextUtils.isEmpty(currentUrl) && !currentUrl.contains("127.0.0.1")) {
+            if (cacheFile != null
+                    || !cacheFile.getAbsolutePath().equals(HttpProxyCacheManager.getInstance().getCacheDirectory(MyApplication.Companion.getInstance()))) {
+                if (proxy != null) {
+                    proxy.shutdown();
+                }
+                proxy = HttpProxyCacheManager.getInstance().getProxy(MyApplication.Companion.getInstance());
+            }
+            if (proxy != null) {
+                proxy.unregisterCacheListener(this, currentUrl);
+            }
+        }
+        originUrl = url;
+        boolean cachePlay = url.startsWith("http");
+        // 初始化缓存
+        if (cachePlay && !url.contains("127.0.0.1")) {
+            if (proxy == null) {
+                proxy = HttpProxyCacheManager.getInstance().getProxy(MyApplication.Companion.getInstance());
+            }
+            //此处转换了url，然后再赋值给mUrl。
+            url = proxy.getProxyUrl(url).replace("file://", "");
+            isCacheFile = (!url.startsWith("http"));
+            //注册上缓冲监听
+            if (!isCacheFile) {
+                proxy.registerCacheListener(this, originUrl);
+            }
+        }
+        currentUrl = url;
+        nativeSetDataSource(nativePlayer, currentUrl);
         state = State.IDLE;
+    }
+
+    /**
+     * 缓存监听
+     * @param cacheFile
+     * @param url
+     * @param percentsAvailable
+     */
+    @Override
+    public void onCacheAvailable(File cacheFile, String url, int percentsAvailable) {
+        Log.d(TAG, "onCacheAvailable(): "+percentsAvailable);
+        currentBufferPoint = percentsAvailable;
+    }
+
+    /**
+     * 播放错误的时候，删除缓存文件
+     */
+    private void deleteCacheFileWhenError() {
+        clearCurrentCache();
+        Log.e(TAG, "Link Or mCache Error, Please Try Again" + currentUrl);
+        currentUrl = originUrl;
+    }
+
+    /**
+     * 清除当前缓存
+     */
+    public void clearCurrentCache() {
+        if (isCacheFile) {
+            //是否为缓存文件
+            Log.e(TAG, " mCacheFile Local Error " + currentUrl);
+            //可能是因为缓存文件除了问题
+            CommonUtil.deleteFile(currentUrl.replace("file://", ""));
+            currentUrl = originUrl;
+        } else if (!TextUtils.isEmpty(currentUrl) && currentUrl.contains("127.0.0.1")) {
+            //是否为缓存了未完成的文件
+            Md5FileNameGenerator md5FileNameGenerator = new Md5FileNameGenerator();
+            String name = md5FileNameGenerator.generate(originUrl);
+            if (cacheFile != null) {
+                String path = cacheFile.getAbsolutePath() + File.separator + name + ".download";
+                CommonUtil.deleteFile(path);
+            } else {
+                String path = StorageUtils.getIndividualCacheDirectory(MyApplication.Companion.getInstance()).getAbsolutePath()
+                        + File.separator + name + ".download";
+                CommonUtil.deleteFile(path);
+            }
+        }
+
     }
 
     /**
@@ -187,6 +282,7 @@ public class NativePlayer {
             nativeReset(nativePlayer);
 //            resetListener();
         }
+        currentBufferPoint = 0;
     }
 
     private void resetListener() {
@@ -209,6 +305,7 @@ public class NativePlayer {
         nativeRelease(nativePlayer);
         resetListener();
         nativePlayer = null;
+        currentBufferPoint = 0;
     }
 
     /**
@@ -367,6 +464,7 @@ public class NativePlayer {
                     case NATIVE_CALLBACK_EVENT_ERROR:
                         NativePlayer player8 = weakNativePlayer.get();
                         if (player8 != null && player8.onErrorListener != null) {
+                            player8.deleteCacheFileWhenError();
                             String errorMsg = "";
                             if (msg.obj != null) {
                                 if (msg.obj instanceof String) {
