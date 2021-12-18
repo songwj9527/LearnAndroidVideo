@@ -19,7 +19,7 @@ class FFmpegPlayerActivity : AppCompatActivity() , TextureView.SurfaceTextureLis
     var filePath: String? = null
     var nativePlayer: NativePlayer? = null
     var texture_view: TextureRenderView? = null
-    var surface: Surface? = null
+    var tagSurface: Surface? = null
     var isStartButtonPress = false
     var isPrepared = false
     var isStarted = false
@@ -95,7 +95,7 @@ class FFmpegPlayerActivity : AppCompatActivity() , TextureView.SurfaceTextureLis
 
         filePath = intent.getStringExtra("file_path")
 
-        nativePlayer = NativePlayer(NativePlayer.PlayerType.DEFAULT_PLAYER)
+        nativePlayer = NativePlayer(NativePlayer.PlayerType.OPENGL_PLAYER)
         Log.e(
             "FFmpegActivity",
             "onCreate()"
@@ -202,7 +202,7 @@ class FFmpegPlayerActivity : AppCompatActivity() , TextureView.SurfaceTextureLis
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-//                nativePlayer?.setSurface(surface)
+//                nativePlayer?.setSurface(tagSurface)
             }
 
         })
@@ -258,6 +258,9 @@ class FFmpegPlayerActivity : AppCompatActivity() , TextureView.SurfaceTextureLis
                         "onSeekCompleted(): else"
                     )
                 }
+
+                Log.e("FFmpegPlayerActivity", "current position: ${nativePlayer?.currentTimestamp}")
+                Log.e("FFmpegPlayerActivity", "duration: ${nativePlayer?.duration}")
                 progress_bar.visibility = View.GONE
                 handler?.sendEmptyMessage(1010)
             }
@@ -395,8 +398,8 @@ class FFmpegPlayerActivity : AppCompatActivity() , TextureView.SurfaceTextureLis
             "FFmpegActivity",
             "onSurfaceTextureAvailable(): $width, $height"
         )
-        this.surface = Surface(surface)
-        nativePlayer?.setSurface(this.surface)
+        this.tagSurface = Surface(surface)
+        nativePlayer?.setSurface(this.tagSurface)
     }
 
     override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture?, width: Int, height: Int) {
@@ -425,13 +428,17 @@ class FFmpegPlayerActivity : AppCompatActivity() , TextureView.SurfaceTextureLis
 
     override fun onResume() {
         super.onResume()
-        nativePlayer?.resume()
+        if (!isPaused && isPrepared && isCompleted) {
+            nativePlayer?.resume()
+        }
     }
 
     override fun onPause() {
         Log.e("FFmpegPlayerActivity", "onPause()")
-        nativePlayer?.pause()
         super.onPause()
+        if (!isPaused && isPrepared && isCompleted) {
+            nativePlayer?.pause()
+        }
     }
 
 //    override fun onStop() {

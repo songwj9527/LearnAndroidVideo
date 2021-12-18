@@ -1,24 +1,24 @@
 //
-// Created by fgrid on 2021/12/16.
+// Created by fgrid on 2021/12/18.
 //
 
-#ifndef OPENVIDEO_FFMPEG_DEFAULT_PLAYER_H
-#define OPENVIDEO_FFMPEG_DEFAULT_PLAYER_H
+#ifndef OPENVIDEO_FFMPEG_OPENGL_PLAYER_H
+#define OPENVIDEO_FFMPEG_OPENGL_PLAYER_H
 
 #include "../player/player.h"
 #include "track/i_track_callback.h"
 #include "track/audio_track.h"
-#include "track/video_track.h"
+#include "track/opengl_video_track.h"
 
-class FFmpegDefaultPlayer : public Player, public IFFmpegTrackCallback {
+class FFmpegOpenGLPlayer : public Player, public IFFmpegTrackCallback {
 private:
-    const char *TAG = "DefaultPlayer";
+    const char *TAG = "FFmpegOpenGLPlayer";
 
     // 音视频同步基准时钟
     volatile jdouble sync_clock = 0;
 
     FFmpegAudioTrack *audio_track = NULL;
-    FFmpegVideoTrack *video_track = NULL;
+    FFmpegOpenGLVideoTrack *video_track = NULL;
 
     volatile int prepare_state = 0;
     volatile int complete_state = 0;
@@ -26,8 +26,8 @@ private:
 
 
 public:
-    FFmpegDefaultPlayer(JNIEnv *jniEnv, jobject object);
-    ~FFmpegDefaultPlayer();
+    FFmpegOpenGLPlayer(JNIEnv *jniEnv, jobject object);
+    ~FFmpegOpenGLPlayer();
 
     void prepareSync() override;
     void setSurface(jobject surface) override;
@@ -61,4 +61,4 @@ public:
     }
 };
 
-#endif //OPENVIDEO_FFMPEG_DEFAULT_PLAYER_H
+#endif //OPENVIDEO_FFMPEG_OPENGL_PLAYER_H

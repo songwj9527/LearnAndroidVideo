@@ -7,6 +7,8 @@
 #include "media/muxer/ff_repack.h"
 #include "media/player/player.h"
 #include "media/player/codec_player/default_codec_player.h"
+#include "media/ffmpeg/default_player.h"
+#include "media/ffmpeg/opengl_player.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -276,6 +278,8 @@ JNIEXPORT void JNICALL videoTypeTransform(JNIEnv *env, jobject obj, jstring srcF
 
 JNIEXPORT jint JNICALL nativeCreatePlayer(JNIEnv *env, jobject obj) {
     MediaPlayer *mediaPlayer = new MediaPlayer(env, obj);
+//    OpenGLPlayer *mediaPlayer = new OpenGLPlayer(env, obj, true);
+//    FFmpegDefaultPlayer *mediaPlayer = new FFmpegDefaultPlayer(env, obj);
     return (jint) mediaPlayer;
 }
 
@@ -403,7 +407,8 @@ JNIEXPORT void JNICALL nativeSetVolumeLevel(JNIEnv *env, jobject obj, jint playe
 }
 
 JNIEXPORT jint JNICALL nativeCreateGLPlayer(JNIEnv *env, jobject obj) {
-    OpenGLPlayer *mediaPlayer = new OpenGLPlayer(env, obj);
+//    OpenGLPlayer *mediaPlayer = new OpenGLPlayer(env, obj, false);
+    FFmpegOpenGLPlayer *mediaPlayer = new FFmpegOpenGLPlayer(env, obj);
     return (jint) mediaPlayer;
 }
 

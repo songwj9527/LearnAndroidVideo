@@ -1,50 +1,68 @@
 //
-// Created by fgrid on 2021/7/20.
+// Created by fgrid on 2021/12/18.
 //
 
 #include <unistd.h>
-#include "opengl_render.h"
-#include "../../../player/ffmpeg_player/ffmpeg_player.h"
-#include "../../../decoder/video/video_decoder.h"
+#include "opengl_video_render.h"
 #include "../../../opengl/drawer/proxy/def_drawer_proxy_impl.h"
+#include "../../../media_codes.h"
 
-OpenGLRender::OpenGLRender(bool for_synthesizer) : BaseVideoRender(for_synthesizer) {
-    TAG = "OpenGLRender";
+FFmpegOpenGLVideoRender::FFmpegOpenGLVideoRender(
+        JNIEnv *jniEnv,
+        IFFmpegRenderCallback *iRenderCallback,
+        int video_width,
+        int video_height,
+        AVPixelFormat avPixelFormat,
+        AVRational codecTimeBase,
+        AVRational streamTimeBase)
+        : BaseFFmpegVideoRender(jniEnv,
+                                iRenderCallback,
+                                video_width,
+                                video_height,
+                                avPixelFormat,
+                                codecTimeBase,
+                                streamTimeBase) {
+    TAG = "FFmpegOpenGLVideoRender";
     // 初始化播放状态线程锁变量
     pthread_mutex_init(&m_egl_mutex, NULL);
     pthread_cond_init(&m_egl_cond, NULL);
 
     m_drawer_proxy = new DefDrawerProxyImpl();
+    
+    Init(jniEnv);
 }
 
-OpenGLRender::~OpenGLRender() {
-    LOGE(TAG, "%s", "~OpenGLRender 0");
-    releaseGLSurface();
-    LOGE(TAG, "%s", "~OpenGLRender 1");
-    releaseGLDrawers();
-    LOGE(TAG, "%s", "~OpenGLRender 2");
-    releaseANativeWindow();
-    LOGE(TAG, "%s", "~OpenGLRender 3");
+FFmpegOpenGLVideoRender::~FFmpegOpenGLVideoRender() {
+    ReleaseGLSurface();
+    ReleaseGLDrawers();
+    ReleaseANativeWindow();
     pthread_cond_destroy(&m_egl_cond);
     pthread_mutex_destroy(&m_egl_mutex);
-    LOGE(TAG, "%s", "~OpenGLRender 4");
+    LOGE(TAG, "~FFmpegOpenGLVideoRender");
 }
 
-void OpenGLRender::privatePrepared(JNIEnv *env) {
-    if (mediaPlayer != NULL) {
-        mediaPlayer->onRenderPrepared(env, MODULE_CODE_OPENGL);
+void FFmpegOpenGLVideoRender::Init(JNIEnv *env) {
+    // 获取JVM虚拟机，为创建线程作准备
+    env->GetJavaVM(&m_jvm_for_thread);
+    // 新建读取视频帧、渲染线程
+    PrepareSyncAllThread(env);
+}
+
+void FFmpegOpenGLVideoRender::PrivatePrepared(JNIEnv *env) {
+    if (m_state != STOPPED && m_i_render_callback != NULL) {
+        m_i_render_callback->OnRenderPrepared(env, MODULE_CODE_OPENGL);
     }
 }
 
-void OpenGLRender::privateComplete(JNIEnv *env) {
-    if (mediaPlayer != NULL) {
-        mediaPlayer->onRenderCompleted(env, MODULE_CODE_OPENGL);
+void FFmpegOpenGLVideoRender::PrivateComplete(JNIEnv *env) {
+    if (m_state != STOPPED && m_i_render_callback != NULL) {
+        m_i_render_callback->OnRenderCompleted(env, MODULE_CODE_OPENGL);
     }
 }
 
-void OpenGLRender::privateError(JNIEnv *env, int code, const char *msg) {
-    if (mediaPlayer != NULL) {
-        mediaPlayer->onRenderError(env, MODULE_CODE_OPENGL, code, msg);
+void FFmpegOpenGLVideoRender::PrivateError(JNIEnv *env, int code, const char *msg) {
+    if (m_state != ERROR && m_state != STOPPED && m_i_render_callback != NULL) {
+        m_i_render_callback->OnRenderError(env, MODULE_CODE_OPENGL, code, msg);
     }
 }
 
@@ -52,8 +70,8 @@ void OpenGLRender::privateError(JNIEnv *env, int code, const char *msg) {
  * 添加OpenGL渲染器
  * @param drawer
  */
-void OpenGLRender::addDrawer(Drawer *drawer) {
-    if (m_drawer_proxy != NULL) {
+void FFmpegOpenGLVideoRender::AddDrawer(Drawer *drawer) {
+    if (m_state != ERROR && m_state != STOPPED && m_drawer_proxy != NULL) {
         m_drawer_proxy->AddDrawer(drawer);
     }
 }
@@ -61,16 +79,16 @@ void OpenGLRender::addDrawer(Drawer *drawer) {
 /**
  * 新建读取视频帧、渲染线程
  */
-void OpenGLRender::createOtherThread(JNIEnv *env) {
+void FFmpegOpenGLVideoRender::CreateOtherThread(JNIEnv *env) {
 //    // 使用智能指针，线程结束时，自动删除本类指针
-//    std::shared_ptr<OpenGLRender> egl_that(this);
+//    std::shared_ptr<FFmpegOpenGLVideoRender> egl_that(this);
 //    std::thread egl_thread(runOpenGLThread, egl_that);
 //    egl_thread.detach();
 
     // 获取JVM虚拟机，为创建线程作准备
     jniEnvForOpengl = env;
     jniEnvForOpengl->GetJavaVM(&m_jvm_for_opengl_thread);
-    std::thread egl_thread(runOpenGLThread, this);
+    std::thread egl_thread(RunOpenGLThread, this);
     egl_thread.detach();
 }
 
@@ -78,30 +96,30 @@ void OpenGLRender::createOtherThread(JNIEnv *env) {
  * 读取视频帧、渲染线程调用的方法
  * @param that DefaultVideoRender
  */
-//void OpenGLRender::runOpenGLThread(std::shared_ptr<OpenGLRender> that) {
-void OpenGLRender::runOpenGLThread(OpenGLRender *that) {
+//void FFmpegOpenGLVideoRender::runOpenGLThread(std::shared_ptr<FFmpegOpenGLVideoRender> that) {
+void FFmpegOpenGLVideoRender::RunOpenGLThread(FFmpegOpenGLVideoRender *that) {
     JNIEnv *env;
     //将线程附加到虚拟机，并获取env
     if (that->m_jvm_for_opengl_thread->AttachCurrentThread(&env, NULL) != JNI_OK) {
-        that->privateError(NULL, VIDEO_OPENGL_RENDER_UNPREPARED, "Fail to init opengl render thread");
+        that->PrivateError(NULL, VIDEO_OPENGL_RENDER_UNPREPARED, "Fail to init opengl render thread");
         return;
     }
     that->jniEnvForOpengl = env;
-    if(!(that->isInitEGL = (that->initEGL()))) {
+    if(!(that->isInitEGL = (that->InitEGL()))) {
         //解除线程和jvm关联
         that->m_jvm_for_opengl_thread->DetachCurrentThread();
-        that->privateError(NULL, VIDEO_OPENGL_RENDER_UNPREPARED, "Fail to init opengl render thread");
+        that->PrivateError(NULL, VIDEO_OPENGL_RENDER_UNPREPARED, "Fail to init opengl render thread");
         return;
     }
 
-    LOGE(that->TAG, "%s", "runOpenGLThread()");
+    LOGE(that->TAG, "%s", "RunOpenGLThread()");
     if (that->m_surface_ref != NULL) {
         if (JNI_TRUE != env->IsSameObject(that->m_surface_ref, NULL)) {
-            that->setSurface(env, that->m_surface_ref);
+            that->SetSurface(env, that->m_surface_ref);
         }
     }
 
-    that->loopOpenGL(env);
+    that->LoopOpenGL(env);
 
     //解除线程和jvm关联
     that->m_jvm_for_thread->DetachCurrentThread();
@@ -111,7 +129,7 @@ void OpenGLRender::runOpenGLThread(OpenGLRender *that) {
 /**
  * 初始化EGL渲染
  */
-bool OpenGLRender::initEGL() {
+bool FFmpegOpenGLVideoRender::InitEGL() {
     if (m_egl_surface == NULL) {
         m_egl_surface = new EglSurface();
         bool result = m_egl_surface->Init();;
@@ -134,88 +152,90 @@ bool OpenGLRender::initEGL() {
 /**
  * 开始OpenGL渲染业务
  */
-void OpenGLRender::loopOpenGL(JNIEnv *env) {
+void FFmpegOpenGLVideoRender::LoopOpenGL(JNIEnv *env) {
     pthread_mutex_lock(&m_egl_mutex);
-    if (m_state == STOPPED || glRenderState == STOP) {
-        LOGI(TAG, "loopOpenGL %d, %d", m_state, glRenderState)
+    if (m_state == ERROR || m_state == STOPPED  || eglRenderState == STOP) {
+        LOGI(TAG, "LoopOpenGL %d, %d", m_state, eglRenderState)
         isInitEGL = false;
         return;
     }
     pthread_mutex_unlock(&m_egl_mutex);
-    privatePrepared(env);
+    PrivatePrepared(env);
+    LOGE(TAG, "LoopOpenGL(): Loop.");
     while (true) {
-        switch (glRenderState) {
+        LOGE(TAG, "LoopOpenGL(): state %d", eglRenderState);
+        switch (eglRenderState) {
             case NO_SURFACE:
-                waitGL(0);
+                WaitGL(0);
                 break;
             case FRESH_SURFACE:
                 LOGI(TAG, "loopOpenGL FRESH_SURFACE")
-                destroyGLSurface();
-                initANativeWindow(env);
-                initReaderBuffer();
-                initSws();
-                createGLSurface();
-                setOpenGLState(RENDERING);
+                DestroyGLSurface();
+                InitANativeWindow(env);
+                InitReaderBuffer();
+                InitSws();
+                CreateGLSurface();
+                SetEGLRenderState(RENDERING);
                 break;
             case SURFACE_CHANGE:
                 glViewport(0, 0, m_dst_w, m_dst_h);
                 m_drawer_proxy->SetDrawerSize(m_dst_w, m_dst_h);
-                setOpenGLState(RENDERING);
+                SetEGLRenderState(RENDERING);
                 break;
             case RENDERING:
-                renderOpenGL();
+                RenderOpenGL();
                 break;
             case SURFACE_DESTROY:
-                destroyGLSurface();
-                setOpenGLState(NO_SURFACE);
+                DestroyGLSurface();
+                SetEGLRenderState(NO_SURFACE);
                 break;
             case STOP:
-                destroyGLSurface();
+                DestroyGLSurface();
                 isInitEGL = false;
                 return;
             default:
                 break;
         }
-        if (glRenderMode == RENDER_CONTINUOUSLY) {
+        if (eglRenderMode == RENDER_CONTINUOUSLY) {
             usleep(20000);
         }
     }
 }
 
-void OpenGLRender::renderOnFrame() {
-    if (isRunning() && RENDERING == glRenderState) {
+void FFmpegOpenGLVideoRender::RenderOnFrame() {
+    if (IsRunning() && RENDERING == eglRenderState) {
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
         m_drawer_proxy->Draw(frame_date);
         m_egl_surface->SwapBuffers();
 
-        if (m_need_output_pixels && m_pixel_receiver != NULL) {//输出画面rgba
-            m_need_output_pixels = false;
-            renderOnFrame(); //再次渲染最新的画面
-
-            size_t size = m_dst_w * m_dst_h * 4 * sizeof(uint8_t);
-
-            uint8_t *rgb = (uint8_t *) malloc(size);
-            if (rgb == NULL) {
-                realloc(rgb, size);
-                LOGE(TAG, "内存分配失败： %d", rgb)
-            }
-            glReadPixels(0, 0, m_dst_w, m_dst_h, GL_RGBA, GL_UNSIGNED_BYTE, rgb);
-            m_pixel_receiver->ReceivePixel(rgb);
-        }
+//        if (m_need_output_pixels && m_pixel_receiver != NULL) {//输出画面rgba
+//            m_need_output_pixels = false;
+//            RenderOnFrame(); //再次渲染最新的画面
+//
+//            size_t size = m_dst_w * m_dst_h * 4 * sizeof(uint8_t);
+//
+//            uint8_t *rgb = (uint8_t *) malloc(size);
+//            if (rgb == NULL) {
+//                realloc(rgb, size);
+//                LOGE(TAG, "内存分配失败： %d", rgb)
+//            }
+//            glReadPixels(0, 0, m_dst_w, m_dst_h, GL_RGBA, GL_UNSIGNED_BYTE, rgb);
+//            m_pixel_receiver->ReceivePixel(rgb);
+//        }
     }
 }
 
-void OpenGLRender::renderOpenGL() {
-    LOGE(TAG, "renderOpenGL")
-    renderOnFrame();
-    waitGL(0);
+void FFmpegOpenGLVideoRender::RenderOpenGL() {
+    LOGE(TAG, "RenderOpenGL")
+    RenderOnFrame();
+    WaitGL(0);
 }
 
 /**
  * 渲染结束调用方法
  * @param env
  */
-void OpenGLRender::doneRender() {
+void FFmpegOpenGLVideoRender::DoneRender() {
     while (isInitEGL) {
         usleep(50000);
     }
@@ -225,11 +245,11 @@ void OpenGLRender::doneRender() {
  * 设置渲染状态
  * @param state
  */
-void OpenGLRender::setOpenGLState(OpenGLRenderState state) {
-    LOGE(TAG, "setOpenGLState(): %d", state)
+void FFmpegOpenGLVideoRender::SetEGLRenderState(EGLRenderState state) {
+    LOGD(TAG, "SetEGLRenderState(): %d", state)
     pthread_mutex_lock(&m_egl_mutex);
-    if (glRenderState != state) {
-        glRenderState = state;
+    if (eglRenderState != state) {
+        eglRenderState = state;
         pthread_cond_signal(&m_egl_cond);
     }
     pthread_mutex_unlock(&m_egl_mutex);
@@ -238,9 +258,9 @@ void OpenGLRender::setOpenGLState(OpenGLRenderState state) {
 /**
  * 休眠OpenGL线程: 时间单位为毫秒（ms）
  */
-void OpenGLRender::waitGL(int64_t ms) {
+void FFmpegOpenGLVideoRender::WaitGL(int64_t ms) {
     pthread_mutex_lock(&m_egl_mutex);
-    if (glRenderState != RENDERING) {
+    if (eglRenderState != RENDERING) {
         if (ms > 0) {
             struct timeval now;
             //在now基础上，增加ms毫秒
@@ -267,7 +287,7 @@ void OpenGLRender::waitGL(int64_t ms) {
 /**
  * 唤醒OpenGL线程
  */
-void OpenGLRender::wakeUpGL() {
+void FFmpegOpenGLVideoRender::WakeUpGL() {
     pthread_mutex_lock(&m_egl_mutex);
     pthread_cond_signal(&m_egl_cond);
     pthread_mutex_unlock(&m_egl_mutex);
@@ -278,32 +298,32 @@ void OpenGLRender::wakeUpGL() {
  * @param env
  * @param surface
  */
-void OpenGLRender::setSurface(JNIEnv *jniEnv, jobject surface) {
-    LOGE(TAG, "%s%s%s", "setSurface() ", surface == NULL ? "NULL" : "OK", jniEnv == NULL ? ", NULL" : ", OK");
+void FFmpegOpenGLVideoRender::SetSurface(JNIEnv *jniEnv, jobject surface) {
+    LOGE(TAG, "setSurface() %s%s", surface == NULL ? "NULL" : "OK", jniEnv == NULL ? ", NULL" : ", OK");
     if (!isInitEGL) {
         return;
     }
     m_surface_ref = surface;
     if (surface != NULL && jniEnv != NULL) {
-        setOpenGLState(FRESH_SURFACE);
+        SetEGLRenderState(FRESH_SURFACE);
     } else {
-        setOpenGLState(SURFACE_DESTROY);
+        SetEGLRenderState(SURFACE_DESTROY);
     }
 }
 
 /**
  * 创建GL窗口
  */
-void OpenGLRender::createGLSurface() {
+void FFmpegOpenGLVideoRender::CreateGLSurface() {
     if (m_egl_surface == NULL) {
         m_egl_surface = new EglSurface();
     }
-    if (decoder != NULL && m_native_window != NULL) {
+    if (IsRunning() && m_native_window != NULL) {
         if (m_dst_w == -1) {
-            m_dst_w = ((VideoDecoder *) decoder)->getVideoWidth();
+            m_dst_w = video_width;
         }
         if (m_dst_h == -1) {
-            m_dst_w = ((VideoDecoder *) decoder)->getVideoHeight();
+            m_dst_w = video_height;
         }
         // 绘制区域的宽高
         int windowWidth = ANativeWindow_getWidth(m_native_window);
@@ -319,7 +339,7 @@ void OpenGLRender::createGLSurface() {
 /**
  * 销毁GL窗口
  */
-void OpenGLRender::destroyGLSurface() {
+void FFmpegOpenGLVideoRender::DestroyGLSurface() {
     if (m_egl_surface != NULL) {
         m_egl_surface->DestroyEglSurface();
     }
@@ -328,7 +348,7 @@ void OpenGLRender::destroyGLSurface() {
 /**
  * 释放GL视频渲染器资源
  */
-void OpenGLRender::releaseGLDrawers() {
+void FFmpegOpenGLVideoRender::ReleaseGLDrawers() {
     if (m_drawer_proxy != NULL) {
         m_drawer_proxy->Release();
         delete m_drawer_proxy;
@@ -339,7 +359,7 @@ void OpenGLRender::releaseGLDrawers() {
 /**
  * 释放GL窗口资源
  */
-void OpenGLRender::releaseGLSurface() {
+void FFmpegOpenGLVideoRender::ReleaseGLSurface() {
     if (m_egl_surface != NULL) {
         m_egl_surface->Release();
         delete m_egl_surface;
@@ -350,7 +370,7 @@ void OpenGLRender::releaseGLSurface() {
 /**
  * 释放视频渲染相关资源
  */
-void OpenGLRender::releaseANativeWindow() {
+void FFmpegOpenGLVideoRender::ReleaseANativeWindow() {
     if (m_native_window != NULL) {
         ANativeWindow_release(m_native_window);
         m_native_window = NULL;
@@ -360,34 +380,29 @@ void OpenGLRender::releaseANativeWindow() {
 /**
  * 渲染视图窗口
  */
-void OpenGLRender::render() {
-    LOGE(TAG, "%s", "render()");
+void FFmpegOpenGLVideoRender::Render() {
+    LOGD(TAG, "Set EGL Render Frame");
     frame_date = m_rgb_frame->data[0];
 }
 
-void OpenGLRender::onStartRun() {
+void FFmpegOpenGLVideoRender::OnStartRun() {
+    LOGD(TAG, "OnStartRun()");
     if (isInitEGL) {
-        wakeUpGL();
+        WakeUpGL();
     }
 }
-void OpenGLRender::onPauseRun() {
+void FFmpegOpenGLVideoRender::OnPauseRun() {
 
 }
-void OpenGLRender::onResumeRun() {
+void FFmpegOpenGLVideoRender::OnResumeRun() {
+    LOGD(TAG, "OnResumeRun()");
     if (isInitEGL) {
-        wakeUpGL();
+        WakeUpGL();
     }
 }
-void OpenGLRender::onStopRun() {
+void FFmpegOpenGLVideoRender::OnStopRun() {
+    LOGD(TAG, "OnStopRun()");
     if (isInitEGL) {
-        setOpenGLState(STOP);
+        SetEGLRenderState(STOP);
     }
-}
-
-void OpenGLRender::SetPixelReceiver(OpenGLPixelReceiver *receiver) {
-    m_pixel_receiver = receiver;
-}
-
-void OpenGLRender::RequestRgbaData() {
-    m_need_output_pixels = true;
 }

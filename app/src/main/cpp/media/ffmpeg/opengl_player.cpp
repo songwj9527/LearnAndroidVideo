@@ -1,19 +1,21 @@
 //
-// Created by fgrid on 2021/12/16.
+// Created by fgrid on 2021/12/18.
 //
 
-#include "default_player.h"
+#include "opengl_player.h"
+#include "../opengl/drawer/video_drawer.h"
+#include "../opengl/drawer/fbo_soul_video_drawer.h"
 
-FFmpegDefaultPlayer::FFmpegDefaultPlayer(JNIEnv *jniEnv, jobject object) : Player(jniEnv, object) {
+FFmpegOpenGLPlayer::FFmpegOpenGLPlayer(JNIEnv *jniEnv, jobject object) : Player(jniEnv, object) {
 
 }
 
-FFmpegDefaultPlayer::~FFmpegDefaultPlayer() {
+FFmpegOpenGLPlayer::~FFmpegOpenGLPlayer() {
     release();
-    LOGE(TAG, "%s", "~FFmpegDefaultPlayer");
+    LOGE(TAG, "%s", "~FFmpegOpenGLPlayer");
 }
 
-void FFmpegDefaultPlayer::prepareSync() {
+void FFmpegOpenGLPlayer::prepareSync() {
     if (state == IDLE) {
         if (audio_track != NULL) {
             audio_track->Stop();
@@ -21,16 +23,18 @@ void FFmpegDefaultPlayer::prepareSync() {
         if (video_track != NULL) {
             video_track->Stop();
         }
-        audio_track = new FFmpegAudioTrack(jniEnv, sourceURL, this);
-        video_track = new FFmpegVideoTrack(jniEnv, sourceURL, this);
+//        audio_track = new FFmpegAudioTrack(jniEnv, sourceURL, this);
+        video_track = new FFmpegOpenGLVideoTrack(jniEnv, sourceURL, this);
+//        video_track->AddDraw(new VideoDrawer());
+        video_track->AddDraw(new FBOSoulVideoDrawer());
     }
 }
 
-void FFmpegDefaultPlayer::OnPrepared(JNIEnv *jniEnv, int track) {
+void FFmpegOpenGLPlayer::OnPrepared(JNIEnv *jniEnv, int track) {
     LOGE(TAG, "OnPrepared")
     if (state == IDLE) {
-        ++prepare_state;
-//        prepare_state = 2;
+//        ++prepare_state;
+        prepare_state = 2;
     }
     if (state == IDLE &&  prepare_state > 1) {
         state = PREPARED;
@@ -41,7 +45,7 @@ void FFmpegDefaultPlayer::OnPrepared(JNIEnv *jniEnv, int track) {
     }
 }
 
-void FFmpegDefaultPlayer::OnInfo(JNIEnv *jniEnv, int track, int videoWidth, int videoHeight, int videoRotation) {
+void FFmpegOpenGLPlayer::OnInfo(JNIEnv *jniEnv, int track, int videoWidth, int videoHeight, int videoRotation) {
     LOGE(TAG, "OnInfo")
     if (state != STOPPED && state != ERROR) {
         char videoRotationChar[20];
@@ -53,7 +57,7 @@ void FFmpegDefaultPlayer::OnInfo(JNIEnv *jniEnv, int track, int videoWidth, int 
     }
 }
 
-void FFmpegDefaultPlayer::OnError(JNIEnv *jniEnv, int track, int code, const char *msg) {
+void FFmpegOpenGLPlayer::OnError(JNIEnv *jniEnv, int track, int code, const char *msg) {
     LOGE(TAG, "OnError(): %d, %s", code, msg)
     if (state != STOPPED && state != ERROR) {
         state = ERROR;
@@ -75,10 +79,10 @@ void FFmpegDefaultPlayer::OnError(JNIEnv *jniEnv, int track, int code, const cha
     }
 }
 
-void FFmpegDefaultPlayer::OnCompleted(JNIEnv *jniEnv, int track) {
+void FFmpegOpenGLPlayer::OnCompleted(JNIEnv *jniEnv, int track) {
     if (state != STOPPED && state != ERROR) {
-        ++complete_state;
-//        complete_state = 2;
+//        ++complete_state;
+        complete_state = 2;
     }
     if (state != STOPPED && state != ERROR &&  complete_state > 1) {
         state = COMPLETED;
@@ -86,10 +90,10 @@ void FFmpegDefaultPlayer::OnCompleted(JNIEnv *jniEnv, int track) {
     }
 }
 
-void FFmpegDefaultPlayer::OnSeekCompleted(JNIEnv *jniEnv, int track) {
+void FFmpegOpenGLPlayer::OnSeekCompleted(JNIEnv *jniEnv, int track) {
     if (state != STOPPED && state != ERROR) {
-        ++seek_complete_state;
-//        seek_complete_state = 2;
+//        ++seek_complete_state;
+        seek_complete_state = 2;
     }
     if (state != STOPPED && state != ERROR &&  seek_complete_state > 1) {
         if (state != COMPLETED) {
@@ -99,8 +103,8 @@ void FFmpegDefaultPlayer::OnSeekCompleted(JNIEnv *jniEnv, int track) {
     }
 }
 
-void FFmpegDefaultPlayer::setSurface(jobject surface) {
-    LOGD(TAG, "%s", "setSurface()");
+void FFmpegOpenGLPlayer::setSurface(jobject surface) {
+    LOGD(TAG, "setSurface()");
     if (state != STOPPED && state != ERROR) {
         if (jsurface != NULL) {
             if (!jniEnv->IsSameObject(jsurface, NULL)) {
@@ -110,7 +114,7 @@ void FFmpegDefaultPlayer::setSurface(jobject surface) {
         }
         if (surface != NULL) {
             jsurface = jniEnv->NewGlobalRef(surface);
-            LOGE(TAG, "%s%s", "setSurface() ", jsurface == NULL ? "NULL" : "OK");
+            LOGE(TAG, "setSurface() %s", jsurface == NULL ? "NULL" : "OK");
         }
         if (video_track != NULL) {
             video_track->SetSurface(jniEnv, jsurface);
@@ -118,7 +122,7 @@ void FFmpegDefaultPlayer::setSurface(jobject surface) {
     }
 }
 
-void FFmpegDefaultPlayer::start() {
+void FFmpegOpenGLPlayer::start() {
     LOGE(TAG, "%s", "start()");
     if (prepare_state > 1) {
         if (state == PREPARED || state == PAUSED) {
@@ -133,7 +137,7 @@ void FFmpegDefaultPlayer::start() {
     }
 }
 
-void FFmpegDefaultPlayer::resume() {
+void FFmpegOpenGLPlayer::resume() {
     LOGE(TAG, "%s", "resume()");
     if (prepare_state > 1) {
         if (state == PAUSED) {
@@ -148,7 +152,7 @@ void FFmpegDefaultPlayer::resume() {
     }
 }
 
-void FFmpegDefaultPlayer::pause() {
+void FFmpegOpenGLPlayer::pause() {
     LOGE(TAG, "%s", "pause()");
     if (prepare_state > 1) {
         if (state == RUNNING) {
@@ -163,7 +167,7 @@ void FFmpegDefaultPlayer::pause() {
     }
 }
 
-void FFmpegDefaultPlayer::stop() {
+void FFmpegOpenGLPlayer::stop() {
     LOGE(TAG, "%s", "stop()");
     if (state != STOPPED) {
         state = STOPPED;
@@ -178,7 +182,7 @@ void FFmpegDefaultPlayer::stop() {
     }
 }
 
-void FFmpegDefaultPlayer::reset() {
+void FFmpegOpenGLPlayer::reset() {
     if (state != STOPPED) {
         state = STOPPED;
     }
@@ -197,7 +201,7 @@ void FFmpegDefaultPlayer::reset() {
     state = IDLE;
 }
 
-void FFmpegDefaultPlayer::release() {
+void FFmpegOpenGLPlayer::release() {
     LOGE(TAG, "%s", "release()");
     if (state != STOPPED) {
         state = STOPPED;
@@ -219,7 +223,7 @@ void FFmpegDefaultPlayer::release() {
     releaseSourceURL();
 }
 
-jlong FFmpegDefaultPlayer::getDuration() {
+jlong FFmpegOpenGLPlayer::getDuration() {
     jlong ret = 0;
     if (prepare_state > 1 && state != IDLE && state != STOPPED && state != ERROR) {
         if (audio_track != NULL) {
@@ -234,7 +238,7 @@ jlong FFmpegDefaultPlayer::getDuration() {
     return ret;
 }
 
-jlong FFmpegDefaultPlayer::getCurrentTimestamp() {
+jlong FFmpegOpenGLPlayer::getCurrentTimestamp() {
     jlong timestamp = 0L;
     if (prepare_state > 1 && state != IDLE && state != STOPPED && state != ERROR) {
         if (video_track != NULL && state != COMPLETED) {
@@ -247,7 +251,7 @@ jlong FFmpegDefaultPlayer::getCurrentTimestamp() {
     return timestamp;
 }
 
-void FFmpegDefaultPlayer::seekTo(jlong position) {
+void FFmpegOpenGLPlayer::seekTo(jlong position) {
     if (prepare_state > 1 && state != IDLE && state != STOPPED && state != ERROR) {
         state = SEEKING;
         if (audio_track != NULL) {
@@ -259,7 +263,7 @@ void FFmpegDefaultPlayer::seekTo(jlong position) {
     }
 }
 
-jint FFmpegDefaultPlayer::getMaxVolumeLevel() {
+jint FFmpegOpenGLPlayer::getMaxVolumeLevel() {
     jint volumeLevel = 0;
     if (prepare_state > 1 && state != IDLE && state != STOPPED && state != ERROR) {
         if (audio_track != NULL) {
@@ -269,7 +273,7 @@ jint FFmpegDefaultPlayer::getMaxVolumeLevel() {
     return volumeLevel;
 }
 
-jint FFmpegDefaultPlayer::getVolumeLevel() {
+jint FFmpegOpenGLPlayer::getVolumeLevel() {
     jint volumeLevel = 0;
     if (prepare_state > 1 && state != IDLE && state != STOPPED && state != ERROR) {
         if (audio_track != NULL) {
@@ -279,7 +283,7 @@ jint FFmpegDefaultPlayer::getVolumeLevel() {
     return volumeLevel;
 }
 
-void FFmpegDefaultPlayer::setVolumeLevel(jint volume) {
+void FFmpegOpenGLPlayer::setVolumeLevel(jint volume) {
     if (prepare_state > 1 && state != IDLE && state != STOPPED && state != ERROR) {
         if (audio_track != NULL) {
             audio_track->SetVolumeLevel(volume);
