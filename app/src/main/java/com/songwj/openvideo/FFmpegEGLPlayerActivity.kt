@@ -102,7 +102,7 @@ class FFmpegEGLPlayerActivity : AppCompatActivity(), TextureView.SurfaceTextureL
         )
 //        texture_view.surfaceTextureListener = this
         nativePlayer?.setDataSource( if(TextUtils.isEmpty(filePath)) {
-            Environment.getExternalStorageDirectory().absolutePath + "/video.mp4"
+            Environment.getExternalStorageDirectory().absolutePath + "/video2.mp4"
         } else {
             filePath
         })
@@ -420,12 +420,16 @@ class FFmpegEGLPlayerActivity : AppCompatActivity(), TextureView.SurfaceTextureL
 
     override fun onResume() {
         super.onResume()
-        nativePlayer?.resume()
+        if (isPrepared && !isPaused && !isCompleted) {
+            nativePlayer?.resume()
+        }
     }
 
     override fun onPause() {
         super.onPause()
-        nativePlayer?.pause()
+        if (isPrepared && !isPaused && !isCompleted) {
+            nativePlayer?.pause()
+        }
     }
 
 //    override fun onStop() {

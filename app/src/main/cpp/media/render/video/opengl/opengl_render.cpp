@@ -163,11 +163,14 @@ void OpenGLRender::loopOpenGL(JNIEnv *env) {
                 setOpenGLState(RENDERING);
                 break;
             case RENDERING:
-                renderOpenGL();
+                if (m_state == RUNNING) {
+                    renderOpenGL();
+                }
                 break;
             case SURFACE_DESTROY:
                 destroyGLSurface();
                 setOpenGLState(NO_SURFACE);
+                break;
             case STOP:
                 destroyGLSurface();
                 isInitEGL = false;

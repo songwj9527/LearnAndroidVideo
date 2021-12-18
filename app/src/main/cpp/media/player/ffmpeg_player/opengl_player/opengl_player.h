@@ -10,10 +10,11 @@
 class OpenGLPlayer : public FFmpegPlayer {
 private:
     const char *TAG = "OpenGLPlayer";
+    bool defaultDraw = true;
 
 public:
 
-    OpenGLPlayer(JNIEnv *jniEnv, jobject object);
+    OpenGLPlayer(JNIEnv *jniEnv, jobject object, bool defaultDraw);
     ~OpenGLPlayer();
 
     void prepareSync() override;

@@ -25,7 +25,7 @@ void Drawer::SetSize(int width, int height) {
 }
 
 void Drawer::Draw(void *frame_data) {
-    LOGE(TAG, "Draw(): %d, %d", m_origin_width, m_origin_height)
+//    LOGE(TAG, "Draw(): %d, %d", m_origin_width, m_origin_height)
     cst_data = frame_data;
     if (IsReadyToDraw()) {
         CreateTextureId();
@@ -168,7 +168,7 @@ void Drawer::ActivateTexture(GLenum type, GLuint texture_id, GLenum index, int t
 void Drawer::DoDraw() {
     //使用OpenGL程序
     if (m_program_id) {
-        LOGI(TAG, "DoDraw（）")
+//        LOGI(TAG, "DoDraw（）")
         glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
         //启用顶点的句柄
         glEnableVertexAttribArray(m_vertex_pos_handler);

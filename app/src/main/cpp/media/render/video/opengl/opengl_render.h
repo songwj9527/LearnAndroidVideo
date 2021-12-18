@@ -45,7 +45,7 @@ private:
     // 线程依附的JVM环境
     JavaVM *m_jvm_for_opengl_thread = NULL;
     // 是否EGL已经初始化成功
-    bool isInitEGL = false;
+    volatile bool isInitEGL = false;
 
     // opengl状态线程锁变量
     pthread_mutex_t m_egl_mutex;

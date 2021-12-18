@@ -275,7 +275,8 @@ JNIEXPORT void JNICALL videoTypeTransform(JNIEnv *env, jobject obj, jstring srcF
 }
 
 JNIEXPORT jint JNICALL nativeCreatePlayer(JNIEnv *env, jobject obj) {
-    MediaPlayer *mediaPlayer = new MediaPlayer(env, obj);
+//    MediaPlayer *mediaPlayer = new MediaPlayer(env, obj);
+    OpenGLPlayer *mediaPlayer = new OpenGLPlayer(env, obj, true);
     return (jint) mediaPlayer;
 }
 
@@ -403,7 +404,7 @@ JNIEXPORT void JNICALL nativeSetVolumeLevel(JNIEnv *env, jobject obj, jint playe
 }
 
 JNIEXPORT jint JNICALL nativeCreateGLPlayer(JNIEnv *env, jobject obj) {
-    OpenGLPlayer *mediaPlayer = new OpenGLPlayer(env, obj);
+    OpenGLPlayer *mediaPlayer = new OpenGLPlayer(env, obj, false);
     return (jint) mediaPlayer;
 }
 

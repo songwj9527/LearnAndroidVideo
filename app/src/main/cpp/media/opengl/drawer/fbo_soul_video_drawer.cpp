@@ -230,7 +230,7 @@ void FBOSoulVideoDrawer::BindTexture() {
 
 void FBOSoulVideoDrawer::PrepareDraw() {
     if (cst_data != NULL) {
-        LOGE(TAG, "PrepareDraw()")
+//        LOGE(TAG, "PrepareDraw()")
 //        glTexImage2D(GL_TEXTURE_2D,
         glTexImage2D(GL_TEXTURE_2D,
                      0, // level一般为0

@@ -37,7 +37,7 @@ void EglSurface::SetPresentationTime(int64_t nsecs) {
 }
 
 void EglSurface::SwapBuffers() {
-    LOGE(TAG, "SwapBuffers()")
+//    LOGE(TAG, "SwapBuffers()")
     m_core->SwapBuffers(m_surface);
 }
 

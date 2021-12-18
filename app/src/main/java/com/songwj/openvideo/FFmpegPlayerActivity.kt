@@ -104,12 +104,12 @@ class FFmpegPlayerActivity : AppCompatActivity() , TextureView.SurfaceTextureLis
         // https://fg-im.oss-cn-hangzhou.aliyuncs.com/develop/2021/09/18/16319561101667686608883e84d8f24620c26c1c48d8ae600a243a8.mp4
         // https://fg-im.oss-cn-hangzhou.aliyuncs.com/develop/2020/04/08/15863342135663238314273demo.mov
         // https://fg-im.oss-cn-hangzhou.aliyuncs.com/develop/2020/04/08/15863400286359235045891VID_20200327_155101.mp4
-//        nativePlayer?.setDataSource("https://fg-im.oss-cn-hangzhou.aliyuncs.com/develop/2020/04/08/15863400286359235045891VID_20200327_155101.mp4")
-        nativePlayer?.setDataSource( if(TextUtils.isEmpty(filePath)) {
-            Environment.getExternalStorageDirectory().absolutePath + "/video2.mp4"
-        } else {
-            filePath
-        })
+        nativePlayer?.setDataSource("https://fg-im.oss-cn-hangzhou.aliyuncs.com/develop/2020/04/08/15863342135663238314273demo.mov")
+//        nativePlayer?.setDataSource( if(TextUtils.isEmpty(filePath)) {
+//            Environment.getExternalStorageDirectory().absolutePath + "/video2.mp4"
+//        } else {
+//            filePath
+//        })
         start.setOnClickListener {
             if (!isStartButtonPress) {
                 isStartButtonPress = true
@@ -425,13 +425,16 @@ class FFmpegPlayerActivity : AppCompatActivity() , TextureView.SurfaceTextureLis
 
     override fun onResume() {
         super.onResume()
-        nativePlayer?.resume()
+        if (isPrepared && !isPaused && !isCompleted) {
+            nativePlayer?.resume()
+        }
     }
 
     override fun onPause() {
-        Log.e("FFmpegPlayerActivity", "onPause()")
-        nativePlayer?.pause()
         super.onPause()
+        if (isPrepared && !isPaused && !isCompleted) {
+            nativePlayer?.pause()
+        }
     }
 
 //    override fun onStop() {

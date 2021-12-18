@@ -10,7 +10,9 @@
 #include "../../../opengl/drawer/video_drawer.h"
 #include "../../../opengl/drawer/fbo_soul_video_drawer.h"
 
-OpenGLPlayer::OpenGLPlayer(JNIEnv *jniEnv, jobject object) : FFmpegPlayer(jniEnv, object) {}
+OpenGLPlayer::OpenGLPlayer(JNIEnv *jniEnv, jobject object, bool defaultDraw) : FFmpegPlayer(jniEnv, object) {
+    this->defaultDraw = defaultDraw;
+}
 
 OpenGLPlayer::~OpenGLPlayer() {
     LOGE(TAG, "%s", "~OpenGLPlayer");
@@ -30,8 +32,11 @@ void OpenGLPlayer::prepareSync() {
     }
     reset();
     videoRender = new OpenGLRender(false);
-//    ((OpenGLRender *) videoRender)->addDrawer(new VideoDrawer());
-    ((OpenGLRender *) videoRender)->addDrawer(new FBOSoulVideoDrawer());
+    if (defaultDraw) {
+        ((OpenGLRender *) videoRender)->addDrawer(new VideoDrawer());
+    } else {
+        ((OpenGLRender *) videoRender)->addDrawer(new FBOSoulVideoDrawer());
+    }
     videoDecoder = new VideoDecoder(jniEnv, this, sourceURL, videoRender, false);
     openSlRender = new OpenSLRender(false);
     audioDecoder = new AudioDecoder(jniEnv, this, sourceURL, openSlRender, false);
