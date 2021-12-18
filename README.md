@@ -13,9 +13,9 @@
 
 # 相机
   1. camera1预览、拍照和视频录制；
-  2. camera1 + OpenGL 预览、拍照和视频录制；
-  3. camera2预览、拍照和视频录制；
-  4. camera2 + OpenGL 预览、拍照和视频录制；
-  5. camerax预览、拍照；
-  6. GUPImage滤镜 + 相机 预览、拍照和视频录制(未完待续）；
+  2. camera2预览、拍照和视频录制；
+  3. camerax预览、拍照；
+  4. GUPImage滤镜 + camera2相机 预览、拍照；
+  5. camera1 + 自定义OpenGL 预览、拍照和视频录制；
+  6. camera2 + 自定义OpenGL 预览、拍照和视频录制；
   7. 推流实现（未完待续）。
