@@ -336,7 +336,7 @@ void BaseVideoRender::loopRender(JNIEnv *env) {
 
         if (diff < 0) {
             LOGE(TAG, "loopRender(): render 0");
-            // 默认播放器播放过程中可能会崩溃：仅个人猜测是因为渲染太过频；，OpenGL则不会，原因可能是GL渲染是独立与CPU之外
+            // 默认播放器播放过程中可能会崩溃：仅个人猜测是因为ANativeWindow渲染问题
             render();
             LOGE(TAG, "loopRender(): render 1");
 
