@@ -41,16 +41,20 @@ protected:
     // 音视频同步基准时钟
     volatile double sync_clock;
 
-    volatile bool videoDecoderPrepared = false;
-    volatile bool videoRenderPrepared = false;
-    volatile bool audioDecoderPrepared = false;
-    volatile bool audioRenderPrepared = false;
-    volatile bool videoDecoderCompleted = false;
-    volatile bool videoRenderCompleted = false;
-    volatile bool audioDecoderCompleted = false;
-    volatile bool audioRenderCompleted = false;
-    volatile bool videoDecoderSeekCompleted = false;
-    volatile bool audioDecoderSeekCompleted = false;
+    volatile int prepare_state = 0;
+    volatile int complete_state = 0;
+    volatile int seek_complete_state = 0;
+
+//    volatile bool videoDecoderPrepared = false;
+//    volatile bool videoRenderPrepared = false;
+//    volatile bool audioDecoderPrepared = false;
+//    volatile bool audioRenderPrepared = false;
+//    volatile bool videoDecoderCompleted = false;
+//    volatile bool videoRenderCompleted = false;
+//    volatile bool audioDecoderCompleted = false;
+//    volatile bool audioRenderCompleted = false;
+//    volatile bool videoDecoderSeekCompleted = false;
+//    volatile bool audioDecoderSeekCompleted = false;
 
 public:
 

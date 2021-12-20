@@ -33,7 +33,7 @@ void FFmpegPlayer::setSurface(jobject surface) {
             jsurface = jniEnv->NewGlobalRef(surface);
             LOGE(TAG, "%s%s", "setSurface() ", jsurface == NULL ? "NULL" : "OK");
         }
-        if (videoRenderPrepared && videoRender != NULL) {
+        if (prepare_state > 3 && videoRender != NULL) {
             videoRender->setSurface(jniEnv, jsurface);
         }
     }
@@ -58,9 +58,7 @@ double FFmpegPlayer::getSyncClock() {
  * 开始播放
  */
 void FFmpegPlayer::start() {
-    if (videoDecoderPrepared && videoRenderPrepared && audioDecoderPrepared && audioRenderPrepared) {
-//    if (audioDecoderPrepared && audioRenderPrepared) {
-//    if (videoDecoderPrepared && videoRenderPrepared) {
+    if (prepare_state > 3) {
         if (state != RUNNING && state != STOPPED) {
             state = RUNNING;
             LOGE(TAG, "%s", "start()");
@@ -85,9 +83,7 @@ void FFmpegPlayer::start() {
  */
 void FFmpegPlayer::resume() {
     LOGE(TAG, "%s", "resume() 0 ");
-    if (videoDecoderPrepared && videoRenderPrepared && audioDecoderPrepared && audioRenderPrepared) {
-//    if (audioDecoderPrepared && audioRenderPrepared) {
-//    if (videoDecoderPrepared && videoRenderPrepared) {
+    if (prepare_state > 3) {
         LOGE(TAG, "%s", "resume() 1");
         if (state == PAUSED) {
             LOGE(TAG, "%s", "resume() 2");
@@ -113,9 +109,7 @@ void FFmpegPlayer::resume() {
  */
 void FFmpegPlayer::pause() {
     LOGE(TAG, "%s", "pause()");
-    if (videoDecoderPrepared && videoRenderPrepared && audioDecoderPrepared && audioRenderPrepared) {
-//    if (audioDecoderPrepared && audioRenderPrepared) {
-//    if (videoDecoderPrepared && videoRenderPrepared) {
+    if (prepare_state > 3) {
         if (state == RUNNING) {
             state = PAUSED;
             if (videoRender != NULL) {
@@ -139,9 +133,7 @@ void FFmpegPlayer::pause() {
  */
 void FFmpegPlayer::stop() {
     LOGE(TAG, "%s", "stop()");
-    if (videoDecoderPrepared && videoRenderPrepared && audioDecoderPrepared && audioRenderPrepared) {
-//    if (audioDecoderPrepared && audioRenderPrepared) {
-//    if (videoDecoderPrepared && videoRenderPrepared) {
+    if (prepare_state > 3) {
         if (state != STOPPED) {
             state = STOPPED;
         }
@@ -191,14 +183,9 @@ void FFmpegPlayer::reset() {
         audioDecoder->stop();
         audioDecoder = NULL;
     }
-    videoDecoderPrepared = false;
-    videoRenderPrepared = false;
-    audioDecoderPrepared = false;
-    audioRenderPrepared = false;
-    videoDecoderCompleted = false;
-    videoRenderCompleted = false;
-    audioDecoderCompleted = false;
-    audioRenderCompleted = false;
+    prepare_state = 0;
+    complete_state = 0;
+    seek_complete_state = 0;
     state = IDLE;
 }
 
@@ -228,14 +215,9 @@ void FFmpegPlayer::release() {
         audioDecoder->stop();
         audioDecoder = NULL;
     }
-    videoDecoderPrepared = false;
-    videoRenderPrepared = false;
-    audioDecoderPrepared = false;
-    audioRenderPrepared = false;
-    videoDecoderCompleted = false;
-    videoRenderCompleted = false;
-    audioDecoderCompleted = false;
-    audioRenderCompleted = false;
+    prepare_state = 0;
+    complete_state = 0;
+    seek_complete_state = 0;
 
     LOGE(TAG, "%s", "release() 1");
     // 释放source url相关资源
@@ -250,9 +232,7 @@ void FFmpegPlayer::release() {
 jlong FFmpegPlayer::getDuration() {
     LOGE(TAG, "%s", "getDuration() 0");
     jlong ret = 0;
-    if (videoDecoderPrepared && videoRenderPrepared && audioDecoderPrepared && audioRenderPrepared) {
-//    if (audioDecoderPrepared && audioRenderPrepared) {
-//    if (videoDecoderPrepared && videoRenderPrepared) {
+    if (prepare_state > 3) {
         if (videoDecoder != NULL) {
             ret = videoDecoder->getDuration();
         }
@@ -272,9 +252,7 @@ jlong FFmpegPlayer::getDuration() {
  */
 jlong FFmpegPlayer::getCurrentTimestamp() {
     jlong timestamp = 0L;
-    if (videoDecoderPrepared && videoRenderPrepared && audioDecoderPrepared && audioRenderPrepared) {
-//    if (audioDecoderPrepared && audioRenderPrepared) {
-//    if (videoDecoderPrepared && videoRenderPrepared) {
+    if (prepare_state > 3) {
         if (videoRender != NULL && state != COMPLETED) {
             timestamp = videoRender->getCurrentPosition();
         }
@@ -290,17 +268,12 @@ jlong FFmpegPlayer::getCurrentTimestamp() {
  * @param position
  */
 void FFmpegPlayer::seekTo(jlong position) {
-    if (videoDecoderPrepared && videoRenderPrepared && audioDecoderPrepared && audioRenderPrepared) {
-//    if (audioDecoderPrepared && audioRenderPrepared) {
-//    if (videoDecoderPrepared && videoRenderPrepared) {
-        State temp = state;
+    if (prepare_state > 3 && state != STOPPED && state != ERROR && state != SEEKING) {
         state = SEEKING;
-        videoDecoderSeekCompleted = false;
-        audioDecoderSeekCompleted = false;
-        videoDecoderCompleted = false;
-        audioDecoderCompleted = false;
-        videoRenderCompleted = false;
-        audioRenderCompleted = false;
+
+        seek_complete_state = 0;
+        complete_state = 0;
+
         if (videoDecoder != NULL) {
             videoDecoder->seekTo(position);
         }
@@ -308,7 +281,6 @@ void FFmpegPlayer::seekTo(jlong position) {
             audioDecoder->seekTo(position);
         }
     }
-//    onPostEventToJava(jniEnv, CALLBACK_SEEK_COMPLETED, 0, 0, NULL);
 }
 
 /**
@@ -316,9 +288,8 @@ void FFmpegPlayer::seekTo(jlong position) {
  * @return
  */
 jint FFmpegPlayer::getMaxVolumeLevel() {
-//    if (videoDecoderPrepared && videoRenderPrepared && audioDecoderPrepared && audioRenderPrepared) {
     jint volumeLevel = 0;
-    if (audioDecoderPrepared && audioRenderPrepared) {
+    if (prepare_state > 3) {
         if (openSlRender != NULL) {
             volumeLevel = openSlRender->getMaxVolumeLevel();
         }
@@ -331,9 +302,8 @@ jint FFmpegPlayer::getMaxVolumeLevel() {
  * @return
  */
 jint FFmpegPlayer::getVolumeLevel() {
-//    if (videoDecoderPrepared && videoRenderPrepared && audioDecoderPrepared && audioRenderPrepared) {
     jint volumeLevel = 0;
-    if (audioDecoderPrepared && audioRenderPrepared) {
+    if (prepare_state > 3) {
         if (openSlRender != NULL) {
             volumeLevel = openSlRender->getVolumeLevel();
         }
@@ -346,8 +316,7 @@ jint FFmpegPlayer::getVolumeLevel() {
  * @param volume
  */
 void FFmpegPlayer::setVolumeLevel(jint volume) {
-//    if (videoDecoderPrepared && videoRenderPrepared && audioDecoderPrepared && audioRenderPrepared) {
-    if (audioDecoderPrepared && audioRenderPrepared) {
+    if (prepare_state > 3) {
         if (openSlRender != NULL) {
             openSlRender->setVolumeLevel(volume);
         }
@@ -366,32 +335,16 @@ void FFmpegPlayer::onDecoderInfo(JNIEnv *env, int decoder, int videoWidth, int v
 
 void FFmpegPlayer::onDecoderPrepared(JNIEnv *env, int decoder) {
     LOGE(TAG, "onDecoderPrepared: %d", decoder);
-    if (decoder == MODULE_CODE_VIDEO) {
-        videoDecoderPrepared = true;
-    }
-    else if (decoder == MODULE_CODE_AUDIO) {
-        audioDecoderPrepared = true;
-    }
+    ++prepare_state;
 }
 
 void FFmpegPlayer::onDecoderBufferUpdate(JNIEnv *env, int decoder, int progress) {}
 
 void FFmpegPlayer::onDecoderCompleted(JNIEnv *env, int decoder) {
     LOGE(TAG, "onDecoderCompleted: %d", decoder);
-    bool completed = false;
-    if (decoder == MODULE_CODE_VIDEO) {
-        videoDecoderCompleted = true;
-    }
-    else if (decoder == MODULE_CODE_AUDIO) {
-        audioDecoderCompleted = true;
-    }
-    if (videoRenderCompleted && audioRenderCompleted) {
-//    if (audioRenderCompleted) {
-//    if (videoRenderCompleted) {
+    ++complete_state;
+    if (complete_state > 3) {
         state = COMPLETED;
-        completed = true;
-    }
-    if (completed) {
         onPostEventToJava(env, CALLBACK_COMPLETED, 0, 0, NULL);
     }
 }
@@ -403,29 +356,18 @@ void FFmpegPlayer::onDecoderCompleted(JNIEnv *env, int decoder) {
  */
 void FFmpegPlayer::onDecoderSeekCompleted(JNIEnv *jniEnv, int decoder) {
     LOGE(TAG, "onDecoderSeekCompleted: %d", decoder);
-    bool completed = false;
-    if (decoder == MODULE_CODE_VIDEO) {
-        videoDecoderSeekCompleted = true;
-    }
-    else if (decoder == MODULE_CODE_AUDIO) {
-        audioDecoderSeekCompleted = true;
-    }
-
-    if (videoDecoderSeekCompleted && audioDecoderSeekCompleted) {
-//    if (audioDecoderSeekCompleted) {
-//    if (videoDecoderSeekCompleted) {
+    ++seek_complete_state;
+    if (seek_complete_state > 1) {
         if (state != COMPLETED) {
             state = PAUSED;
         }
-        completed = true;
-    }
-    if (completed) {
         onPostEventToJava(jniEnv, CALLBACK_SEEK_COMPLETED, 0, 0, NULL);
     }
 }
 
 void FFmpegPlayer::onDecoderError(JNIEnv *env, int decoder, int code, const char *msg) {
     LOGE(TAG, "onDecoderError: %d, %d, %s", decoder, code, msg);
+    state = ERROR;
     onError(env, code, msg);
     if (decoder == MODULE_CODE_VIDEO) {
         if (videoDecoder != NULL) {
@@ -455,50 +397,34 @@ void FFmpegPlayer::onDecoderError(JNIEnv *env, int decoder, int code, const char
 
 void FFmpegPlayer::onRenderPrepared(JNIEnv *env, int render) {
     LOGE(TAG, "onRenderPrepared(): %d", render);
-    bool prepared = false;
-    if (render == MODULE_CODE_VIDEO) {
-        videoRenderPrepared = true;
+    if (render == MODULE_CODE_VIDEO || render == MODULE_CODE_OPENGL) {
+        ++prepare_state;
         if (videoRender != NULL) {
             videoRender->setSurface(env, jsurface);
         }
     }
     else if (render == MODULE_CODE_AUDIO) {
-        audioRenderPrepared = true;
+        ++prepare_state;
     }
-    if (videoRenderPrepared && audioRenderPrepared && state == IDLE) {
-//    if (audioRenderPrepared && state == IDLE) {
-//    if (videoRenderPrepared && state == IDLE) {
+    if (prepare_state > 3 && state == IDLE) {
         state = PREPARED;
-        prepared = true;
-    }
-    if (prepared) {
         onPostEventToJava(env, CALLBACK_PREPARED, 0, 0, NULL);
     }
 }
 
 void FFmpegPlayer::onRenderCompleted(JNIEnv *env, int render) {
     LOGE(TAG, "onRenderCompleted: %d", render);
-    bool completed = false;
-    if (render == MODULE_CODE_VIDEO) {
-        videoRenderCompleted = true;
-    }
-    else if (render == MODULE_CODE_AUDIO) {
-        audioRenderCompleted = true;
-    }
-    if (videoRenderCompleted && audioRenderCompleted) {
-//    if (audioRenderCompleted) {
-//    if (videoRenderCompleted) {
+    ++complete_state;
+    if (complete_state > 3) {
         state = COMPLETED;
         sync_clock = getDuration();
-        completed = true;
-    }
-    if (completed) {
         onPostEventToJava(env, CALLBACK_COMPLETED, 0, 0, NULL);
     }
 }
 
 void FFmpegPlayer::onRenderError(JNIEnv *env, int render, int code, const char *msg) {
     LOGE(TAG, "onRenderError: %d, %d, %s", render, code, msg);
+    state = ERROR;
     onError(env, code, msg);
     if (render == MODULE_CODE_VIDEO) {
         if (videoDecoder != NULL) {
