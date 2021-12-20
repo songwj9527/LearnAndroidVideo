@@ -275,8 +275,8 @@ class Camera2OutputActivity : AppCompatActivity(), Camera2Operator.RequestCallba
                 nv12 = ByteArray(width * height * 3 / 2)
             }
 
-            // 将YUV420转换成NV21
-            CameraFrameUtils.YUV420ToNV21(image, nv21, width, height)
+            // 将YUV420SP转换成NV21
+            CameraFrameUtils.YUV420SPToNV21(image, nv21, width, height)
             // 默认摄像头图像传感器的坐标系（图像）有旋转角度的，所以想要旋转相应角度，才是屏幕正常显示的坐标（图像）
             CameraFrameUtils.nv21Rotate(nv21, dest, width, height, cameraOrientation)
             // nv21转换成nv12的数据

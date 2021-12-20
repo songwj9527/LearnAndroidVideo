@@ -153,6 +153,10 @@ public abstract class Camera2Operator {
         return cameraOrientation == null ? 0 : cameraOrientation;
     }
 
+    public int getPreviewFps() {
+        return previewFpsRange == null ? 25 : ((previewFpsRange.getLower() + previewFpsRange.getUpper()) / 2);
+    }
+
     public void setSurfaceTexture(SurfaceTexture surfaceTexture) {
         if (this.surfaceTexture != surfaceTexture) {
             this.surfaceTexture = surfaceTexture;
@@ -829,7 +833,7 @@ public abstract class Camera2Operator {
         this.outputListener = outputListener;
     }
 
-    protected OnImageAvailableOutputListener outputListener = null;
+    protected volatile OnImageAvailableOutputListener outputListener = null;
     public interface OnImageAvailableOutputListener {
         public void onImageAvailable(byte[] image, Size size);
     }

@@ -229,6 +229,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:text="GPUIMAGE_CAMERA2_PREVIEW" />
+            <Button
+                android:id="@+id/btn_rtmp_live_push"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="RTMP_LIVE_PUSH" />
 
         </LinearLayout>
 

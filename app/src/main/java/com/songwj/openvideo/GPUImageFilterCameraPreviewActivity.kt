@@ -268,7 +268,7 @@ class GPUImageFilterCameraPreviewActivity : AppCompatActivity(),
         image?.let {
             if (isOpened && attachGPUImageView) {
                 var nv21 = ByteArray(size!!.width * size.height * 3 / 2)
-                CameraFrameUtils.YUV420ToNV21(image, nv21, size!!.width, size.height)
+                CameraFrameUtils.YUV420SPToNV21(image, nv21, size!!.width, size.height)
                 gpu_image_view.updatePreviewFrame(nv21, size!!.width, size.height)
             }
         }

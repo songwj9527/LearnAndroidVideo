@@ -63,7 +63,12 @@ public class CameraFrameUtils {
         }
     }
 
-    public static byte[] YUV420ToNV21(Image image) {
+    /**
+     * yuv420sp转成nv21
+     * @param image
+     * @return
+     */
+    public static byte[] YUV420SPToNV21(Image image) {
         Rect crop = image.getCropRect();
         int format = image.getFormat();
         int width = crop.width();
@@ -118,7 +123,7 @@ public class CameraFrameUtils {
     }
 
     /**
-     * yuv转成nv21
+     * yuv420sp转成nv21
      * @param y
      * @param u
      * @param v
@@ -126,7 +131,7 @@ public class CameraFrameUtils {
      * @param stride
      * @param height
      */
-    public static void YUV420ToNV21(byte[] y, byte[] u, byte[] v, byte[] nv21, int stride, int height) {
+    public static void YUV420SPToNV21(byte[] y, byte[] u, byte[] v, byte[] nv21, int stride, int height) {
         System.arraycopy(y, 0, nv21, 0, y.length);
         // 注意，若length值为 y.length * 3 / 2 会有数组越界的风险，需使用真实数据长度计算
         int length = y.length + u.length / 2 + v.length / 2;
@@ -140,13 +145,13 @@ public class CameraFrameUtils {
     }
 
     /**
-     * yuv转成nv21
+     * yuv420sp转成nv21
      * @param yuv
      * @param nv21
      * @param width
      * @param height
      */
-    public static void YUV420ToNV21(byte[] yuv, byte[] nv21, int width, int height) {
+    public static void YUV420SPToNV21(byte[] yuv, byte[] nv21, int width, int height) {
         // yuv格式为：Y， width * height
         //          UV， width * height / 2
         //          VU， width * height / 2

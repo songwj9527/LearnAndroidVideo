@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".RTMPLivePushActivity">
+
+    <com.songwj.openvideo.push.AVStreamPush
+        android:id="@+id/av_stream_push"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </com.songwj.openvideo.push.AVStreamPush>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="bottom"
+        android:gravity="center"
+        android:layout_marginBottom="30dp">
+
+        <Button
+            android:id="@+id/btn_start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="开始推流" />
+
+        <Button
+            android:id="@+id/btn_stop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:text="停止推流" />
+
+        <Button
+            android:id="@+id/btn_switch_camera"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="切换相机"/>
+
+    </LinearLayout>
+
+</FrameLayout>

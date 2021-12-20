@@ -181,6 +181,13 @@ public class Camera2Manager {
         return null;
     }
 
+    synchronized public int getPreviewFps() {
+        if (operator != null) {
+            return operator.getPreviewFps();
+        }
+        return 0;
+    }
+
     synchronized public void takePicture(String filePath, Camera2Operator.TakePictureCallback callback) {
         if (TextUtils.isEmpty(filePath)
                 || operator == null
@@ -223,7 +230,7 @@ public class Camera2Manager {
         }
         byte[] nv21 = new byte[size.getWidth() * size.getHeight() * 3 / 2];
         // YUV转换成NV21
-        CameraFrameUtils.YUV420ToNV21(y, u, v, nv21, stride, size.getHeight());
+        CameraFrameUtils.YUV420SPToNV21(y, u, v, nv21, stride, size.getHeight());
         new Thread(new CaptureYUV420Runnable(capturePath, nv21, size, cameraId, cameraOrientation)).start();
     }
 
@@ -259,8 +266,8 @@ public class Camera2Manager {
             byte[] nv21 = new byte[width * height * 3 / 2];
             byte[] dest = new byte[width * height * 3 / 2];
 
-            // 将YUV420转换成NV21
-            CameraFrameUtils.YUV420ToNV21(yuv, nv21, width, height);
+            // 将YUV420SP转换成NV21
+            CameraFrameUtils.YUV420SPToNV21(yuv, nv21, width, height);
 
             // 默认摄像头图像传感器的坐标系（图像）有旋转角度的，所以想要旋转相应角度，才是屏幕正常显示的坐标（图像）
             CameraFrameUtils.nv21Rotate(nv21, dest, width, height, cameraOrientation);

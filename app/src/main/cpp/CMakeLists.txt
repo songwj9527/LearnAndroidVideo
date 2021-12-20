@@ -5,7 +5,17 @@ cmake_minimum_required(VERSION 3.4.1)
 # set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../jniLibs/${ANDROID_ABI})
 
 # 支持C++11标准和GNU扩展特性
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+# 1) -fPIC
+#    fPIC的全称是 Position Independent Code， 用于生成位置无关代码。
+#    不加fPIC编译的so必须要在加载到用户程序的地址空间时重定向所有表目，它里面不能引用其它地方的代码，
+#    加了fPIC实现真正意义上的多个进程共享so文件。
+# 2) 设置优化程度：
+#   -O0表明不做优化，-O3表示设置为最高优化程度。
+# 3）开启采用NEON优化技术
+#   -mfpu=neon
+# -fPIC -march=armv7-a -mtune=cortex-a8 -O3 -mfloat-abi=softfp -mfpu=neon -ftree-vectorize -ffast-math
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -march=armv7-a -mtune=cortex-a8 -O3 -mfloat-abi=softfp -mfpu=neon -ftree-vectorize -ffast-math")
 
 # 1. 定义so库和头文件所在目录，方面后面使用
 set(ffmpeg_lib_dir ${CMAKE_SOURCE_DIR}/../jniLibs/${ANDROID_ABI})
