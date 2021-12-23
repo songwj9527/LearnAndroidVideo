@@ -18,4 +18,4 @@
   4. camera2 + 自定义OpenGL 预览、拍照和视频录制；
   5. camerax预览、拍照；
   6. GPUImage滤镜 + camera2相机 预览、拍照（视频录制目前没做，懒。。。思路是自定义GPUImage,参考第4点即可实现）；
-  7. rtmp推流实现:camera2相机预览 + x264 + faac（未完待续）。
+  7. rtmp推流实现:camera2相机预览 + （x264 + faac）编码 + 推送（未完待续）。
