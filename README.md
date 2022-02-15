@@ -19,3 +19,7 @@
   5. camerax预览、拍照；
   6. GPUImage滤镜 + camera2相机 预览、拍照（视频录制目前没做，懒。。。思路是自定义GPUImage,参考第4点即可实现）；
   7. rtmp推流实现:camera2相机预览 + （x264 + faac）编码 + 推送（未完待续）。
+
+ffmpeg：https://ffmpeg.org/download.html
+x264：http://www.videolan.org/developers/x264.html
+faac：http://downloads.sourceforge.NET/faac/faac-1.29.tar.gz
