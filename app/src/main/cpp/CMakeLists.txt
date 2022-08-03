@@ -9,10 +9,23 @@ cmake_minimum_required(VERSION 3.4.1)
 #    fPIC的全称是 Position Independent Code， 用于生成位置无关代码。
 #    不加fPIC编译的so必须要在加载到用户程序的地址空间时重定向所有表目，它里面不能引用其它地方的代码，
 #    加了fPIC实现真正意义上的多个进程共享so文件。
-# 2) 设置优化程度：
+# 2) 指定CPU架构：-march
+#   -march=armv7-a
+# 3) 指定CPU类型：-mtune
+#   -mtune=cortex-a8
+# 4) 设置优化程度：
 #   -O0表明不做优化，-O3表示设置为最高优化程度。
-# 3）开启采用NEON优化技术
-#   -mfpu=neon
+# 5）浮点协处理器类型：-mfpu
+#   -mfpu=neon // 开启采用NEON优化技术
+# 6) 浮点运算处理方式：-mfloat-abi（在指定-mfpu的情况下使用）
+#     soft是指所有浮点运算全部在软件层实现，效率当然不高，会存在不必要的浮点到整数、整数到浮点的转换，只适合于早期没有浮点计算单元的ARM处理器；
+#     softfp是目前armel的默认设置，它将浮点计算交给FPU处理，但函数参数的传递使用通用的整型寄存器而不是FPU寄存器；
+#     hard则使用FPU浮点寄存器将函数参数传递给FPU处理。
+#     需要注意的是，在兼容性上，soft与后两者是兼容的，但softfp和hard两种模式不兼容。
+#     默认情况下，armel使用softfp，因此将hard模式的armel单独作为一个abi，称之为armhf。而使用hard模式，在每次浮点相关函数调用时，平均能节省20个CPU周期。
+#     对ARM这样每个周期都很重要的体系结构来说，这样的提升无疑是巨大的。在完全不改变源码和配置的情况下，在一些应用程序上，使用armhf能得到20%——25%的性能提升。对一些严重依赖于浮点运算的程序，更是可以达到300%的性能提升。
+# 7）-ftree-vectorize，选项打开自动向量化，并在使用-O3时自动设置此标志。
+# 8）-ffast-math，优化浮点运算，指示编译不必遵循 IEEE 和 ISO 的浮点运算标准，提高浮点运算速度。
 # -fPIC -march=armv7-a -mtune=cortex-a8 -O3 -mfloat-abi=softfp -mfpu=neon -ftree-vectorize -ffast-math
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -march=armv7-a -mtune=cortex-a8 -O3 -mfloat-abi=softfp -mfpu=neon -ftree-vectorize -ffast-math")
